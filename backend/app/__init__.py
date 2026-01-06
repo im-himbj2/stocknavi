@@ -1,0 +1,4 @@
+"""
+Stock Portfolio Backend Application
+"""
+

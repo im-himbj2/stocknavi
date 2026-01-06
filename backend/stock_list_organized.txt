@@ -1,0 +1,481 @@
+================================================================================
+주식 포트폴리오 - 전체 주식 목록
+================================================================================
+
+일반 주식: 365개
+--------------------------------------------------------------------------------
+번호     심볼         회사명                                                거래소       
+--------------------------------------------------------------------------------
+1      AAON       AAON Inc.                                          NASDAQ    
+2      AAPL       Apple Inc.                                         NASDAQ    
+3      ABBV       AbbVie Inc.                                        NYSE      
+4      ABM        ABM Industries Incorporated                        NYSE      
+5      ABNB       Airbnb, Inc.                                       NYSE      
+6      ABT        Abbott Laboratories                                NYSE      
+7      ACM        AECOM                                              NYSE      
+8      ACN        Accenture plc                                      NYSE      
+9      ADBE       Adobe Inc.                                         NASDAQ    
+10     ADI        Analog Devices, Inc.                               NYSE      
+11     ADM        Archer-Daniels-Midland Company                     NYSE      
+12     ADP        Automatic Data Processing, Inc.                    NYSE      
+13     AEE        Ameren Corporation                                 NYSE      
+14     AEM        Agnico Eagle Mines Limited                         NYSE      
+15     AEP        American Electric Power Company Inc.               NASDAQ    
+16     AES        The AES Corporation                                NYSE      
+17     AFL        Aflac Incorporated                                 NYSE      
+18     AFRM       Affirm Holdings, Inc.                              NYSE      
+19     AG         First Majestic Silver Corp.                        NYSE      
+20     AGCO       AGCO Corporation                                   NYSE      
+21     AGNC       AGNC Investment Corp.                              NASDAQ    
+22     ALG        Alamo Group Inc.                                   NYSE      
+23     ALGN       Align Technology, Inc.                             NYSE      
+24     AMAT       Applied Materials, Inc.                            NYSE      
+25     AMD        Advanced Micro Devices                             NASDAQ    
+26     AME        AMETEK Inc.                                        NYSE      
+27     AMGN       Amgen Inc.                                         NYSE      
+28     AMT        American Tower Corporation                         NYSE      
+29     AMZN       Amazon.com Inc.                                    NASDAQ    
+30     ANET       Arista Networks Inc                                NYSE      
+31     AON        Aon plc                                            NYSE      
+32     AOS        A.O. Smith Corporation                             NYSE      
+33     APD        Air Products and Chemicals Inc.                    NYSE      
+34     APH        Amphenol Corporation                               NYSE      
+35     ARTNA      Artesian Resources Corporation                     NASDAQ    
+36     ASAN       Asana, Inc.                                        NYSE      
+37     ASTE       Astec Industries Inc.                              NASDAQ    
+38     ATO        Atmos Energy Corporation                           NYSE      
+39     AVGO       Broadcom Inc.                                      NYSE      
+40     AWR        American States Water Company                      NYSE      
+41     AXP        American Express Company                           NYSE      
+42     AZEK       The AZEK Company Inc.                              NYSE      
+43     BA         The Boeing Company                                 NYSE      
+44     BABA       Alibaba Group Holding Limited                      NYSE      
+45     BAC        Bank of America Corp.                              NYSE      
+46     BDX        Becton, Dickinson and Company                      NYSE      
+47     BECN       Beacon Roofing Supply Inc.                         NASDAQ    
+48     BEN        Franklin Resources Inc.                            NYSE      
+49     BF.B       Brown-Forman Corporation                           NYSE      
+50     BHP        BHP Group Limited                                  NYSE      
+51     BIDU       Baidu, Inc.                                        NYSE      
+52     BKH        Black Hills Corporation                            NYSE      
+53     BKNG       Booking Holdings Inc.                              NYSE      
+54     BKR        Baker Hughes Company                               NYSE      
+55     BL         BlackLine, Inc.                                    NYSE      
+56     BLDR       Builders FirstSource Inc.                          NYSE      
+57     BMY        Bristol-Myers Squibb Company                       NYSE      
+58     BR         Broadridge Financial Solutions, Inc.               NYSE      
+59     BRK.B      BRK.B                                              NASDAQ    
+60     BUD        Anheuser-Busch InBev SA/NV                         NYSE      
+61     BZH        Beazer Homes USA Inc.                              NYSE      
+62     C          Citigroup Inc.                                     NYSE      
+63     CARR       Carrier Global Corporation                         NYSE      
+64     CAT        Caterpillar Inc.                                   NYSE      
+65     CB         Chubb Limited                                      NYSE      
+66     CBRE       CBRE Group, Inc.                                   NYSE      
+67     CDE        Coeur Mining, Inc.                                 NYSE      
+68     CDNS       Cadence Design Systems, Inc.                       NYSE      
+69     CDW        CDW Corporation                                    NYSE      
+70     CHD        Church & Dwight Co. Inc.                           NYSE      
+71     CHRW       C.H. Robinson Worldwide, Inc.                      NYSE      
+72     CHTR       Charter Communications, Inc.                       NYSE      
+73     CINF       Cincinnati Financial Corporation                   NASDAQ    
+74     CL         Colgate-Palmolive Company                          NYSE      
+75     CLX        The Clorox Company                                 NYSE      
+76     CMCSA      Comcast Corporation                                NASDAQ    
+77     CME        CME Group Inc.                                     NYSE      
+78     CMS        CMS Energy Corporation                             NYSE      
+79     CNHI       CNH Industrial N.V.                                NYSE      
+80     CNP        CenterPoint Energy Inc.                            NYSE      
+81     COIN       Coinbase Global, Inc.                              NYSE      
+82     COP        ConocoPhillips                                     NYSE      
+83     COST       Costco Wholesale Corporation                       NASDAQ    
+84     CPRT       Copart, Inc.                                       NYSE      
+85     CRM        Salesforce Inc.                                    NYSE      
+86     CRWD       CrowdStrike Holdings, Inc.                         NYSE      
+87     CSCO       Cisco Systems Inc.                                 NASDAQ    
+88     CTAS       Cintas Corporation                                 NASDAQ    
+89     CTSH       Cognizant Technology Solutions Corporation         NYSE      
+90     CVCO       Cavco Industries Inc.                              NASDAQ    
+91     CVX        Chevron Corporation                                NYSE      
+92     CWCO       Consolidated Water Co. Ltd.                        NASDAQ    
+93     CWT        California Water Service Group                     NYSE      
+94     D          Dominion Energy Inc.                               NYSE      
+95     DDOG       Datadog, Inc.                                      NYSE      
+96     DE         Deere & Company                                    NYSE      
+97     DEO        Diageo plc                                         NYSE      
+98     DHI        D.R. Horton Inc.                                   NYSE      
+99     DHR        Danaher Corporation                                NYSE      
+100    DIDI       DIDI                                               NASDAQ    
+101    DIS        The Walt Disney Company                            NYSE      
+102    DOC        Healthpeak Properties, Inc.                        NYSE      
+103    DOCN       DigitalOcean Holdings, Inc.                        NYSE      
+104    DOCS       Doximity, Inc.                                     NYSE      
+105    DOCU       DocuSign, Inc.                                     NYSE      
+106    DOV        Dover Corporation                                  NYSE      
+107    DOW        Dow Inc.                                           NYSE      
+108    DTE        DTE Energy Company                                 NYSE      
+109    DUK        Duke Energy Corporation                            NYSE      
+110    DXCM       DexCom, Inc.                                       NYSE      
+111    DY         Dycom Industries Inc.                              NYSE      
+112    EBAY       eBay Inc.                                          NYSE      
+113    ECL        Ecolab Inc.                                        NYSE      
+114    ED         Consolidated Edison Inc.                           NYSE      
+115    EDU        New Oriental Education & Technology Group Inc.     NYSE      
+116    EIX        Edison International                               NYSE      
+117    ELV        Elevance Health, Inc.                              NYSE      
+118    EME        EMCOR Group Inc.                                   NYSE      
+119    EMR        Emerson Electric Co.                               NYSE      
+120    ENB        Enbridge Inc.                                      NYSE      
+121    EPD        Enterprise Products Partners L.P.                  NYSE      
+122    EQIX       Equinix, Inc.                                      NYSE      
+123    ES         Eversource Energy                                  NYSE      
+124    ESTC       Elastic N.V.                                       NYSE      
+125    ET         Energy Transfer LP                                 NYSE      
+126    ETN        Eaton Corporation plc                              NYSE      
+127    ETR        Entergy Corporation                                NYSE      
+128    ETSY       Etsy, Inc.                                         NYSE      
+129    EV         Eaton Vance Corporation                            NYSE      
+130    EXC        Exelon Corporation                                 NYSE      
+131    EXK        Endeavour Silver Corp.                             NYSE      
+132    EXPD       Expeditors International of Washington             NASDAQ    
+133    EXPE       Expedia Group, Inc.                                NYSE      
+134    EXPI       eXp World Holdings, Inc.                           NYSE      
+135    FAST       Fastenal Company                                   NASDAQ    
+136    FBHS       Fortune Brands Home & Security Inc.                NYSE      
+137    FCX        Freeport-McMoRan Inc.                              NYSE      
+138    FDS        FactSet Research Systems Inc.                      NYSE      
+139    FE         FirstEnergy Corp.                                  NYSE      
+140    FLR        Fluor Corporation                                  NYSE      
+141    FMCB       Farmers & Merchants Bancorp                        NASDAQ    
+142    FNV        Franco-Nevada Corporation                          NYSE      
+143    FOUR       Shift4 Payments, Inc.                              NYSE      
+144    FOXA       Fox Corporation                                    NYSE      
+145    FROG       JFrog Ltd.                                         NYSE      
+146    FTNT       Fortinet, Inc.                                     NYSE      
+147    FUL        H.B. Fuller Company                                NYSE      
+148    GE         General Electric Company                           NYSE      
+149    GGG        Graco Inc.                                         NYSE      
+150    GMS        GMS Inc.                                           NYSE      
+151    GOLD       GOLD                                               NASDAQ    
+152    GOOG       Alphabet Inc.                                      NYSE      
+153    GOOGL      Alphabet Inc.                                      NASDAQ    
+154    GOTU       Gaotu Techedu Inc.                                 NYSE      
+155    GPC        Genuine Parts Company                              NYSE      
+156    GRAB       Grab Holdings Limited                              NYSE      
+157    GRBK       Green Brick Partners Inc.                          NYSE      
+158    GS         Goldman Sachs Group Inc.                           NYSE      
+159    HD         The Home Depot Inc.                                NYSE      
+160    HEINY      Heineken N.V.                                      NYSE      
+161    HESM       Hess Midstream LP                                  NYSE      
+162    HL         Hecla Mining Company                               NYSE      
+163    HLT        Hilton Worldwide Holdings Inc.                     NYSE      
+164    HON        Honeywell International Inc.                       NASDAQ    
+165    HOOD       Robinhood Markets, Inc.                            NYSE      
+166    HOV        Hovnanian Enterprises Inc.                         NYSE      
+167    HRL        Hormel Foods Corporation                           NYSE      
+168    IBM        International Business Machines                    NYSE      
+169    IDXX       IDEXX Laboratories, Inc.                           NYSE      
+170    INTC       Intel Corporation                                  NASDAQ    
+171    INTU       Intuit Inc.                                        NYSE      
+172    IR         Ingersoll Rand Inc.                                NYSE      
+173    IRM        Iron Mountain Incorporated                         NYSE      
+174    ISRG       Intuitive Surgical, Inc.                           NYSE      
+175    ITW        Illinois Tool Works Inc.                           NYSE      
+176    J          Jacobs Engineering Group Inc.                      NYSE      
+177    JCI        Johnson Controls International plc                 NYSE      
+178    JD         JD.com, Inc.                                       NYSE      
+179    JNJ        Johnson & Johnson                                  NYSE      
+180    JPM        JPMorgan Chase & Co.                               NYSE      
+181    KBH        KB Home                                            NYSE      
+182    KLAC       KLA Corporation                                    NYSE      
+183    KMB        Kimberly-Clark Corporation                         NYSE      
+184    KMI        Kinder Morgan Inc.                                 NYSE      
+185    KO         The Coca-Cola Company                              NYSE      
+186    LANC       Lancaster Colony Corporation                       NASDAQ    
+187    LBRDK      Liberty Broadband Corporation                      NYSE      
+188    LC         LendingClub Corporation                            NYSE      
+189    LEG        Leggett & Platt Incorporated                       NYSE      
+190    LEN        Lennar Corporation                                 NYSE      
+191    LGIH       LGI Homes Inc.                                     NASDAQ    
+192    LII        Lennox International Inc.                          NYSE      
+193    LIN        Linde plc                                          NYSE      
+194    LLY        Eli Lilly and Company                              NYSE      
+195    LNN        Lindsay Corporation                                NYSE      
+196    LNT        Alliant Energy Corporation                         NASDAQ    
+197    LOW        Lowe's Companies, Inc.                             NYSE      
+198    LRCX       Lam Research Corporation                           NYSE      
+199    MA         Mastercard Inc.                                    NYSE      
+200    MAR        Marriott International, Inc.                       NYSE      
+201    MAS        Masco Corporation                                  NYSE      
+202    MCD        McDonald's Corporation                             NYSE      
+203    MCHP       Microchip Technology Incorporated                  NYSE      
+204    MDB        MongoDB, Inc.                                      NYSE      
+205    MELI       MercadoLibre, Inc.                                 NYSE      
+206    META       Meta Platforms Inc.                                NASDAQ    
+207    MGEE       MGE Energy Inc.                                    NASDAQ    
+208    MHO        M/I Homes Inc.                                     NYSE      
+209    MKC        McCormick & Company Incorporated                   NYSE      
+210    MMM        3M Company                                         NYSE      
+211    MNDY       monday.com Ltd.                                    NYSE      
+212    MO         Altria Group Inc.                                  NYSE      
+213    MPC        Marathon Petroleum Corporation                     NYSE      
+214    MPLX       MPLX LP                                            NYSE      
+215    MRK        Merck & Co. Inc.                                   NYSE      
+216    MS         Morgan Stanley                                     NYSE      
+217    MSEX       Middlesex Water Company                            NASDAQ    
+218    MSFT       Microsoft Corporation                              NASDAQ    
+219    MTH        Meritage Homes Corporation                         NYSE      
+220    MTZ        MasTec Inc.                                        NYSE      
+221    MUX        McEwen Inc.                                        NYSE      
+222    NDAQ       Nasdaq Inc.                                        NASDAQ    
+223    NEE        NextEra Energy Inc.                                NYSE      
+224    NEM        Newmont Corporation                                NYSE      
+225    NET        Cloudflare, Inc.                                   NYSE      
+226    NFG        National Fuel Gas Company                          NYSE      
+227    NI         NiSource Inc.                                      NYSE      
+228    NKE        Nike Inc.                                          NYSE      
+229    NOW        ServiceNow, Inc.                                   NYSE      
+230    NTES       NetEase, Inc.                                      NYSE      
+231    NU         Nu Holdings Ltd.                                   NYSE      
+232    NUE        Nucor Corporation                                  NYSE      
+233    NVDA       NVIDIA Corporation                                 NASDAQ    
+234    NVR        NVR Inc.                                           NYSE      
+235    NWL        Newell Brands Inc.                                 NASDAQ    
+236    NWN        Northwest Natural Holding Company                  NYSE      
+237    NWSA       News Corporation                                   NYSE      
+238    NXPI       NXP Semiconductors N.V.                            NYSE      
+239    O          Realty Income Corporation                          NYSE      
+240    OC         Owens Corning                                      NYSE      
+241    ODFL       Old Dominion Freight Line, Inc.                    NYSE      
+242    OHI        Omega Healthcare Investors Inc.                    NYSE      
+243    OKE        ONEOK Inc.                                         NYSE      
+244    OKTA       Okta, Inc.                                         NYSE      
+245    ORCL       Oracle Corporation                                 NYSE      
+246    OSK        Oshkosh Corporation                                NYSE      
+247    PAAS       Pan American Silver Corp.                          NYSE      
+248    PAGS       PagSeguro Digital Ltd.                             NYSE      
+249    PANW       Palo Alto Networks, Inc.                           NYSE      
+250    PARA       PARA                                               NASDAQ    
+251    PAYX       Paychex, Inc.                                      NYSE      
+252    PCG        PG&E Corporation                                   NYSE      
+253    PDD        PDD Holdings Inc.                                  NYSE      
+254    PEP        PepsiCo Inc.                                       NASDAQ    
+255    PFE        Pfizer Inc.                                        NYSE      
+256    PG         The Procter & Gamble Company                       NYSE      
+257    PH         Parker-Hannifin Corporation                        NYSE      
+258    PHM        PulteGroup Inc.                                    NYSE      
+259    PLD        Prologis Inc.                                      NYSE      
+260    PM         Philip Morris International Inc.                   NYSE      
+261    PNR        Pentair plc                                        NYSE      
+262    PNW        Pinnacle West Capital Corporation                  NYSE      
+263    POOL       Pool Corporation                                   NYSE      
+264    PPG        PPG Industries Inc.                                NYSE      
+265    PPL        PPL Corporation                                    NYSE      
+266    PRIM       Primoris Services Corporation                      NASDAQ    
+267    PSA        Public Storage                                     NYSE      
+268    PSX        Phillips 66                                        NYSE      
+269    PWR        Quanta Services Inc.                               NYSE      
+270    PYPL       PayPal Holdings, Inc.                              NYSE      
+271    QCOM       QUALCOMM Incorporated                              NYSE      
+272    RDFN       RDFN                                               NASDAQ    
+273    RIO        Rio Tinto Group                                    NYSE      
+274    RLI        RLI Corp.                                          NYSE      
+275    RMD        ResMed Inc.                                        NYSE      
+276    ROAD       Construction Partners Inc.                         NASDAQ    
+277    ROK        Rockwell Automation Inc.                           NYSE      
+278    ROL        Rollins, Inc.                                      NYSE      
+279    ROP        Roper Technologies Inc.                            NYSE      
+280    RTX        RTX Corporation                                    NYSE      
+281    RYL        Ryland Group Inc.                                  NYSE      
+282    S          SentinelOne, Inc.                                  NYSE      
+283    SAM        The Boston Beer Company, Inc.                      NYSE      
+284    SBS        Companhia de Saneamento Básico do Estado de São Paulo NYSE      
+285    SBUX       Starbucks Corporation                              NASDAQ    
+286    SE         Sea Limited                                        NYSE      
+287    SHOP       Shopify Inc.                                       NYSE      
+288    SHW        The Sherwin-Williams Company                       NYSE      
+289    SILV       SILV                                               NASDAQ    
+290    SJW        SJW Group                                          NYSE      
+291    SKY        Skyline Champion Corporation                       NYSE      
+292    SNOW       Snowflake Inc.                                     NYSE      
+293    SNPS       Synopsys, Inc.                                     NYSE      
+294    SO         The Southern Company                               NYSE      
+295    SOFI       SoFi Technologies, Inc.                            NYSE      
+296    SPG        Simon Property Group, Inc.                         NYSE      
+297    SPGI       S&P Global Inc.                                    NYSE      
+298    SQ         SQ                                                 NASDAQ    
+299    SRE        Sempra Energy                                      NYSE      
+300    STAG       STAG Industrial Inc.                               NYSE      
+301    STE        STERIS plc                                         NYSE      
+302    STOR       STORE Capital Corporation                          NYSE      
+303    STZ        Constellation Brands, Inc.                         NYSE      
+304    SWAV       SWAV                                               NASDAQ    
+305    SWK        Stanley Black & Decker Inc.                        NYSE      
+306    SYK        Stryker Corporation                                NYSE      
+307    SYY        Sysco Corporation                                  NYSE      
+308    T          AT&T Inc.                                          NYSE      
+309    TAL        TAL Education Group                                NYSE      
+310    TAP        Molson Coors Beverage Company                      NYSE      
+311    TCOM       Trip.com Group Limited                             NYSE      
+312    TEAM       Atlassian Corporation                              NYSE      
+313    TECH       Bio-Techne Corporation                             NYSE      
+314    TEX        Terex Corporation                                  NYSE      
+315    TGT        Target Corporation                                 NYSE      
+316    TJX        The TJX Companies, Inc.                            NYSE      
+317    TME        Tencent Music Entertainment Group                  NYSE      
+318    TMO        Thermo Fisher Scientific Inc.                      NYSE      
+319    TOL        Toll Brothers Inc.                                 NYSE      
+320    TREX       Trex Company Inc.                                  NYSE      
+321    TRIP       Tripadvisor, Inc.                                  NYSE      
+322    TROW       T. Rowe Price Group Inc.                           NASDAQ    
+323    TRP        TC Energy Corporation                              NYSE      
+324    TRV        The Travelers Companies, Inc.                      NYSE      
+325    TSLA       Tesla Inc.                                         NASDAQ    
+326    TT         Trane Technologies plc                             NYSE      
+327    TTC        The Toro Company                                   NYSE      
+328    TWO        Two Harbors Investment Corp.                       NYSE      
+329    TXN        Texas Instruments Incorporated                     NYSE      
+330    UFPI       UFP Industries Inc.                                NASDAQ    
+331    UGI        UGI Corporation                                    NYSE      
+332    UNH        UnitedHealth Group Inc.                            NYSE      
+333    UPS        United Parcel Service, Inc.                        NYSE      
+334    UPST       Upstart Holdings, Inc.                             NYSE      
+335    USG        USG Corporation                                    NYSE      
+336    V          Visa Inc.                                          NYSE      
+337    VALE       Vale S.A.                                          NYSE      
+338    VEEV       Veeva Systems Inc.                                 NYSE      
+339    VFC        V.F. Corporation                                   NYSE      
+340    VIPS       Vipshop Holdings Limited                           NYSE      
+341    VLO        Valero Energy Corporation                          NYSE      
+342    VRSK       Verisk Analytics, Inc.                             NYSE      
+343    VZ         Verizon Communications Inc.                        NYSE      
+344    W          Wayfair Inc.                                       NYSE      
+345    WB         Weibo Corporation                                  NYSE      
+346    WBA        Walgreens Boots Alliance Inc.                      NASDAQ    
+347    WBD        Warner Bros. Discovery, Inc.                       NYSE      
+348    WDAY       Workday, Inc.                                      NYSE      
+349    WEC        WEC Energy Group Inc.                              NYSE      
+350    WELL       Welltower Inc.                                     NYSE      
+351    WFC        Wells Fargo & Company                              NYSE      
+352    WMT        Walmart Inc.                                       NYSE      
+353    WPC        W.P. Carey Inc.                                    NYSE      
+354    WPM        Wheaton Precious Metals Corp.                      NYSE      
+355    WSO        Watsco Inc.                                        NYSE      
+356    WST        West Pharmaceutical Services Inc.                  NYSE      
+357    WTRG       Essential Utilities Inc.                           NYSE      
+358    XEL        Xcel Energy Inc.                                   NASDAQ    
+359    XOM        Exxon Mobil Corporation                            NYSE      
+360    YMM        Full Truck Alliance Co. Ltd.                       NYSE      
+361    YORW       The York Water Company                             NASDAQ    
+362    Z          Zillow Group, Inc.                                 NYSE      
+363    ZBRA       Zebra Technologies Corporation                     NYSE      
+364    ZM         Zoom Communications Inc.                           NYSE      
+365    ZS         Zscaler, Inc.                                      NYSE      
+
+
+================================================================================
+ETF 및 펀드: 97개
+================================================================================
+번호     심볼         ETF명                                               거래소       
+--------------------------------------------------------------------------------
+1      BAL        iPath Series B Bloomberg Cotton Subindex Total Return ETN NYSE      
+2      BCI        abrdn Bloomberg All Commodity Strategy K-1 Free ETF NYSE      
+3      BJO        iPath B Bloomberg Coffee Ttl Ret ETN               NYSE      
+4      BNO        United States Brent Oil Fund, LP                   NYSE      
+5      BOIL       ProShares Ultra Bloomberg Natural Gas              NYSE      
+6      CANE       Teucrium Sugar Fund                                NYSE      
+7      CORN       Teucrium Corn Fund                                 NYSE      
+8      CPER       United States Copper Index Fund, LP                NYSE      
+9      CTBI       Community Trust Bancorp Inc.                       NASDAQ    
+10     DBA        Invesco DB Agriculture Fund                        NYSE      
+11     DBC        Invesco DB Commodity Index Tracking Fund           NYSE      
+12     DGRO       iShares Core Dividend Growth ETF                   NYSE      
+13     DIV        Global X SuperDividend ETF                         NYSE      
+14     DIVO       Amplify CWP Enhanced Dividend Income ETF           NYSE      
+15     DJP        iPath Bloomberg Commodity Index Total Return(SM) ETN NYSE      
+16     DNP        DNP Select Income Fund Inc.                        NYSE      
+17     DRN        Direxion Daily Real Estate Bull 3X Shares          NYSE      
+18     DRV        Direxion Daily Real Estate Bear 3X Shares          NYSE      
+19     DVY        iShares Select Dividend ETF                        NASDAQ    
+20     DWT        VelocityShares 3x Inverse Crude Oil ETNs linked to the S&P GSCI Crude Oil Index ER New NYSE      
+21     FDL        First Trust Morningstar Dividend Leaders Index Fund NYSE      
+22     FREL       Fidelity MSCI Real Estate Index ETF                NYSE      
+23     FRT        Federal Realty Investment Trust                    NYSE      
+24     FVD        First Trust Value Line Dividend Index Fund         NYSE      
+25     GLD        SPDR Gold Shares                                   NYSE      
+26     GSG        iShares S&P GSCI Commodity-Indexed Trust           NYSE      
+27     HAUZ       Xtrackers International Real Estate ETF            NYSE      
+28     HDV        iShares Core High Dividend ETF                     NYSE      
+29     HOMZ       Hoya Capital Housing ETF                           NYSE      
+30     IAU        iShares Gold Trust                                 NYSE      
+31     IDVO       Amplify International Enhanced Dividend Income ETF NYSE      
+32     IFGL       iShares International Developed Real Estate ETF    NASDAQ    
+33     IYR        iShares U.S. Real Estate ETF                       NYSE      
+34     JEPI       JPMorgan Equity Premium Income ETF                 NYSE      
+35     JEPQ       JPMorgan NASDAQ Equity Premium Income ETF          NYSE      
+36     JJM        iPath Series B Bloomberg Industrial Metals Subindex Total Return ETN NYSE      
+37     JJN        iPath Series B Bloomberg Nickel Subindex Total Return ETN NYSE      
+38     JJT        iPath Series B Bloomberg Tin Subindex Total Return ETN NYSE      
+39     JJU        iPath Series B Bloomberg Aluminum Subindex Total Return ETN NYSE      
+40     JO         iPath Series B Bloomberg Coffee Subindex Total Return ETN NYSE      
+41     KBWB       Invesco KBW Bank ETF                               NASDAQ    
+42     KBWC       Invesco KBW Capital Markets ETF                    NASDAQ    
+43     KBWD       Invesco KBW High Dividend Yield Financial ETF      NASDAQ    
+44     KBWP       Invesco KBW Property & Casualty Insurance ETF      NASDAQ    
+45     KBWR       Invesco KBW Regional Banking ETF                   NASDAQ    
+46     KBWY       Invesco KBW Premium Yield Equity REIT ETF          NASDAQ    
+47     LD         iPath Bloomberg Lead Subindex Total Return(SM) ETN NYSE      
+48     LIT        Global X Lithium & Battery Tech ETF                NYSE      
+49     NFLX       Netflix Inc.                                       NASDAQ    
+50     NIB        iPath Bloomberg Cocoa Subindex Total Return(SM) ETN NYSE      
+51     NOBL       ProShares S&P 500 Dividend Aristocrats ETF         NYSE      
+52     OUNZ       VanEck Merk Gold Trust                             NYSE      
+53     PALL       abrdn Physical Palladium Shares ETF                NYSE      
+54     PDBC       Invesco Optimum Yield Diversified Commodity Strategy No K-1 ETF NYSE      
+55     PEY        Invesco High Yield Equity Dividend Achievers ETF   NYSE      
+56     PHYS       Sprott Physical Gold Trust                         NYSE      
+57     PICK       iShares MSCI Global Metals & Mining Producers ETF  NYSE      
+58     PPLT       abrdn Physical Platinum Shares ETF                 NYSE      
+59     PSLV       Sprott Physical Silver Trust                       NYSE      
+60     QYLD       Global X NASDAQ-100 Covered Call ETF               NASDAQ    
+61     RDIV       Invesco S&P Ultra Dividend Revenue ETF             NYSE      
+62     RDVY       First Trust Rising Dividend Achievers ETF          NASDAQ    
+63     REIT       ALPS Active REIT ETF                               NYSE      
+64     REMX       VanEck Rare Earth and Strategic Metals ETF         NYSE      
+65     REZ        iShares Residential and Multisector Real Estate ETF NASDAQ    
+66     ROOF       IQ CBRE NextGen Real Estate ETF                    NYSE      
+67     RWR        SPDR Dow Jones REIT ETF                            NYSE      
+68     RWX        SPDR Dow Jones International Real Estate ETF       NYSE      
+69     RYLD       Global X Russell 2000 Covered Call ETF             NYSE      
+70     SCHD       Schwab U.S. Dividend Equity ETF                    NYSE      
+71     SCHH       Schwab U.S. REIT ETF                               NYSE      
+72     SCO        ProShares UltraShort Bloomberg Crude Oil           NYSE      
+73     SDY        SPDR S&P Dividend ETF                              NYSE      
+74     SGG        iPath Series B Bloomberg Sugar Subindex Total Return ETN NYSE      
+75     SGOL       abrdn Physical Gold Shares ETF                     NYSE      
+76     SIL        Global X Silver Miners ETF                         NYSE      
+77     SIVR       abrdn Physical Silver Shares ETF                   NYSE      
+78     SLV        iShares Silver Trust                               NYSE      
+79     SOYB       Teucrium Soybean Fund                              NYSE      
+80     SPHD       Invesco S&P 500 High Dividend Low Volatility ETF   NYSE      
+81     SPYD       SPDR Portfolio S&P 500 High Dividend ETF           NYSE      
+82     UAG        UBS ETRACS CMCI Agriculture Total Return ETN       NYSE      
+83     UCO        ProShares Ultra Bloomberg Crude Oil                NYSE      
+84     UGA        United States Gasoline Fund, LP                    NYSE      
+85     UNG        United States Natural Gas Fund, LP                 NYSE      
+86     USCI       United States Commodity Index Fund, LP             NYSE      
+87     USL        United States 12 Month Oil Fund, LP                NYSE      
+88     USO        United States Oil Fund, LP                         NYSE      
+89     USRT       iShares Core U.S. REIT ETF                         NYSE      
+90     UWT        VelocityShares 3x Long Crude Oil ETNs linked to the S&P GSCI Crude Oil Index ER New NYSE      
+91     VIG        Vanguard Dividend Appreciation ETF                 NYSE      
+92     VNQ        Vanguard Real Estate ETF                           NYSE      
+93     VNQI       Vanguard Global ex-U.S. Real Estate ETF            NASDAQ    
+94     VYM        Vanguard High Dividend Yield ETF                   NYSE      
+95     WEAT       Teucrium Wheat Fund                                NYSE      
+96     WPS        iShares International Developed Property ETF       NYSE      
+97     XYLD       Global X S&P 500 Covered Call ETF                  NYSE      
+
+================================================================================
+총계: 일반 주식 365개 + ETF 97개 = 462개
+================================================================================
