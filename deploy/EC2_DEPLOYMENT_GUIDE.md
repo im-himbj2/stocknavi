@@ -79,8 +79,10 @@ nano .env
 다음 내용을 입력하세요 (실제 값으로 변경):
 
 ```env
-# Database
-DATABASE_URL=postgresql://stockuser:stockpass@localhost:5432/stock_portfolio
+# Database (Supabase 사용 시)
+DATABASE_URL=postgresql://postgres:[YOUR-PASSWORD]@db.xxxxx.supabase.co:5432/postgres
+# 또는 로컬 PostgreSQL 사용 시
+# DATABASE_URL=postgresql://stockuser:stockpass@localhost:5432/stock_portfolio
 
 # JWT
 SECRET_KEY=your-very-secure-secret-key-change-this-in-production
@@ -96,14 +98,16 @@ OPENAI_API_KEY=your_openai_api_key_here
 GOOGLE_CLIENT_ID=your_google_client_id_here
 GOOGLE_CLIENT_SECRET=your_google_client_secret_here
 
-# AWS SES (이메일 인증)
+# AWS SES (이메일 인증) - 선택사항
 AWS_ACCESS_KEY_ID=your_aws_access_key_id
 AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key
 AWS_REGION=ap-northeast-2
 AWS_SES_FROM_EMAIL=your_verified_email@example.com
 
-# Frontend URL (EC2 Public IP로 변경)
-FRONTEND_URL=http://YOUR_EC2_PUBLIC_IP:5173
+# Frontend URL (도메인 사용 시)
+FRONTEND_URL=https://stocknavi24.com
+# 또는 IP 주소 사용 시
+# FRONTEND_URL=http://13.209.70.3
 
 # Environment
 ENVIRONMENT=production
@@ -123,8 +127,10 @@ nano .env
 다음 내용을 입력하세요 (실제 값으로 변경):
 
 ```env
-# API Base URL (EC2 Public IP로 변경)
-VITE_API_BASE_URL=http://YOUR_EC2_PUBLIC_IP:8000
+# API Base URL (도메인 사용 시)
+VITE_API_BASE_URL=https://stocknavi24.com/api
+# 또는 IP 주소 사용 시
+# VITE_API_BASE_URL=http://13.209.70.3:8000/api
 
 # Google OAuth Client ID
 VITE_GOOGLE_CLIENT_ID=your_google_client_id_here
@@ -204,8 +210,16 @@ EC2 보안 그룹에서 다음 포트가 열려있는지 확인:
 ## 8단계: 접속 확인
 
 브라우저에서:
-- 프론트엔드: `http://YOUR_EC2_PUBLIC_IP:5173`
-- 백엔드 API: `http://YOUR_EC2_PUBLIC_IP:8000/docs`
+- 프론트엔드: `https://stocknavi24.com` 또는 `http://13.209.70.3:5173`
+- 백엔드 API: `https://stocknavi24.com/api/docs` 또는 `http://13.209.70.3:8000/docs`
+
+## 추가 설정
+
+### Google OAuth 설정
+Google OAuth `origin_mismatch` 오류를 해결하려면 `deploy/GOOGLE_OAUTH_SETUP.md` 파일을 참조하세요.
+
+### Supabase 데이터베이스 전환
+EC2의 PostgreSQL 대신 Supabase를 사용하려면 `deploy/SUPABASE_SETUP.md` 파일을 참조하세요.
 
 ## 유용한 PM2 명령어
 
@@ -282,5 +296,6 @@ pm2 restart stocknavi-frontend
 - 무료 티어는 제한이 있으므로 사용량 모니터링 필요
 - 프로덕션 환경에서는 Nginx 리버스 프록시 사용 권장
 - HTTPS를 위해서는 Let's Encrypt 인증서 설정 필요
+
 
 

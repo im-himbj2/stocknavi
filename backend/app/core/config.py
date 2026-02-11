@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_SECRET: Optional[str] = None
     
     # Frontend
-    FRONTEND_URL: Optional[str] = "http://13.209.70.3"
+    FRONTEND_URL: Optional[str] = "https://stocknavi24.com"
     
     # Supabase
     SUPABASE_URL: Optional[str] = None

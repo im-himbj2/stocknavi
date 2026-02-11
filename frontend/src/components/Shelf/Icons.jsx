@@ -50,3 +50,4 @@ export { DividendIcon, CompanyIcon, MarketIcon, SpeechIcon, PortfolioIcon, Arrow
 
 
 
+

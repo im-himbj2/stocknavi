@@ -14,9 +14,9 @@ import httpx
 import jwt
 from app.models.user import User
 from app.models.subscription import Subscription
+from app.api.deps import oauth2_scheme, get_current_user
 
 router = APIRouter()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login", auto_error=False)
 
 
 class UserCreate(BaseModel):
@@ -48,87 +48,7 @@ class GoogleToken(BaseModel):
     id_token: str
 
 
-async def get_current_user(
-    token: str = Depends(oauth2_scheme),
-    db: Session = Depends(get_db)
-) -> User:
-    """Get current authenticated user using Supabase JWT"""
-    if SessionLocal is None:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="데이터베이스가 초기화되지 않았습니다."
-        )
-    
-    if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    try:
-        # Supabase JWT decoding
-        # Supabase uses the JWT Secret (which is usually the same as the Service Role Key or a dedicated secret)
-        # For simplicity and security with 'anon' keys, we can also use the supabase-py client or verify manually
-        payload = jwt.decode(
-            token, 
-            settings.SECRET_KEY, # This should be the Supabase JWT Secret
-            algorithms=[settings.ALGORITHM],
-            audience="authenticated"
-        )
-        user_id = payload.get("sub")
-        if not user_id:
-            raise HTTPException(status_code=401, detail="Invalid token payload")
-            
-        # Supabase user_id is a UUID string. 
-        # Our internal User model might still use int IDs or UUIDs depending on how we migrated.
-        # Assuming we migrated to UUID for the primary key to match Supabase Auth.
-        user = db.query(User).filter(User.id == user_id).first()
-        
-        if not user:
-            # If user exists in Auth but not in our public.profiles/users table, 
-            # we might need to create them or return unauthorized.
-            raise HTTPException(status_code=401, detail="User not found in database")
-            
-        return user
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token has expired")
-    except jwt.InvalidTokenError:
-        raise HTTPException(status_code=401, detail="Invalid token")
-    except Exception as e:
-        print(f"[Auth Error] {e}")
-        raise HTTPException(status_code=401, detail="Could not validate credentials")
-
-
-async def get_current_user_optional(
-    token: Optional[str] = Depends(oauth2_scheme),
-    db: Session = Depends(get_db)
-) -> Optional[User]:
-    """Get current user if authenticated, otherwise return None"""
-    if SessionLocal is None:
-        return None
-    
-    if not token:
-        return None
-    
-    try:
-        payload = decode_access_token(token)
-        if payload is None:
-            return None
-        
-        user_id = payload.get("sub")
-        if user_id is None:
-            return None
-        
-        try:
-            user_id = int(user_id)
-        except (ValueError, TypeError):
-            return None
-        
-        user = db.query(User).filter(User.id == user_id).first()
-        return user
-    except Exception:
-        return None
+# get_current_user and get_current_user_optional moved to app.api.deps
 
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
@@ -232,11 +152,16 @@ async def google_login(google_token: GoogleToken, db: Session = Depends(get_db))
             
             idinfo = response.json()
             
-            # 클라이언트 ID 확인
-            if idinfo.get('aud') != settings.GOOGLE_CLIENT_ID:
+            # 클라이언트 ID 확인 (디버깅용 로그)
+            token_aud = idinfo.get('aud')
+            expected_client_id = settings.GOOGLE_CLIENT_ID
+            print(f"[Google OAuth Debug] 토큰의 aud: {token_aud}")
+            print(f"[Google OAuth Debug] 설정된 GOOGLE_CLIENT_ID: {expected_client_id}")
+            
+            if token_aud != expected_client_id:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="토큰의 클라이언트 ID가 일치하지 않습니다."
+                    detail=f"토큰의 클라이언트 ID가 일치하지 않습니다. 토큰: {token_aud}, 설정: {expected_client_id}"
                 )
         
         # 사용자 정보 추출
