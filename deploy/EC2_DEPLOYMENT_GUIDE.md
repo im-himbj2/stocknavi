@@ -283,3 +283,4 @@ pm2 restart stocknavi-frontend
 - 프로덕션 환경에서는 Nginx 리버스 프록시 사용 권장
 - HTTPS를 위해서는 Let's Encrypt 인증서 설정 필요
 
+

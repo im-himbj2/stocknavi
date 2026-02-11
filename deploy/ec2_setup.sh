@@ -126,3 +126,4 @@ echo "🛑 중지: pm2 stop all"
 echo "▶️  시작: pm2 start all"
 echo "🔄 재시작: pm2 restart all"
 
+

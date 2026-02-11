@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import apiService from '../services/api'
 import { majorStocks } from '../data/stockList'
+import PopularStockCard from '../components/Stock/PopularStockCard'
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
 function Dividend() {
@@ -14,9 +15,50 @@ function Dividend() {
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [showOlderData, setShowOlderData] = useState(false)
   const [isKoreanStock, setIsKoreanStock] = useState(false)
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 })
   const searchRef = useRef(null)
   const inputRef = useRef(null)
+
+  // 고배당주 데이터 (Yahoo Finance 심볼 형식)
+  const highDividendStocks = [
+    { symbol: 'T', name: 'AT&T', yield: '6.5%' },
+    { symbol: 'VZ', name: 'Verizon', yield: '6.2%' },
+    { symbol: 'MO', name: 'Altria', yield: '8.1%' },
+    { symbol: 'O', name: 'Realty Income', yield: '5.2%' },
+    { symbol: 'PFE', name: 'Pfizer', yield: '5.8%' },
+    { symbol: 'KO', name: 'Coca-Cola', yield: '3.1%' },
+    { symbol: 'JNJ', name: 'Johnson & Johnson', yield: '3.0%' },
+    { symbol: 'MAIN', name: 'Main Street Capital', yield: '6.8%' },
+    { symbol: 'SCHD', name: 'Schwab US Dividend ETF', yield: '3.4%' },
+    { symbol: 'JEPI', name: 'JPMorgan Equity Premium', yield: '7.5%' }
+  ]
+
+  const [prices, setPrices] = useState({})
+
+  useEffect(() => {
+    const fetchPopularPrices = async () => {
+      const allSymbols = highDividendStocks.map(s => s.symbol)
+      try {
+        const data = await apiService.getPortfolioPrices(allSymbols)
+        setPrices(data)
+      } catch (err) {
+        console.error('추천 종목 가격 조회 실패:', err)
+      }
+    }
+
+    if (!dividendData) {
+      fetchPopularPrices()
+    }
+  }, [dividendData])
+
+  const handleStockSelect = (selectedSymbol) => {
+    setSymbol(selectedSymbol)
+    setSearchSymbol(selectedSymbol)
+    setShowSuggestions(false)
+    // 약간의 지연 후 분석 실행
+    setTimeout(() => {
+      // fetchDividendData는 useEffect[symbol]에 의해 호출됨
+    }, 100)
+  }
 
   useEffect(() => {
     // symbol이 있고 빈 문자열이 아닐 때만 검색 실행
@@ -78,7 +120,7 @@ function Dividend() {
       setIsKoreanStock(isKR)
 
       const data = await apiService.getDividendHistory(symbol.toUpperCase())
-      
+
       // 통화 정보로 한국 주식 확인 (백엔드에서 반환한 currency 사용)
       if (data && data.currency) {
         setIsKoreanStock(data.currency === 'KRW')
@@ -88,7 +130,7 @@ function Dividend() {
           setIsKoreanStock(true)
         }
       }
-      
+
       if (data && data.dividends && data.dividends.length > 0) {
         setDividendData(data)
         setCompanyInfo(data.company_info)
@@ -275,6 +317,25 @@ function Dividend() {
           </div>
         </div>
 
+        {!dividendData && !loading && (
+          <div className="mb-12 animate-fade-in">
+            <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+              <span className="w-1 h-6 bg-green-500 rounded-full"></span>
+              고배당 추천 종목
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              {highDividendStocks.map(stock => (
+                <PopularStockCard
+                  key={stock.symbol}
+                  stock={stock}
+                  priceData={prices[stock.symbol]}
+                  onClick={() => handleStockSelect(stock.symbol)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* 회사 정보 카드 */}
         {companyInfo && (
           <div className="mb-8 animate-fade-in-up" style={{ position: 'relative', zIndex: 1 }}>
@@ -282,8 +343,8 @@ function Dividend() {
               <div className="flex items-center gap-6">
                 {companyInfo.logo_url && (
                   <div className="flex-shrink-0">
-                    <img 
-                      src={companyInfo.logo_url} 
+                    <img
+                      src={companyInfo.logo_url}
                       alt={companyInfo.name}
                       className="w-16 h-16 rounded-xl object-contain bg-white/5 p-2 border border-white/10"
                       onError={(e) => {
@@ -426,80 +487,79 @@ function Dividend() {
                   </div>
                 </div>
               </div>
-              
+
               {/* 50/50 그리드 레이아웃 */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* 왼쪽: 배당 이력 테이블 */}
                 <div className="overflow-x-auto mb-6">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b-2 border-gray-700">
-                      <th className="text-left py-4 px-6 text-gray-300 font-semibold uppercase text-sm tracking-wider">날짜</th>
-                      <th className="text-right py-4 px-6 text-gray-300 font-semibold uppercase text-sm tracking-wider">배당금</th>
-                      <th className="text-right py-4 px-6 text-gray-300 font-semibold uppercase text-sm tracking-wider">배당 수익률</th>
-                      <th className="text-right py-4 px-6 text-gray-300 font-semibold uppercase text-sm tracking-wider">변화율</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {recentDividends.map((dividend, idx) => {
-                      const prevDividend = idx < recentDividends.length - 1 ? recentDividends[idx + 1] : null
-                      const changeRate = prevDividend && prevDividend.amount && dividend.amount 
-                        ? ((dividend.amount - prevDividend.amount) / prevDividend.amount) * 100 
-                        : null
-                      
-                      return (
-                        <tr 
-                          key={idx} 
-                          className="border-b border-gray-700/30 hover:bg-green-500/5 transition-colors duration-200 group"
-                        >
-                          <td className="py-4 px-6">
-                            <div className="text-gray-300 group-hover:text-white transition-colors font-medium">
-                              {new Date(dividend.date).toLocaleDateString('ko-KR', { 
-                                year: 'numeric', 
-                                month: 'long', 
-                                day: 'numeric' 
-                              })}
-                            </div>
-                          </td>
-                          <td className="text-right py-4 px-6">
-                            <div className="flex items-center justify-end gap-2">
-                              <span className="text-xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
-                                {isKoreanStock 
-                                  ? `${dividend.amount ? Math.round(dividend.amount).toLocaleString() : 'N/A'}원`
-                                  : `$${dividend.amount?.toFixed(2) || 'N/A'}`
-                                }
-                              </span>
-                            </div>
-                          </td>
-                          <td className="text-right py-4 px-6">
-                            {dividend.yield_ ? (
-                              <span className="px-3 py-1.5 bg-green-500/20 border border-green-500/30 rounded-lg text-green-400 font-semibold text-sm">
-                                {(dividend.yield_ * 100).toFixed(2)}%
-                              </span>
-                            ) : (
-                              <span className="text-gray-500">N/A</span>
-                            )}
-                          </td>
-                          <td className="text-right py-4 px-6">
-                            {changeRate !== null ? (
-                              <span className={`px-3 py-1.5 rounded-lg font-semibold text-sm ${
-                                changeRate >= 0 
-                                  ? 'bg-green-500/20 border border-green-500/30 text-green-400' 
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b-2 border-gray-700">
+                        <th className="text-left py-4 px-6 text-gray-300 font-semibold uppercase text-sm tracking-wider">날짜</th>
+                        <th className="text-right py-4 px-6 text-gray-300 font-semibold uppercase text-sm tracking-wider">배당금</th>
+                        <th className="text-right py-4 px-6 text-gray-300 font-semibold uppercase text-sm tracking-wider">배당 수익률</th>
+                        <th className="text-right py-4 px-6 text-gray-300 font-semibold uppercase text-sm tracking-wider">변화율</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recentDividends.map((dividend, idx) => {
+                        const prevDividend = idx < recentDividends.length - 1 ? recentDividends[idx + 1] : null
+                        const changeRate = prevDividend && prevDividend.amount && dividend.amount
+                          ? ((dividend.amount - prevDividend.amount) / prevDividend.amount) * 100
+                          : null
+
+                        return (
+                          <tr
+                            key={idx}
+                            className="border-b border-gray-700/30 hover:bg-green-500/5 transition-colors duration-200 group"
+                          >
+                            <td className="py-4 px-6">
+                              <div className="text-gray-300 group-hover:text-white transition-colors font-medium">
+                                {new Date(dividend.date).toLocaleDateString('ko-KR', {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric'
+                                })}
+                              </div>
+                            </td>
+                            <td className="text-right py-4 px-6">
+                              <div className="flex items-center justify-end gap-2">
+                                <span className="text-xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
+                                  {isKoreanStock
+                                    ? `${dividend.amount ? Math.round(dividend.amount).toLocaleString() : 'N/A'}원`
+                                    : `$${dividend.amount?.toFixed(2) || 'N/A'}`
+                                  }
+                                </span>
+                              </div>
+                            </td>
+                            <td className="text-right py-4 px-6">
+                              {dividend.yield_ ? (
+                                <span className="px-3 py-1.5 bg-green-500/20 border border-green-500/30 rounded-lg text-green-400 font-semibold text-sm">
+                                  {(dividend.yield_ * 100).toFixed(2)}%
+                                </span>
+                              ) : (
+                                <span className="text-gray-500">N/A</span>
+                              )}
+                            </td>
+                            <td className="text-right py-4 px-6">
+                              {changeRate !== null ? (
+                                <span className={`px-3 py-1.5 rounded-lg font-semibold text-sm ${changeRate >= 0
+                                  ? 'bg-green-500/20 border border-green-500/30 text-green-400'
                                   : 'bg-red-500/20 border border-red-500/30 text-red-400'
-                              }`}>
-                                {changeRate >= 0 ? '↑' : '↓'} {Math.abs(changeRate).toFixed(1)}%
-                              </span>
-                            ) : (
-                              <span className="text-gray-500 text-sm">-</span>
-                            )}
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
+                                  }`}>
+                                  {changeRate >= 0 ? '↑' : '↓'} {Math.abs(changeRate).toFixed(1)}%
+                                </span>
+                              ) : (
+                                <span className="text-gray-500 text-sm">-</span>
+                              )}
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
                 </div>
-                
+
                 {/* 오른쪽: 배당 성장률 그래프 */}
                 <div className="bg-black/30 rounded-xl p-6 border border-white/10">
                   <h3 className="text-xl font-bold text-white mb-4">배당 성장률 추이</h3>
@@ -512,22 +572,22 @@ function Dividend() {
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                       <XAxis dataKey="date" stroke="#9ca3af" />
                       <YAxis stroke="#9ca3af" />
-                      <Tooltip 
+                      <Tooltip
                         contentStyle={{ backgroundColor: '#1f2937', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
                         labelStyle={{ color: '#fff' }}
                       />
                       <Legend />
-                      <Line 
-                        type="monotone" 
-                        dataKey="amount" 
-                        stroke="#22c55e" 
+                      <Line
+                        type="monotone"
+                        dataKey="amount"
+                        stroke="#22c55e"
                         strokeWidth={2}
                         dot={{ fill: '#22c55e', r: 4 }}
                         name={isKoreanStock ? '배당금 (원)' : '배당금 ($)'}
                       />
                     </LineChart>
                   </ResponsiveContainer>
-                  
+
                   {/* 연도별 배당 비교 바 차트 */}
                   <div className="mt-6">
                     <h4 className="text-lg font-semibold text-white mb-4">연도별 배당 비교</h4>
@@ -550,7 +610,7 @@ function Dividend() {
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                         <XAxis dataKey="year" stroke="#9ca3af" />
                         <YAxis stroke="#9ca3af" />
-                        <Tooltip 
+                        <Tooltip
                           contentStyle={{ backgroundColor: '#1f2937', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
                           labelStyle={{ color: '#fff' }}
                         />
@@ -592,7 +652,7 @@ function Dividend() {
                                 {new Date(dividend.date).toLocaleDateString('ko-KR')}
                               </td>
                               <td className="text-right py-3 px-4 text-gray-300 font-medium">
-                                {isKoreanStock 
+                                {isKoreanStock
                                   ? `${dividend.amount ? Math.round(dividend.amount).toLocaleString() : 'N/A'}원`
                                   : `$${dividend.amount?.toFixed(2) || 'N/A'}`
                                 }

@@ -30,47 +30,16 @@ function Subscription() {
     }
   }
 
-  // 결제 시작 (토스페이먼츠)
-  const handleSubscribe = async (planId) => {
+  // 구독 시작 (Polar.sh)
+  const handleSubscribe = async () => {
     setLoading(true)
     setError(null)
     try {
-      // 결제 정보 가져오기
-      const paymentInfo = await apiService.createPayment(planId)
-      
-      // 토스페이먼츠 위젯 초기화 및 결제 요청
-      // 참고: 토스페이먼츠 SDK를 설치하고 통합해야 합니다
-      // npm install @tosspayments/payment-widget-sdk
-      
-      // 예시 코드 (실제로는 토스페이먼츠 SDK 사용 필요):
-      /*
-      const { loadPaymentWidget } = await import('@tosspayments/payment-widget-sdk')
-      const paymentWidget = loadPaymentWidget(paymentInfo.client_key, { customerKey: 'customer-key' })
-      
-      paymentWidget.renderPaymentMethods('#payment-widget', {
-        value: paymentInfo.amount,
-        currency: 'KRW',
-        country: 'KR'
-      })
-      
-      // 결제 요청
-      paymentWidget.requestPayment({
-        orderId: paymentInfo.order_id,
-        orderName: planId === 'monthly' ? '월간 구독' : '연간 구독',
-        successUrl: `${window.location.origin}/subscription/success`,
-        failUrl: `${window.location.origin}/subscription/cancel`
-      }).then((result) => {
-        // 결제 승인
-        apiService.confirmPayment(result.paymentKey, paymentInfo.order_id, planId)
-          .then(() => {
-            navigate('/subscription/success')
-          })
-      })
-      */
-      
-      // 임시: 실제 토스페이먼츠 통합 전까지 에러 메시지
-      setError('토스페이먼츠 SDK 통합이 필요합니다. 백엔드 API는 준비되었습니다.')
-      setLoading(false)
+      // Polar.sh 체크아웃 세션 생성
+      const { url } = await apiService.createCheckoutSession()
+
+      // Polar.sh 체크아웃 페이지로 리다이렉트
+      window.location.href = url
     } catch (err) {
       setError(err.message)
       setLoading(false)
@@ -121,11 +90,10 @@ function Subscription() {
               <div>
                 <h2 className="text-xl font-bold text-white mb-2">현재 구독 상태</h2>
                 <div className="flex items-center gap-4">
-                  <span className={`px-3 py-1 rounded-lg text-sm font-semibold ${
-                    subscriptionStatus.is_active && subscriptionStatus.tier === 'premium'
-                      ? 'bg-green-500/20 text-green-400 border border-green-500/50'
-                      : 'bg-gray-500/20 text-gray-400 border border-gray-500/50'
-                  }`}>
+                  <span className={`px-3 py-1 rounded-lg text-sm font-semibold ${subscriptionStatus.is_active && subscriptionStatus.tier === 'premium'
+                    ? 'bg-green-500/20 text-green-400 border border-green-500/50'
+                    : 'bg-gray-500/20 text-gray-400 border border-gray-500/50'
+                    }`}>
                     {subscriptionStatus.is_active && subscriptionStatus.tier === 'premium' ? '프리미엄' : '무료'}
                   </span>
                   {subscriptionStatus.current_period_end && (
@@ -155,25 +123,23 @@ function Subscription() {
         )}
 
         {/* 구독 플랜 */}
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {plans.map((plan) => {
             const isAnnual = plan.interval === 'year'
             const monthlyPrice = isAnnual ? (plan.price / 12).toFixed(2) : plan.price
-            const savings = isAnnual ? 58 : 0
 
             return (
               <div
                 key={plan.id}
-                className={`bg-white/5 border rounded-2xl p-8 relative ${
-                  isAnnual ? 'border-yellow-500/50 border-2' : 'border-white/10'
-                }`}
+                className={`bg-white/5 border rounded-2xl p-8 relative transition-all hover:translate-y-[-4px] hover:shadow-2xl ${isAnnual ? 'border-yellow-500/50 border-2 shadow-[0_0_30px_rgba(234,179,8,0.1)]' : 'border-white/10'
+                  }`}
               >
                 {isAnnual && (
                   <div className="absolute top-4 right-4 px-3 py-1 bg-yellow-500/20 border border-yellow-500/50 rounded-lg text-xs font-semibold text-yellow-400">
                     추천
                   </div>
                 )}
-                
+
                 <div className="mb-6">
                   <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
                   <div className="flex items-baseline gap-2 mb-2">
@@ -182,8 +148,8 @@ function Subscription() {
                   </div>
                   {isAnnual && (
                     <div className="text-sm text-gray-400">
-                      월 ${monthlyPrice} (연간 ${plan.price} 결제)
-                      <span className="ml-2 text-green-400 font-semibold">{savings}% 할인</span>
+                      월 ${monthlyPrice} (연간 결제)
+                      <span className="ml-2 text-green-400 font-semibold">절약 가능</span>
                     </div>
                   )}
                 </div>
@@ -200,20 +166,19 @@ function Subscription() {
                 </ul>
 
                 <button
-                  onClick={() => handleSubscribe(plan.id)}
+                  onClick={handleSubscribe}
                   disabled={loading || (subscriptionStatus?.is_active && subscriptionStatus?.tier === 'premium')}
-                  className={`w-full py-3 rounded-lg font-semibold transition-all ${
-                    subscriptionStatus?.is_active && subscriptionStatus?.tier === 'premium'
-                      ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                  className={`w-full py-4 rounded-xl font-bold tracking-tight transition-all ${subscriptionStatus?.is_active && subscriptionStatus?.tier === 'premium'
+                      ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
                       : isAnnual
-                      ? 'bg-yellow-500 text-black hover:bg-yellow-600'
-                      : 'bg-white text-black hover:bg-gray-100'
-                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                        ? 'bg-gradient-to-r from-yellow-500 to-amber-600 text-black hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-yellow-500/20'
+                        : 'bg-white text-black hover:bg-gray-100 hover:scale-[1.02] active:scale-[0.98]'
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
-                  {loading ? '처리 중...' : 
-                   subscriptionStatus?.is_active && subscriptionStatus?.tier === 'premium' 
-                     ? '이미 구독 중' 
-                     : '구독하기'}
+                  {loading ? '처리 중...' :
+                    subscriptionStatus?.is_active && subscriptionStatus?.tier === 'premium'
+                      ? '이미 구독 중'
+                      : '지금 시작하기'}
                 </button>
               </div>
             )

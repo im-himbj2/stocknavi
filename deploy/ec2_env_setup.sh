@@ -96,3 +96,4 @@ echo ""
 echo "다음 단계:"
 echo "  ./deploy/ec2_quick_start.sh  # 빠른 배포 실행"
 
+

@@ -1,7 +1,7 @@
 """
 Portfolio API endpoints
 """
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List
 from app.core.database import get_db, SessionLocal
@@ -117,4 +117,39 @@ async def delete_portfolio_item(
     db.commit()
     
     return None
+    
+
+@router.get("/prices")
+async def get_portfolio_prices(
+    symbols: str = Query(..., description="쉼표로 구분된 종목 심볼"),
+    current_user: User = Depends(get_current_user)
+):
+    """포트폴리오 종목들의 현재가 대량 조회"""
+    from app.services.data.yahoo_finance import YahooFinanceDataProvider
+    
+    symbol_list = [s.strip().upper() for s in symbols.split(",")]
+    if not symbol_list:
+        return {}
+        
+    provider = YahooFinanceDataProvider()
+    quotes = provider.get_current_prices_batch(symbol_list)
+    
+    # 응답 형식 정리
+    result = {}
+    for symbol in symbol_list:
+        quote = quotes.get(symbol)
+        if quote:
+            result[symbol] = {
+                "price": quote.get("price", 0),
+                "change": quote.get("change", 0),
+                "changePercent": quote.get("changePercent", 0)
+            }
+        else:
+            result[symbol] = {
+                "price": 0,
+                "change": 0,
+                "changePercent": 0
+            }
+        
+    return result
 

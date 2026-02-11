@@ -32,7 +32,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Handle unauthorized - clear token
       localStorage.removeItem('access_token')
-      
+
       // 이미 로그인 페이지가 아니고, 재시도 요청이 아닌 경우에만 리다이렉트
       if (!originalRequest._retry && !window.location.pathname.includes('/login')) {
         originalRequest._retry = true
@@ -72,6 +72,21 @@ export const getCompanyAnalysis = async (symbol, includeTechnical = true) => {
     } else {
       throw new Error(error.message || '알 수 없는 오류가 발생했습니다.')
     }
+  }
+}
+
+export const getStockPrice = async (symbol) => {
+  try {
+    // 포트폴리오 가격 조회 API를 재사용하여 단일 심볼 가격 조회
+    const prices = await getPortfolioPrices([symbol])
+    if (prices && prices[symbol]) {
+      return prices[symbol]
+    }
+    // 데이터가 없는 경우 기본 구조 반환
+    return { price: 0, change: 0, changePercent: 0 }
+  } catch (error) {
+    console.error(`[API] 주가 조회 오류 (${symbol}):`, error)
+    throw new Error('주가 정보를 가져오는데 실패했습니다.')
   }
 }
 
@@ -188,6 +203,17 @@ export const deletePortfolioItem = async (itemId) => {
   }
 }
 
+export const getPortfolioPrices = async (symbols) => {
+  try {
+    const symbolStr = symbols.join(',')
+    const response = await api.get(`/portfolio/prices?symbols=${symbolStr}`, { timeout: 30000 })
+    return response.data
+  } catch (error) {
+    console.error('[API] 포트폴리오 가격 조회 오류:', error)
+    return {}
+  }
+}
+
 // 경제 지표 API
 export const getEconomicCalendar = async (startDate = null, endDate = null) => {
   try {
@@ -203,6 +229,16 @@ export const getEconomicCalendar = async (startDate = null, endDate = null) => {
       return { indicator: 'economic_calendar', data: [], source: 'Error', cached: false, updated_at: new Date().toISOString() }
     }
     throw new Error(error.response?.data?.detail || error.message || '경제 캘린더 조회 중 오류가 발생했습니다.')
+  }
+}
+
+export const getEconomicHighlights = async () => {
+  try {
+    const response = await api.get('/economic/highlights', { timeout: 30000 })
+    return response.data
+  } catch (error) {
+    console.error('[API] 주요 경제 지표 조회 오류:', error)
+    return { indicator: 'macro_highlights', data: [], source: 'Error', cached: false, updated_at: new Date().toISOString() }
   }
 }
 
@@ -273,10 +309,65 @@ export const getOptionsFlow = async () => {
   }
 }
 
-// 연설 요약 API
-export const getFOMCMeetings = async (limit = 10) => {
+// 새로운 경제지표 API 추가
+export const getJoblessClaims = async () => {
   try {
-    const response = await api.get('/speech/fomc', { params: { limit }, timeout: 30000 })
+    const response = await api.get('/economic/jobless-claims', { timeout: 30000 })
+    return response.data
+  } catch (error) {
+    // Fallback or silent fail
+    console.error('[API] 실업수당 청구 건수 조회 오류:', error)
+    return { indicator: 'jobless_claims', data: [], source: 'Error', cached: false }
+  }
+}
+
+export const getConsumerConfidence = async () => {
+  try {
+    const response = await api.get('/economic/consumer-confidence', { timeout: 30000 })
+    return response.data
+  } catch (error) {
+    console.error('[API] 소비자 신뢰지수 조회 오류:', error)
+    return { indicator: 'consumer_confidence', data: [], source: 'Error', cached: false }
+  }
+}
+
+export const getRetailSales = async () => {
+  try {
+    const response = await api.get('/economic/retail-sales', { timeout: 30000 })
+    return response.data
+  } catch (error) {
+    console.error('[API] 소매 판매 조회 오류:', error)
+    return { indicator: 'retail_sales', data: [], source: 'Error', cached: false }
+  }
+}
+
+export const getOilPrices = async () => {
+  try {
+    const response = await api.get('/economic/oil-prices', { timeout: 30000 })
+    return response.data
+  } catch (error) {
+    console.error('[API] 원유 가격 조회 오류:', error)
+    return { indicator: 'oil_prices', data: [], source: 'Error', cached: false }
+  }
+}
+
+export const getPMI = async () => {
+  try {
+    const response = await api.get('/economic/pmi', { timeout: 30000 })
+    return response.data
+  } catch (error) {
+    console.error('[API] PMI 조회 오류:', error)
+    return { indicator: 'pmi', data: [], source: 'Error', cached: false }
+  }
+}
+
+// 연설 요약 API
+export const getFOMCMeetings = async (limit = 10, forceRefresh = false) => {
+  try {
+    const response = await api.get('/speech/fomc', {
+      params: { limit, force_refresh: forceRefresh },
+      timeout: 30000
+    })
     return response.data
   } catch (error) {
     console.error('[API] FOMC 회의록 조회 오류:', error)
@@ -286,7 +377,7 @@ export const getFOMCMeetings = async (limit = 10) => {
 
 export const getSpeechSummary = async (speechId, useOpenAI = false) => {
   try {
-    const response = await api.get(`/speech/summary/${speechId}`, { 
+    const response = await api.get(`/speech/summary/${speechId}`, {
       params: { use_openai: useOpenAI },
       timeout: 120000  // AI 요약에 시간이 걸릴 수 있음
     })
@@ -297,9 +388,12 @@ export const getSpeechSummary = async (speechId, useOpenAI = false) => {
   }
 }
 
-export const getRecentSpeeches = async (limit = 5) => {
+export const getRecentSpeeches = async (limit = 5, forceRefresh = false) => {
   try {
-    const response = await api.get('/speech/recent', { params: { limit }, timeout: 30000 })
+    const response = await api.get('/speech/recent', {
+      params: { limit, force_refresh: forceRefresh },
+      timeout: 30000
+    })
     return response.data
   } catch (error) {
     console.error('[API] 최근 연설문 조회 오류:', error)
@@ -318,33 +412,13 @@ export const getSubscriptionPlans = async () => {
   }
 }
 
-export const createPayment = async (planId) => {
+export const createCheckoutSession = async () => {
   try {
-    const response = await api.post('/subscription/create-payment', null, {
-      params: { plan_id: planId },
-      timeout: 30000
-    })
+    const response = await api.post('/subscription/checkout', {}, { timeout: 30000 })
     return response.data
   } catch (error) {
-    console.error('[API] 결제 생성 오류:', error)
-    throw new Error(error.response?.data?.detail || error.message || '결제 생성 중 오류가 발생했습니다.')
-  }
-}
-
-export const confirmPayment = async (paymentKey, orderId, planId) => {
-  try {
-    const response = await api.post('/subscription/confirm-payment', null, {
-      params: { 
-        payment_key: paymentKey,
-        order_id: orderId,
-        plan_id: planId
-      },
-      timeout: 30000
-    })
-    return response.data
-  } catch (error) {
-    console.error('[API] 결제 승인 오류:', error)
-    throw new Error(error.response?.data?.detail || error.message || '결제 승인 중 오류가 발생했습니다.')
+    console.error('[API] 결제 세션 생성 오류:', error)
+    throw new Error(error.response?.data?.detail || error.message || '결제 세션 생성 중 오류가 발생했습니다.')
   }
 }
 
@@ -371,25 +445,33 @@ export const cancelSubscription = async () => {
 // API 서비스 객체로 export (더 편리한 사용을 위해)
 const apiService = {
   getCompanyAnalysis,
+  getStockPrice,
   getDividendHistory,
   getNews,
   getCompanyNews,
   getPortfolio,
   addPortfolioItem,
   deletePortfolioItem,
+  getPortfolioPrices,
   getEconomicCalendar,
+  getEconomicHighlights,
   getTreasuryRates,
   getMarketIndices,
   getTreasuryYahoo,
   getMarketSentiment,
   getSectorRotation,
   getOptionsFlow,
+  getJoblessClaims,
+  getConsumerConfidence,
+  getRetailSales,
+  getOilPrices,
+  getPMI,
   getFOMCMeetings,
   getSpeechSummary,
   getRecentSpeeches,
+  getRecentSpeeches,
   getSubscriptionPlans,
-  createPayment,
-  confirmPayment,
+  createCheckoutSession,
   getSubscriptionStatus,
   cancelSubscription,
 }

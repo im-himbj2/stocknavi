@@ -19,7 +19,7 @@ ai_summarizer = AISummarizer()
 # 간단한 메모리 캐시
 _cache = {}
 _cache_ttl = {}
-CACHE_DURATION = 3600 * 24  # 24시간 캐시
+CACHE_DURATION = 3600 * 6  # 6시간 캐시 (더 자주 업데이트)
 
 
 def get_cached(key: str):
@@ -60,6 +60,10 @@ class SpeechSummaryResponse(BaseModel):
     summary: str
     keywords: List[str] = []
     sentiment: Optional[str] = None  # positive, negative, neutral
+    # 신규 필드
+    hawk_dove_score: float = 50.0  # 0(Dove) ~ 100(Hawk)
+    market_impact_score: int = 5    # 1 ~ 10
+    speaker_info: Optional[Dict[str, Any]] = None
     cached: bool = False
     updated_at: str
 
@@ -77,20 +81,39 @@ class SpeechListResponse(BaseModel):
 
 @router.get("/speech/fomc", response_model=SpeechListResponse)
 async def get_fomc_meetings(
-    limit: int = Query(10, description="조회할 회의록 수")
+    limit: int = Query(10, description="조회할 회의록 수"),
+    force_refresh: bool = Query(False, description="캐시 무시하고 강제 새로고침")
 ):
     """
     FOMC 회의록 목록 조회
     """
     try:
         cache_key = f"fomc_meetings_{limit}"
-        cached_data = get_cached(cache_key)
-        if cached_data:
-            return SpeechListResponse(**cached_data)
+        if not force_refresh:
+            cached_data = get_cached(cache_key)
+            if cached_data:
+                return SpeechListResponse(**cached_data)
         
         print(f"[Speech API] FOMC 회의록 목록 조회 (limit={limit})")
         meetings = await fomc_scraper.get_recent_meetings(limit)
         
+        # 날짜 순 정렬 시도 (이미 정렬되어 있을 수 있으나 확약)
+        try:
+            # "2025년 01월 29일" 또는 "January 28-29, 2025" 형태 대응
+            def parse_fomc_date(date_str):
+                try:
+                    # 한국어 형태 우선 시도
+                    if '년' in date_str:
+                        return datetime.strptime(date_str.split('일')[0].strip(), '%Y년 %m월 %d')
+                    # 영어 형태 (단순화: 월 이름만으로도 순서 보장됨)
+                    return datetime.strptime(date_str, '%B %d-%d, %Y')
+                except:
+                    return datetime.min
+            
+            meetings.sort(key=lambda x: parse_fomc_date(x['date']), reverse=True)
+        except Exception as sort_err:
+            print(f"[Speech API] FOMC sort error: {sort_err}")
+
         items = []
         for idx, meeting in enumerate(meetings):
             items.append(SpeechItem(
@@ -123,20 +146,36 @@ async def get_fomc_meetings(
 
 @router.get("/speech/recent", response_model=SpeechListResponse)
 async def get_recent_speeches(
-    limit: int = Query(10, description="조회할 연설문 수")
+    limit: int = Query(10, description="조회할 연설문 수"),
+    force_refresh: bool = Query(False, description="캐시 무시하고 강제 새로고침")
 ):
     """
     최근 연설문 목록 조회
     """
     try:
         cache_key = f"recent_speeches_{limit}"
-        cached_data = get_cached(cache_key)
-        if cached_data:
-            return SpeechListResponse(**cached_data)
+        if not force_refresh:
+            cached_data = get_cached(cache_key)
+            if cached_data:
+                return SpeechListResponse(**cached_data)
         
         print(f"[Speech API] 최근 연설문 목록 조회 (limit={limit})")
         speeches = await fed_speech_scraper.get_recent_speeches(limit)
         
+        # 날짜 순 정렬 (ISO 형식 'YYYY-MM-DD' 또는 'January 15, 2025')
+        try:
+            def parse_speech_date(date_str):
+                try:
+                    if '-' in date_str:
+                        return datetime.strptime(date_str, '%Y-%m-%d')
+                    return datetime.strptime(date_str, '%B %d, %Y')
+                except:
+                    return datetime.min
+            
+            speeches.sort(key=lambda x: parse_speech_date(x.get('date', '')), reverse=True)
+        except Exception as sort_err:
+            print(f"[Speech API] Speech sort error: {sort_err}")
+
         items = []
         for idx, speech in enumerate(speeches):
             items.append(SpeechItem(
@@ -258,20 +297,54 @@ async def get_speech_summary(
                     keywords.append(keyword)
             keywords = list(set(keywords))[:5]  # 중복 제거 및 최대 5개
         
-        # 간단한 감정 분석 (키워드 기반)
+        # 화자 및 영향력 분석
+        hawk_dove_score = 50.0  # 0: Dove, 100: Hawk
+        market_impact_score = 5
+        speaker_info = None
+        
+        # 주요 화자 DB (간이)
+        fed_speakers = {
+            "Jerome Powell": {"role": "Chair", "bias": "Neutral/Flexible", "impact": 10},
+            "John Williams": {"role": "Vice Chair", "bias": "Neutral/Hawk", "impact": 8},
+            "Christopher Waller": {"role": "Governor", "bias": "Hawk", "impact": 8},
+            "Michelle Bowman": {"role": "Governor", "bias": "Hawk", "impact": 7},
+            "Austan Goolsbee": {"role": "President (Chicago)", "bias": "Dove", "impact": 6},
+            "Neel Kashkari": {"role": "President (Minneapolis)", "bias": "Hawk", "impact": 6},
+            "Mary Daly": {"role": "President (San Francisco)", "bias": "Dove", "impact": 6},
+            "Raphael Bostic": {"role": "President (Atlanta)", "bias": "Neutral", "impact": 6},
+            "Patrick Harker": {"role": "President (Philadelphia)", "bias": "Neutral", "impact": 5},
+            "Thomas Barkin": {"role": "President (Richmond)", "bias": "Neutral/Hawk", "impact": 5},
+        }
+
+        # 화자 이름 매칭 및 점수 산출
+        if speaker:
+            for name, info in fed_speakers.items():
+                if name.lower() in speaker.lower():
+                    speaker_info = info
+                    market_impact_score = info["impact"]
+                    if "Hawk" in info["bias"]: hawk_dove_score = 75.0
+                    elif "Dove" in info["bias"]: hawk_dove_score = 25.0
+                    break
+        elif speech_type == 'minutes':
+            market_impact_score = 9  # 회의록은 중요함
+            speaker_info = {"role": "Committee", "bias": "Collective"}
+
+        # 감정 분석 보정
         sentiment = 'neutral'
-        positive_words = ['긍정', '상승', '개선', '증가', '성장', '안정', 'positive', 'growth', 'improvement', 'increase']
-        negative_words = ['부정', '하락', '악화', '감소', '위험', '불안', 'negative', 'decline', 'risk', 'concern']
+        positive_words = ['긍정', '상승', '개선', '증가', '성장', '안정', '완화', '비둘기', 'dove', 'easing', 'growth']
+        negative_words = ['부정', '하락', '악화', '감소', '위험', '불안', '긴축', '매파', 'hawk', 'tightening', 'risk']
         
         summary_lower = summary.lower()
-        positive_count = sum(1 for word in positive_words if word.lower() in summary_lower)
-        negative_count = sum(1 for word in negative_words if word.lower() in summary_lower)
+        pos_count = sum(1 for word in positive_words if word.lower() in summary_lower)
+        neg_count = sum(1 for word in negative_words if word.lower() in summary_lower)
         
-        if positive_count > negative_count:
+        if pos_count > neg_count:
             sentiment = 'positive'
-        elif negative_count > positive_count:
+            hawk_dove_score = max(0, hawk_dove_score - 10)
+        elif neg_count > pos_count:
             sentiment = 'negative'
-        
+            hawk_dove_score = min(100, hawk_dove_score + 10)
+
         result = SpeechSummaryResponse(
             id=speech_id,
             title=title,
@@ -282,6 +355,9 @@ async def get_speech_summary(
             summary=summary,
             keywords=keywords,
             sentiment=sentiment,
+            hawk_dove_score=hawk_dove_score,
+            market_impact_score=market_impact_score,
+            speaker_info=speaker_info,
             cached=False,
             updated_at=datetime.now().isoformat()
         )

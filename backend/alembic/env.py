@@ -16,7 +16,13 @@ from app.models import User, PortfolioItem, Subscription
 config = context.config
 
 # Set database URL from settings
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+# Set database URL from settings
+# Escape % for ConfigParser interpolation
+if settings.DATABASE_URL:
+    url = settings.DATABASE_URL.replace("%", "%%")
+    config.set_main_option("sqlalchemy.url", url)
+else:
+    config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
 
 # Interpret the config file for Python logging.
 if config.config_file_name is not None:

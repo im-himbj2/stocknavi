@@ -22,6 +22,7 @@ class FMPEconomicProvider:
     async def get_economic_indicator(
         self,
         indicator: str,
+        name: Optional[str] = None,
         start_date: Optional[str] = None,
         end_date: Optional[str] = None
     ) -> Optional[Dict]:
@@ -29,10 +30,8 @@ class FMPEconomicProvider:
         경제 지표 데이터 조회
         
         Args:
-            indicator: 지표 타입
-                - economicCalendar: 경제 캘린더
-                - treasuryRates: 국채 수익률
-                - economicIndicators: 경제 지표
+            indicator: 지표 타입 (v4 기준: economic, treasury, economic-calendar 등)
+            name: 구체적인 지표 이름 (GDP, CPI 등)
             start_date: 시작 날짜 (YYYY-MM-DD)
             end_date: 종료 날짜 (YYYY-MM-DD)
         
@@ -56,6 +55,8 @@ class FMPEconomicProvider:
                 "from": start_date,
                 "to": end_date
             }
+            if name:
+                params["name"] = name
             
             async with httpx.AsyncClient(follow_redirects=True, timeout=15.0) as client:
                 response = await client.get(

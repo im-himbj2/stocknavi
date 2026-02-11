@@ -40,15 +40,21 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_SECRET: Optional[str] = None
     
     # Frontend
-    FRONTEND_URL: Optional[str] = "http://localhost:5173"
+    FRONTEND_URL: Optional[str] = "http://13.209.70.3"
     
-    # Environment
-    ENVIRONMENT: str = "development"
+    # Supabase
+    SUPABASE_URL: Optional[str] = None
+    SUPABASE_ANON_KEY: Optional[str] = None
     
+    # Polar.sh
+    POLAR_API_KEY: Optional[str] = None
+    POLAR_PRODUCT_ID: Optional[str] = None
+    POLAR_WEBHOOK_SECRET: Optional[str] = None
+
     class Config:
         env_file = ".env"
         case_sensitive = True
-        extra = "ignore"  # .env 파일의 추가 필드는 무시
+        extra = "allow"  # Allow extra fields for now to avoid errors
 
 
 settings = Settings()

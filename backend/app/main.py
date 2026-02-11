@@ -34,7 +34,23 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:3000", "http://127.0.0.1:5173", "http://127.0.0.1:5174"],
+    allow_origins=[
+        "http://localhost:5173", 
+        "http://localhost:5174", 
+        "http://localhost:3000", 
+        "http://127.0.0.1:5173", 
+        "http://127.0.0.1:5174",
+        "http://3.34.188.87",
+        "http://3.34.188.87:5173",
+        "http://13.125.93.64",
+        "http://13.125.93.64:5173",
+        "http://www.stocknavi24.com",
+        "http://stocknavi24.com",
+        "https://www.stocknavi24.com",
+        "https://stocknavi24.com",
+        "http://13.209.70.3",
+        "http://13.209.70.3:5173"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -87,6 +87,71 @@ class YahooFinanceDataProvider:
         except Exception as e:
             print(f"[YahooFinance] Error fetching price for {symbol}: {e}")
             return None
+
+    def get_current_prices_batch(self, symbols: List[str]) -> Dict[str, Dict[str, float]]:
+        """여러 종목의 현재 가격 및 등락률을 대량으로 조회"""
+        try:
+            if not symbols:
+                return {}
+            
+            # yfinance download를 사용하여 최근 데이터 가져오기 (전일 종가 비교를 위해 5일치)
+            data = yf.download(symbols, period="5d", interval="1d", progress=False)
+            
+            quotes = {}
+            if data.empty:
+                return {}
+            
+            for symbol in symbols:
+                try:
+                    # 데이터가 여러 열일 경우 (멀티 인덱스)
+                    if isinstance(data.columns, pd.MultiIndex):
+                        if symbol in data['Close'].columns:
+                            closes = data['Close'][symbol].dropna()
+                            if len(closes) > 0:
+                                current_price = float(closes.iloc[-1])
+                                
+                                # 등락률 계산
+                                change = 0.0
+                                change_percent = 0.0
+                                if len(closes) >= 2:
+                                    prev_close = float(closes.iloc[-2])
+                                    if prev_close > 0:
+                                        change = current_price - prev_close
+                                        change_percent = (change / prev_close) * 100
+                                
+                                quotes[symbol] = {
+                                    "price": current_price,
+                                    "change": change,
+                                    "changePercent": change_percent
+                                }
+                    else:
+                        # 단일 종목인 경우
+                        closes = data['Close'].dropna()
+                        if len(closes) > 0:
+                            current_price = float(closes.iloc[-1])
+                            
+                            change = 0.0
+                            change_percent = 0.0
+                            if len(closes) >= 2:
+                                prev_close = float(closes.iloc[-2])
+                                if prev_close > 0:
+                                    change = current_price - prev_close
+                                    change_percent = (change / prev_close) * 100
+                            
+                            quotes[symbol] = {
+                                "price": current_price,
+                                "change": change,
+                                "changePercent": change_percent
+                            }
+
+                except Exception as e:
+                    print(f"[YahooFinance] Error processing {symbol}: {e}")
+                    continue
+            
+            return quotes
+        except Exception as e:
+            print(f"[YahooFinance] Error in batch price fetch: {e}")
+            return {}
     
     def get_company_info(self, symbol: str) -> Optional[Dict]:
         """회사 정보 조회"""

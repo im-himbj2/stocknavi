@@ -9,12 +9,14 @@ from typing import Optional
 from app.core.database import get_db, SessionLocal
 from app.core.security import verify_password, get_password_hash, create_access_token, decode_access_token
 from app.core.config import settings
-from app.models.user import User
 from pydantic import BaseModel, EmailStr
 import httpx
+import jwt
+from app.models.user import User
+from app.models.subscription import Subscription
 
 router = APIRouter()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login", auto_error=False)
 
 
 class UserCreate(BaseModel):
@@ -50,38 +52,52 @@ async def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db)
 ) -> User:
-    """Get current authenticated user"""
+    """Get current authenticated user using Supabase JWT"""
     if SessionLocal is None:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="데이터베이스가 초기화되지 않았습니다. PostgreSQL 서버가 실행 중인지 확인하세요."
+            detail="데이터베이스가 초기화되지 않았습니다."
         )
     
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    
-    payload = decode_access_token(token)
-    if payload is None:
-        raise credentials_exception
-    
-    user_id = payload.get("sub")
-    if user_id is None:
-        raise credentials_exception
-    
-    # user_id를 int로 변환 (타입 안전성)
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     try:
-        user_id = int(user_id)
-    except (ValueError, TypeError):
-        raise credentials_exception
-    
-    user = db.query(User).filter(User.id == user_id).first()
-    if user is None:
-        raise credentials_exception
-    
-    return user
+        # Supabase JWT decoding
+        # Supabase uses the JWT Secret (which is usually the same as the Service Role Key or a dedicated secret)
+        # For simplicity and security with 'anon' keys, we can also use the supabase-py client or verify manually
+        payload = jwt.decode(
+            token, 
+            settings.SECRET_KEY, # This should be the Supabase JWT Secret
+            algorithms=[settings.ALGORITHM],
+            audience="authenticated"
+        )
+        user_id = payload.get("sub")
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid token payload")
+            
+        # Supabase user_id is a UUID string. 
+        # Our internal User model might still use int IDs or UUIDs depending on how we migrated.
+        # Assuming we migrated to UUID for the primary key to match Supabase Auth.
+        user = db.query(User).filter(User.id == user_id).first()
+        
+        if not user:
+            # If user exists in Auth but not in our public.profiles/users table, 
+            # we might need to create them or return unauthorized.
+            raise HTTPException(status_code=401, detail="User not found in database")
+            
+        return user
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token has expired")
+    except jwt.InvalidTokenError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    except Exception as e:
+        print(f"[Auth Error] {e}")
+        raise HTTPException(status_code=401, detail="Could not validate credentials")
 
 
 async def get_current_user_optional(

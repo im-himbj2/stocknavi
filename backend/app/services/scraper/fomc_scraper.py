@@ -94,9 +94,12 @@ class FOMCScraper:
             print(f"[FOMC Scraper] Error fetching meetings: {error_msg}")
             return self._get_sample_meetings(limit)
     
+        return "날짜 미상"
+
     def _extract_date(self, link, href: str) -> str:
         """링크에서 날짜 추출"""
-        # href에서 날짜 추출 시도 (fomcminutes20250129.htm 형태)
+        # 1. href에서 날짜 추출 시도 (fomcminutes20250129.htm 형태)
+        # 2024, 2025, 2026 등 모든 연도 지원하도록 \d{4} 사용
         date_match = re.search(r'(\d{8})', href)
         if date_match:
             date_str = date_match.group(1)
@@ -106,7 +109,7 @@ class FOMCScraper:
             except ValueError:
                 pass
         
-        # 부모 요소에서 날짜 찾기
+        # 2. 텍스트/부모 요소에서 날짜 찾기
         parent = link.find_parent('div')
         if not parent:
             parent = link.find_parent('li')
@@ -114,29 +117,31 @@ class FOMCScraper:
             parent = link.find_parent('tr')
         
         if parent:
-            # 날짜 패턴 검색
             text = parent.get_text()
             
-            # "January 28-29, 2025" 형태
-            month_pattern = r'(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}(?:-\d{1,2})?,?\s+\d{4}'
+            # "January 28-29, 2025" 또는 "Jan 28-29, 2026" 형태
+            # 연도 202x ~ 203x 커버
+            month_pattern = r'(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2}(?:-\d{1,2})?,?\s+(20\d{2})'
             match = re.search(month_pattern, text)
             if match:
                 return match.group(0)
             
             # "2025-01-29" 형태
-            iso_pattern = r'\d{4}-\d{2}-\d{2}'
+            iso_pattern = r'(20\d{2})-\d{2}-\d{2}'
             match = re.search(iso_pattern, text)
             if match:
                 return match.group(0)
         
-        # href에서 날짜 추출 시도 (다른 형태)
-        date_match = re.search(r'fomc(\d{4})(\d{2})(\d{2})?', href, re.IGNORECASE)
+        # 3. href에서 fomcZZZZYYYYMMDD 형태 (ZZZZ는 연도일 수도 있음)
+        # fomc20260129 등
+        date_match = re.search(r'fomc(20\d{2})(\d{2})(\d{2})?', href, re.IGNORECASE)
         if date_match:
             year = date_match.group(1)
             month = date_match.group(2)
             day = date_match.group(3) if date_match.group(3) else '01'
             try:
                 date_obj = datetime(int(year), int(month), int(day))
+                # 날짜가 유효한지 확인
                 return date_obj.strftime('%Y년 %m월')
             except ValueError:
                 pass

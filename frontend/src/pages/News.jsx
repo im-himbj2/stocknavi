@@ -115,7 +115,7 @@ function News() {
       const data = await apiService.getNews(symbol || null, country, 30)
       console.log('[News] 뉴스 조회 성공:', data)
       setNewsData(data)
-      
+
       if (!data || !data.news || data.news.length === 0) {
         setError('뉴스가 없습니다. 다른 종목이나 지역을 시도해보세요.')
       }
@@ -175,7 +175,7 @@ function News() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-[#020617] text-white">
       <div className="container mx-auto px-4 py-12 max-w-7xl">
         {/* 헤더 */}
         <div className="mb-8">
@@ -211,23 +211,23 @@ function News() {
                   />
                   {showSuggestions && suggestions.length > 0 && (
                     <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-black border border-white/10 rounded-lg shadow-xl max-h-60 overflow-y-auto">
-                    {suggestions.map((suggestion, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => {
-                          setSymbol(suggestion.symbol)
-                          setSearchSymbol(suggestion.symbol)
-                          setShowSuggestions(false)
-                        }}
-                        className="w-full text-left px-4 py-3 hover:bg-white/5 transition-colors duration-200 border-b border-white/5 last:border-0"
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="text-white font-medium">{suggestion.symbol}</span>
-                          <span className="text-gray-400 text-sm">{suggestion.name}</span>
-                        </div>
-                      </button>
-                    ))}
+                      {suggestions.map((suggestion, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => {
+                            setSymbol(suggestion.symbol)
+                            setSearchSymbol(suggestion.symbol)
+                            setShowSuggestions(false)
+                          }}
+                          className="w-full text-left px-4 py-3 hover:bg-white/5 transition-colors duration-200 border-b border-white/5 last:border-0"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-white font-medium">{suggestion.symbol}</span>
+                            <span className="text-gray-400 text-sm">{suggestion.name}</span>
+                          </div>
+                        </button>
+                      ))}
                     </div>
                   )}
                 </div>
