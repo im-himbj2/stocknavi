@@ -798,6 +798,9 @@ async def get_sector_rotation():
         
         set_cached(cache_key, result)
         return EconomicIndicatorResponse(**result)
+    except Exception as e:
+        print(f"[Sector Rotation] Error: {e}")
+        raise HTTPException(status_code=500, detail=f"섹터 로테이션 조회 실패: {str(e)}")
 
 
 @router.get("/economic/jobless-claims", response_model=EconomicIndicatorResponse)
