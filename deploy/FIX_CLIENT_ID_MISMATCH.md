@@ -130,3 +130,4 @@ echo "✅ 완료! 로그 확인: pm2 logs stocknavi-backend"
 3. **Google Cloud Console 확인**: Client ID가 올바른지 확인
 4. **로그 확인**: `pm2 logs stocknavi-backend`에서 디버깅 메시지 확인
 
+

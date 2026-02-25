@@ -96,3 +96,4 @@ echo "📝 로그 확인: pm2 logs"
 echo "🔄 재시작: pm2 restart all"
 echo "🛑 중지: pm2 stop all"
 
+

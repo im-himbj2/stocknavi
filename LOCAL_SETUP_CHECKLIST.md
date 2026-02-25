@@ -155,3 +155,4 @@ notepad frontend\.env
 1. EC2 서버 정리 (`deploy/CLEAN_DEPLOYMENT_GUIDE.md` 참조)
 2. 프로젝트 배포 (`deploy/quick_deploy.sh` 사용 또는 수동 배포)
 
+

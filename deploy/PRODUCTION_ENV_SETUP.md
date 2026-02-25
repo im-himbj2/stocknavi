@@ -204,3 +204,4 @@ Supabase를 사용하는 경우:
 - [Supabase 설정](./SUPABASE_SETUP.md)
 - [EC2 배포 가이드](./EC2_DEPLOYMENT_GUIDE.md)
 
+

@@ -67,4 +67,3 @@ export const googleLogin = async (idToken) => {
   
   return response.data
 }
-

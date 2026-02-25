@@ -288,7 +288,5 @@ class AISummarizer:
 본 문서는 경제 및 금융 관련 내용을 담고 있습니다.
 
 주요 내용:
-{extracted[:300]}...
-
-※ AI 요약 서비스를 사용하려면 .env 파일에 GROQ_API_KEY를 설정해주세요.
+{extracted[:300]}...※ AI 요약 서비스를 사용하려면 .env 파일에 GROQ_API_KEY를 설정해주세요.
    Groq API 키는 https://console.groq.com 에서 무료로 발급받을 수 있습니다."""

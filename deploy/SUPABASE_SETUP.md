@@ -187,3 +187,4 @@ psql "postgresql://postgres:[PASSWORD]@db.xxxxx.supabase.co:5432/postgres" < bac
 - 프로덕션 환경에서는 유료 플랜을 고려하세요
 - Supabase는 자동 백업을 제공하므로 별도 백업 설정이 필요 없습니다
 
+

@@ -289,7 +289,7 @@ async def get_retail_sales():
     try:
         cache_key = "retail_sales"
         cached = get_cached(cache_key)
-        if cached: return EconomicIndicatorResponse(**cached, cached=true)
+        if cached: return EconomicIndicatorResponse(**cached, cached=True)
         data = await fred_provider.get_numeric_data("RSAFS")
         result = {"indicator": "retail_sales", "data": data, "source": "FRED", "updated_at": datetime.now().isoformat()}
         set_cached(cache_key, result)
