@@ -57,7 +57,7 @@ async def get_economic_calendar(
         cache_key = f"economic_calendar_{start_date}_{end_date}"
         cached = get_cached(cache_key)
         if cached:
-            return EconomicIndicatorResponse(**cached, cached=True)
+            return EconomicIndicatorResponse(**{**cached, "cached": True})
 
         data = await fmp_provider.get_economic_calendar(start_date, end_date)
         
@@ -85,7 +85,7 @@ async def get_treasury_rates():
         cache_key = "treasury_rates"
         cached = get_cached(cache_key)
         if cached:
-            return EconomicIndicatorResponse(**cached, cached=True)
+            return EconomicIndicatorResponse(**{**cached, "cached": True})
             
         data = await fmp_provider.get_treasury_rates()
         result = EconomicIndicatorResponse(
@@ -106,7 +106,7 @@ async def get_market_indices():
         cache_key = "market_indices"
         cached = get_cached(cache_key)
         if cached:
-            return EconomicIndicatorResponse(**cached, cached=True)
+            return EconomicIndicatorResponse(**{**cached, "cached": True})
             
         data = await fmp_provider.get_market_indices()
         if not data:
@@ -171,7 +171,7 @@ async def get_economic_highlights():
     try:
         cache_key = "economic_macro_highlights"
         cached = get_cached(cache_key)
-        if cached: return EconomicIndicatorResponse(**cached, cached=True)
+        if cached: return EconomicIndicatorResponse(**{**cached, "cached": True})
         
         indicators = ["GDP", "CPI", "unemploymentRate", "interestRate"]
         tasks = [fmp_provider.get_economic_indicator("economic", name=name) for name in indicators]
@@ -200,7 +200,7 @@ async def get_market_sentiment():
     try:
         cache_key = "market_sentiment"
         cached = get_cached(cache_key)
-        if cached: return EconomicIndicatorResponse(**cached, cached=True)
+        if cached: return EconomicIndicatorResponse(**{**cached, "cached": True})
         
         # CNN-like logic fallback
         final_value = 50 
@@ -234,7 +234,7 @@ async def get_sector_rotation():
     try:
         cache_key = "sector_rotation"
         cached = get_cached(cache_key)
-        if cached: return EconomicIndicatorResponse(**cached, cached=True)
+        if cached: return EconomicIndicatorResponse(**{**cached, "cached": True})
         
         import yfinance as yf
         sector_etfs = {"XLK": "Tech", "XLV": "Health", "XLE": "Energy", "XLF": "Finance", "XLI": "Industrials", "XLY": "ConsDis", "XLP": "ConsStap", "XLU": "Utilities", "XLB": "Materials", "XLRE": "RealEstate", "XLC": "Comm"}
@@ -263,7 +263,7 @@ async def get_jobless_claims():
     try:
         cache_key = "jobless_claims"
         cached = get_cached(cache_key)
-        if cached: return EconomicIndicatorResponse(**cached, cached=True)
+        if cached: return EconomicIndicatorResponse(**{**cached, "cached": True})
         data = await fred_provider.get_numeric_data("ICSA")
         result = {"indicator": "jobless_claims", "data": data, "source": "FRED", "updated_at": datetime.now().isoformat()}
         set_cached(cache_key, result)
@@ -276,7 +276,7 @@ async def get_consumer_confidence():
     try:
         cache_key = "consumer_confidence"
         cached = get_cached(cache_key)
-        if cached: return EconomicIndicatorResponse(**cached, cached=True)
+        if cached: return EconomicIndicatorResponse(**{**cached, "cached": True})
         data = await fred_provider.get_numeric_data("UMCSENT")
         result = {"indicator": "consumer_confidence", "data": data, "source": "FRED", "updated_at": datetime.now().isoformat()}
         set_cached(cache_key, result)
@@ -289,7 +289,7 @@ async def get_retail_sales():
     try:
         cache_key = "retail_sales"
         cached = get_cached(cache_key)
-        if cached: return EconomicIndicatorResponse(**cached, cached=True)
+        if cached: return EconomicIndicatorResponse(**{**cached, "cached": True})
         data = await fred_provider.get_numeric_data("RSAFS")
         result = {"indicator": "retail_sales", "data": data, "source": "FRED", "updated_at": datetime.now().isoformat()}
         set_cached(cache_key, result)
@@ -302,7 +302,7 @@ async def get_oil_prices():
     try:
         cache_key = "oil_prices"
         cached = get_cached(cache_key)
-        if cached: return EconomicIndicatorResponse(**cached, cached=True)
+        if cached: return EconomicIndicatorResponse(**{**cached, "cached": True})
         data = await yahoo_economic.get_economic_data("CL=F")
         result = {"indicator": "oil_prices", "data": data.get("data", []) if data else [], "source": "Yahoo", "updated_at": datetime.now().isoformat()}
         set_cached(cache_key, result)
@@ -315,7 +315,7 @@ async def get_pmi():
     try:
         cache_key = "pmi"
         cached = get_cached(cache_key)
-        if cached: return EconomicIndicatorResponse(**cached, cached=True)
+        if cached: return EconomicIndicatorResponse(**{**cached, "cached": True})
         data = await fmp_provider.get_economic_indicator("economic", "ismManufacturingPMI")
         result = {"indicator": "pmi", "data": data if data else [], "source": "FMP", "updated_at": datetime.now().isoformat()}
         set_cached(cache_key, result)

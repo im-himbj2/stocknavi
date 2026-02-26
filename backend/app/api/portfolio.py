@@ -3,9 +3,9 @@ Portfolio API endpoints
 """
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from app.core.database import get_db, SessionLocal
-from app.api.auth import get_current_user
+from app.api.deps import get_current_user
 from app.models.user import User
 from app.models.portfolio import PortfolioItem
 from app.models.subscription import Subscription
@@ -21,7 +21,7 @@ class PortfolioItemCreate(BaseModel):
     symbol: str
     quantity: float
     average_price: float
-    notes: str | None = None
+    notes: Optional[str] = None
 
 
 class PortfolioItemResponse(BaseModel):
@@ -30,7 +30,7 @@ class PortfolioItemResponse(BaseModel):
     symbol: str
     quantity: float
     average_price: float
-    notes: str | None
+    notes: Optional[str]
     
     class Config:
         from_attributes = True

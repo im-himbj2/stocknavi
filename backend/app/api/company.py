@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException, Query, Depends
 from typing import Optional, Dict, List, Any
 from datetime import datetime, timedelta
 from pydantic import BaseModel, Field
-from app.api.auth import get_current_user_optional
+from app.api.deps import get_current_user_optional
 from app.models.user import User
 from app.models.subscription import Subscription
 from sqlalchemy.orm import Session

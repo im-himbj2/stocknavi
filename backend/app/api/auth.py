@@ -23,14 +23,14 @@ class UserCreate(BaseModel):
     """User creation schema"""
     email: EmailStr
     password: str
-    full_name: str | None = None
+    full_name: Optional[str] = None
 
 
 class UserResponse(BaseModel):
     """User response schema"""
     id: int
     email: str
-    full_name: str | None
+    full_name: Optional[str]
     subscription_tier: str
     
     class Config:

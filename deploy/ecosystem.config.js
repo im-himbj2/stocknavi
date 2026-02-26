@@ -2,10 +2,10 @@ module.exports = {
   apps: [
     {
       name: 'stocknavi-backend',
-      script: 'uvicorn',
+      script: '/home/ec2-user/stock-portfolio/backend/venv/bin/uvicorn',
       args: 'app.main:app --host 0.0.0.0 --port 8000',
-      cwd: '/home/ec2-user/stocknavi/backend',
-      interpreter: '/home/ec2-user/stocknavi/backend/venv/bin/python',
+      cwd: '/home/ec2-user/stock-portfolio/backend',
+      interpreter: '/home/ec2-user/stock-portfolio/backend/venv/bin/python',
       env: {
         PYTHONUNBUFFERED: '1',
       },
@@ -21,7 +21,7 @@ module.exports = {
       name: 'stocknavi-frontend',
       script: 'serve',
       args: '-s dist -l 5173',
-      cwd: '/home/ec2-user/stocknavi/frontend',
+      cwd: '/home/ec2-user/stock-portfolio/frontend',
       env: {
         NODE_ENV: 'production',
       },
