@@ -6,7 +6,15 @@ import { useAuth } from '../contexts/AuthContext'
 function Login() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { login: setAuth } = useAuth()
+  const { login: setAuth, isAuth } = useAuth()
+
+  if (isAuth) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <h1 className="text-6xl font-bold text-white">wow</h1>
+      </div>
+    )
+  }
   const [activeTab, setActiveTab] = useState('login') // 'login' or 'register'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
