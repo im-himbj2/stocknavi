@@ -28,7 +28,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/dividend" element={
-            <div className="min-h-screen bg-[#0A090C] text-white flex">
+            <div className="min-h-screen bg-[#0a0f15] text-white flex">
               <Sidebar />
               <main className="flex-1 overflow-auto">
                 <Dividend />
@@ -36,7 +36,7 @@ function App() {
             </div>
           } />
           <Route path="/company" element={
-            <div className="min-h-screen bg-[#0A090C] text-white flex">
+            <div className="min-h-screen bg-[#0a0f15] text-white flex">
               <Sidebar />
               <main className="flex-1 overflow-auto">
                 <CompanyAnalysis />
@@ -44,7 +44,7 @@ function App() {
             </div>
           } />
           <Route path="/economic" element={
-            <div className="min-h-screen bg-[#0A090C] text-white flex">
+            <div className="min-h-screen bg-[#0a0f15] text-white flex">
               <Sidebar />
               <main className="flex-1 overflow-auto">
                 <EconomicIndicators />
@@ -52,7 +52,7 @@ function App() {
             </div>
           } />
           <Route path="/speech" element={
-            <div className="min-h-screen bg-[#0A090C] text-white flex">
+            <div className="min-h-screen bg-[#0a0f15] text-white flex">
               <Sidebar />
               <main className="flex-1 overflow-auto">
                 <SpeechSummary />
@@ -60,7 +60,7 @@ function App() {
             </div>
           } />
           <Route path="/portfolio" element={
-            <div className="min-h-screen bg-[#0A090C] text-white flex">
+            <div className="min-h-screen bg-[#0a0f15] text-white flex">
               <Sidebar />
               <main className="flex-1 overflow-auto">
                 <Portfolio />
@@ -68,7 +68,7 @@ function App() {
             </div>
           } />
           <Route path="/news" element={
-            <div className="min-h-screen bg-[#0A090C] text-white flex">
+            <div className="min-h-screen bg-[#0a0f15] text-white flex">
               <Sidebar />
               <main className="flex-1 overflow-auto">
                 <News />
@@ -76,7 +76,7 @@ function App() {
             </div>
           } />
           <Route path="/subscription" element={
-            <div className="min-h-screen bg-[#0A090C] text-white flex">
+            <div className="min-h-screen bg-[#0a0f15] text-white flex">
               <Sidebar />
               <main className="flex-1 overflow-auto">
                 <Subscription />
@@ -84,7 +84,7 @@ function App() {
             </div>
           } />
           <Route path="/subscription/success" element={
-            <div className="min-h-screen bg-[#0A090C] text-white flex flex-col">
+            <div className="min-h-screen bg-[#0a0f15] text-white flex flex-col">
               <main className="flex-1 flex items-center justify-center">
                 <div className="text-center">
                   <h1 className="text-4xl font-bold mb-4 text-green-400">구독 완료!</h1>
@@ -97,7 +97,7 @@ function App() {
             </div>
           } />
           <Route path="/subscription/cancel" element={
-            <div className="min-h-screen bg-[#0A090C] text-white flex flex-col">
+            <div className="min-h-screen bg-[#0a0f15] text-white flex flex-col">
               <main className="flex-1 flex items-center justify-center">
                 <div className="text-center">
                   <h1 className="text-4xl font-bold mb-4 text-gray-400">구독 취소됨</h1>
@@ -110,7 +110,7 @@ function App() {
             </div>
           } />
           <Route path="/login" element={
-            <div className="min-h-screen bg-[#0A090C] text-white flex flex-col">
+            <div className="min-h-screen bg-[#0a0f15] text-white flex flex-col">
               <main className="flex-1">
                 <Login />
               </main>
