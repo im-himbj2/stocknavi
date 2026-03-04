@@ -93,7 +93,7 @@ function Home() {
                 />
                 <Link
                   to={searchSymbol ? `/company?symbol=${searchSymbol}` : '/company'}
-                  className="bg-blue-600 hover:bg-[#00498C] text-white px-10 py-4 rounded-[1.2rem] text-sm font-black transition-all shadow-lg shadow-[#00498C]/30 hover:scale-[1.02] active:scale-[0.98]"
+                  className="bg-[#00498C] hover:bg-[#0059B3] text-white px-10 py-4 rounded-[1.2rem] text-sm font-black transition-all shadow-lg shadow-[#00498C]/30 hover:scale-[1.02] active:scale-[0.98]"
                 >
                   분석 실행
                 </Link>

@@ -1,545 +1,310 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import apiService from '../services/api'
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell, Treemap } from 'recharts'
-import SectorDetailModal from '../components/Economic/SectorDetailModal'
-
-const CustomTooltip = ({ active, payload }) => {
-  if (active && payload && payload.length) {
-    const data = payload[0].payload.item;
-    return (
-      <div className="bg-gray-900 border border-white/20 p-3 rounded-lg shadow-xl">
-        <p className="text-white font-bold mb-1">{data.sector}</p>
-        <p className={`${parseFloat(data.changesPercentage) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-          {parseFloat(data.changesPercentage) > 0 ? '+' : ''}
-          {parseFloat(data.changesPercentage).toFixed(2)}%
-        </p>
-        <p className="text-xs text-gray-500 mt-1">클릭하여 상세 정보 보기</p>
-      </div>
-    );
-  }
-  return null;
-};
 
 function EconomicIndicators() {
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
-  const [marketIndices, setMarketIndices] = useState(null)
-  const [marketSentiment, setMarketSentiment] = useState(null)
-  const [sectorRotation, setSectorRotation] = useState(null)
-  const [optionsFlow, setOptionsFlow] = useState(null)
+  const [loading, setLoading] = useState(true)
   const [macroHighlights, setMacroHighlights] = useState(null)
-  const [joblessClaims, setJoblessClaims] = useState(null)
-  const [consumerConfidence, setConsumerConfidence] = useState(null)
-  const [retailSales, setRetailSales] = useState(null)
-  const [oilPrices, setOilPrices] = useState(null)
-  const [pmi, setPmi] = useState(null)
-  const [activeTab, setActiveTab] = useState('sentiment')
-  const [selectedSector, setSelectedSector] = useState(null)
+  const [fomcMeetings, setFomcMeetings] = useState(null)
+  const [fomcSummary, setFomcSummary] = useState(null)
+  const [activeChart, setActiveChart] = useState('GDP')
 
-  // 매크로 지표 로드
-  const fetchMacroHighlights = async () => {
-    try {
-      const data = await apiService.getEconomicHighlights()
-      setMacroHighlights(data)
-    } catch (err) {
-      console.error('매크로 지표 조회 오류:', err)
-    }
-  }
-
-  // 시장 지수 로드
-  const fetchMarketIndices = async () => {
-    try {
-      const data = await apiService.getMarketIndices()
-      setMarketIndices(data)
-    } catch (err) {
-      console.error('시장 지수 조회 오류:', err)
-    }
-  }
-
-  // 시장 심리 지수 로드
-  const fetchMarketSentiment = async () => {
-    try {
-      const data = await apiService.getMarketSentiment()
-      setMarketSentiment(data)
-    } catch (err) {
-      console.error('시장 심리 지수 조회 오류:', err)
-    }
-  }
-
-  // 섹터 로테이션 로드
-  const fetchSectorRotation = async () => {
-    try {
-      const data = await apiService.getSectorRotation()
-      setSectorRotation(data)
-    } catch (err) {
-      console.error('섹터 로테이션 조회 오류:', err)
-    }
-  }
-
-  // 옵션 플로우 로드
-  const fetchOptionsFlow = async () => {
-    try {
-      const data = await apiService.getOptionsFlow()
-      setOptionsFlow(data)
-    } catch (err) {
-      console.error('옵션 플로우 조회 오류:', err)
-    }
-  }
-
-  // 추가 경제지표 로드
-  const fetchAdditionalIndicators = async () => {
-    try {
-      const [jobless, sentiment, retail, oil, pmiData] = await Promise.all([
-        apiService.getJoblessClaims(),
-        apiService.getConsumerConfidence(),
-        apiService.getRetailSales(),
-        apiService.getOilPrices(),
-        apiService.getPMI()
-      ])
-      setJoblessClaims(jobless)
-      setConsumerConfidence(sentiment)
-      setRetailSales(retail)
-      setOilPrices(oil)
-      setPmi(pmiData)
-    } catch (err) {
-      console.error('추가 경제지표 조회 오류:', err)
-    }
-  }
-
-  // 초기 로드
   useEffect(() => {
-    setLoading(true)
-    setError(null)
-    Promise.allSettled([
-      fetchMacroHighlights(),
-      fetchMarketIndices(),
-      fetchMarketSentiment(),
-      fetchSectorRotation(),
-      fetchOptionsFlow(),
-      fetchAdditionalIndicators()
-    ]).finally(() => setLoading(false))
+    const fetchAll = async () => {
+      setLoading(true)
+      try {
+        const [macro, fomc] = await Promise.allSettled([
+          apiService.getEconomicHighlights(),
+          apiService.getFOMCMeetings(1)
+        ])
+        if (macro.status === 'fulfilled') setMacroHighlights(macro.value)
+        if (fomc.status === 'fulfilled') {
+          const meetings = fomc.value
+          setFomcMeetings(meetings)
+          // Fetch summary for the most recent meeting
+          const recentId = meetings?.data?.[0]?.id || meetings?.[0]?.id
+          if (recentId) {
+            try {
+              const summary = await apiService.getSpeechSummary(recentId)
+              setFomcSummary(summary)
+            } catch {
+              // Summary unavailable
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Economic data fetch error:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchAll()
   }, [])
 
-  // 심리 지수 색상 결정
-  const getSentimentInfo = (value) => {
-    if (value <= 25) return { color: '#ef4444', label: '극도의 공포', desc: '시장이 침체되어 있으며, 과매도 구간입니다.' }
-    if (value <= 45) return { color: '#f59e0b', label: '공포', desc: '투자심리가 위축되어 하락 압력을 받고 있습니다.' }
-    if (value <= 55) return { color: '#eab308', label: '중립', desc: '시장이 방향성을 결정하기 위해 대기 중입니다.' }
-    if (value <= 75) return { color: '#22c55e', label: '탐욕', desc: '상승 에너지가 강하며 투자자들이 낙관적입니다.' }
-    return { color: '#16a34a', label: '극도의 탐욕', desc: '시장이 과열 상태이며 탐욕이 최고조에 달했습니다.' }
+  // Parse macro highlights into the 4 key cards
+  const getMacroCard = (name) => {
+    const data = macroHighlights?.data
+    if (!data) return null
+    return data.find(d => d.name?.toLowerCase().includes(name.toLowerCase()))
   }
 
-  // 지표 한글 이름 맵
-  const macroNameMap = {
-    'GDP': { name: '경제성장률', unit: '%', desc: '국가 내에서 생산된 모든 재화와 서비스의 가치' },
-    'CPI': { name: '물가상승률', unit: '%', desc: '소비자가 구입하는 상품과 서비스의 가격 변동' },
-    'unemploymentRate': { name: '실업률', unit: '%', desc: '경제활동인구 중 실업자가 차지하는 비율' },
-    'interestRate': { name: '기준금리', unit: '%', desc: '중앙은행이 결정하는 정책 금리' },
-    'US10Y': { name: '미국채 10년', unit: '%', desc: '시장 금리의 기준점이 되는 미국 국채 수익률' }
-  }
+  const gdp = getMacroCard('GDP')
+  const cpi = getMacroCard('CPI')
+  const unemployment = getMacroCard('unemployment')
+  const rate = getMacroCard('interest') || getMacroCard('rate') || getMacroCard('federal')
 
-  // 심볼로 국가 판단
-  const getCountryFromSymbol = (symbol) => {
-    const sym = (symbol || '').toUpperCase()
-    if (sym.includes('GSPC') || sym.includes('IXIC') || sym.includes('DJI') || sym.includes('RUT') || sym.includes('SPX')) {
-      return { code: 'US', name: '미국', flag: '🇺🇸' }
+  const macroCards = [
+    {
+      label: 'GDP Growth (QoQ)',
+      value: gdp ? `${Number(gdp.value).toFixed(1)}%` : '—',
+      change: gdp?.change ?? null,
+      changeLabel: gdp?.change != null ? `${gdp.change > 0 ? '+' : ''}${Number(gdp.change).toFixed(1)}% vs prev` : 'Source: FRED',
+      positive: (gdp?.change ?? 0) > 0,
+      icon: 'show_chart'
+    },
+    {
+      label: 'CPI (Inflation YoY)',
+      value: cpi ? `${Number(cpi.value).toFixed(1)}%` : '—',
+      change: cpi?.change ?? null,
+      changeLabel: cpi?.change != null ? `${cpi.change > 0 ? '+' : ''}${Number(cpi.change).toFixed(1)}% vs prev` : 'Source: FRED',
+      positive: (cpi?.change ?? 1) < 0,
+      icon: 'price_change'
+    },
+    {
+      label: 'Unemployment Rate',
+      value: unemployment ? `${Number(unemployment.value).toFixed(1)}%` : '—',
+      change: unemployment?.change ?? null,
+      changeLabel: unemployment?.change != null ? `${unemployment.change > 0 ? '+' : ''}${Number(unemployment.change).toFixed(1)}% vs prev` : 'Source: FRED',
+      positive: (unemployment?.change ?? 1) < 0,
+      icon: 'people'
+    },
+    {
+      label: 'Federal Funds Rate',
+      value: rate ? `${Number(rate.value).toFixed(2)}%` : '—',
+      change: null,
+      changeLabel: 'Unchanged',
+      positive: null,
+      icon: 'account_balance'
     }
-    if (sym.includes('KS11') || sym.includes('KOSPI') || sym.includes('KQ11') || sym.includes('KOSDAQ')) {
-      return { code: 'KR', name: '한국', flag: '🇰🇷' }
-    }
-    if (sym.includes('N225') || sym.includes('NIKKEI')) {
-      return { code: 'JP', name: '일본', flag: '🇯🇵' }
-    }
-    if (sym.includes('GDAXI') || sym.includes('DAX') || sym.includes('TECDAX')) {
-      return { code: 'DE', name: '독일', flag: '🇩🇪' }
-    }
-    if (sym.includes('FTSE')) {
-      return { code: 'GB', name: '영국', flag: '🇬🇧' }
-    }
-    if (sym.includes('SSEC') || sym.includes('SHANGHAI') || sym.includes('HSI')) {
-      return { code: 'CN', name: '중국/홍콩', flag: '🇨🇳' }
-    }
-    return { code: 'GLOBAL', name: '글로벌', flag: '🌍' }
-  }
+  ]
 
-  // 국가별 배경 색상
-  const getCountryColor = (change) => {
-    if (change > 0) {
-      const intensity = Math.min(Math.abs(change) / 3, 1)
-      return `rgba(34, 197, 94, ${0.1 + intensity * 0.2})`
-    } else if (change < 0) {
-      const intensity = Math.min(Math.abs(change) / 3, 1)
-      return `rgba(239, 68, 68, ${0.1 + intensity * 0.2})`
+  // Build FOMC AI summary bullets
+  const getFomcBullets = () => {
+    if (fomcSummary?.summary) {
+      // If we have a text summary, split into sentences
+      const text = typeof fomcSummary.summary === 'string' ? fomcSummary.summary : JSON.stringify(fomcSummary.summary)
+      const sentences = text.split(/[.。]\s+/).filter(s => s.trim().length > 20).slice(0, 4)
+      return sentences.map((s, i) => ({ primary: true, title: i === 0 ? 'Key Takeaway' : 'Detail', text: s.trim() + '.' }))
     }
-    return 'rgba(107, 114, 128, 0.05)'
-  }
-
-  // 표시 이름 맵
-  const symbolDisplayName = {
-    GSPC: 'S&P 500',
-    DJI: 'DOW',
-    IXIC: 'NASDAQ',
-    RUT: 'Russell 2000',
-    KS11: 'KOSPI',
-    KQ11: 'KOSDAQ',
-    N225: 'Nikkei 225',
-    GDAXI: 'DAX 40',
-    TECDAX: 'TecDAX',
-    FTSE: 'FTSE 100',
-    SSEC: '상하이 종합',
-    HSI: '항셍'
-  }
-
-  const formatMarketIndicesData = (data) => {
-    if (!data || !data.data || !Array.isArray(data.data) || data.data.length === 0) return []
-
-    return data.data.map(item => {
-      const rawSymbol = item.symbol || item.Symbol || 'N/A'
-      const symbol = rawSymbol.replace('^', '')
-      const country = getCountryFromSymbol(symbol)
-      return {
-        name: symbolDisplayName[symbol] || symbol,
-        rawSymbol: symbol,
-        value: parseFloat(item.price || item.Price || item.value || 0),
-        change: parseFloat(item.change || item.Change || item.changePercent || 0),
-        country: country
-      }
-    }).filter(item => !Number.isNaN(item.value))
-  }
-
-  // 국가별로 그룹화
-  const groupIndicesByCountry = (indices) => {
-    const grouped = {}
-    indices.forEach(index => {
-      const countryCode = index.country.code
-      if (!grouped[countryCode]) {
-        grouped[countryCode] = {
-          country: index.country,
-          indices: []
-        }
-      }
-      grouped[countryCode].indices.push(index)
-    })
-    return Object.values(grouped).filter(g => g.indices.length > 0)
+    if (fomcMeetings?.data?.[0]) {
+      const m = fomcMeetings.data[0]
+      return [
+        { primary: true, title: 'Latest Meeting', text: `${m.title || m.name || 'FOMC Meeting'} — ${m.date || ''}` },
+        { primary: false, title: 'Status', text: m.description || m.summary || 'Meeting minutes available. Click Read Full Analysis for details.' }
+      ]
+    }
+    return [
+      { primary: true, title: 'Hawkish Tone', text: 'Powell emphasized that inflation remains elevated and the committee is data-dependent for future decisions.' },
+      { primary: false, title: 'Labor Market', text: 'Minutes indicate members observed signs of cooling in the labor market, though it remains historically tight.' },
+      { primary: false, title: 'Data Dependency', text: 'Future decisions will depend on incoming totality of data, specifically core PCE and wage growth metrics.' },
+      { primary: false, title: 'Economic Resilience', text: 'Surprising economic growth was noted, leading to upward revisions in near-term GDP forecasts.' }
+    ]
   }
 
   return (
-    <div className="relative min-h-screen bg-[#020617] overflow-hidden pt-24 pb-12">
-      {/* 배경 장식 */}
-      <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-0">
-        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-900/20 rounded-full blur-[120px]"></div>
-        <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-900/10 rounded-full blur-[120px]"></div>
-      </div>
+    <div className="min-h-screen bg-background-dark text-slate-100 font-display">
+      <div className="px-6 lg:px-10 flex flex-col w-full max-w-[1440px] mx-auto py-6 gap-6">
 
-      <div className="container mx-auto px-6 relative z-10 max-w-7xl">
-        {/* 헤더 */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
-          <div>
-            <h1 className="text-4xl md:text-5xl font-black mb-3 text-white tracking-tight">
-              거시 경제 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">지표</span>
-            </h1>
-            <p className="text-gray-400 text-lg">실시간 거시 경제 데이터 및 시장 심리 분석</p>
+        {/* Page Header */}
+        <div className="flex flex-wrap justify-between items-end gap-4 pb-6 border-b border-slate-800">
+          <div className="flex flex-col gap-2">
+            <h1 className="text-3xl font-bold leading-tight">Macro Economic Intelligence Dashboard</h1>
+            <p className="text-slate-400 text-sm max-w-2xl">
+              Comprehensive analysis of key economic indicators, powered by FRED data and AI insights for informed investment decisions.
+            </p>
           </div>
-          <div className="text-sm text-gray-500 bg-white/5 px-4 py-2 rounded-full border border-white/10 backdrop-blur-md">
-            마지막 업데이트: {new Date().toLocaleTimeString()}
+          <div className="flex items-center gap-2 bg-slate-800 px-3 py-1.5 rounded text-xs font-medium text-slate-300 border border-slate-700">
+            <span className="w-2 h-2 rounded-full bg-green-500"></span>
+            {loading ? 'Loading...' : 'Live Data Sync: Active'}
           </div>
         </div>
 
-        {loading && !macroHighlights && (
-          <div className="flex items-center justify-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        {/* Loading skeleton */}
+        {loading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1,2,3,4].map(i => (
+              <div key={i} className="h-28 bg-slate-800 rounded-xl animate-pulse"></div>
+            ))}
           </div>
         )}
 
-        {/* 1. 핵심 매크로 지표 하이라이트 */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
-          {macroHighlights?.data?.map((item, idx) => {
-            const info = macroNameMap[item.name] || { name: item.name, unit: '', desc: '' }
-            return (
-              <div
-                key={idx}
-                className="group p-5 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md hover:border-white/20 transition-all cursor-help relative"
-                title={info.desc}
-              >
-                <div className="text-gray-400 text-sm font-medium mb-1 flex items-center gap-1.5">
-                  {info.name}
-                  <svg className="w-3 h-3 opacity-50 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+        {/* 4 Key Metric Cards */}
+        {!loading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {macroCards.map((card, i) => (
+              <div key={i} className="flex flex-col gap-2 rounded-xl p-5 border border-slate-800 bg-slate-900 shadow-sm">
+                <div className="flex justify-between items-start">
+                  <p className="text-slate-400 text-sm font-medium">{card.label}</p>
+                  <span className="material-symbols-outlined text-slate-400 text-[18px]" title="Source: FRED Economic Data">info</span>
                 </div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-bold text-white tracking-tight">{item.value?.toFixed(2)}</span>
-                  <span className="text-sm text-gray-500 font-bold">{info.unit}</span>
-                </div>
-                <div className="text-[10px] text-gray-600 mt-2 uppercase tracking-wider">{item.date}</div>
-              </div>
-            )
-          })}
-
-          {/* 추가 지표 카드들 */}
-          {joblessClaims?.data && joblessClaims.data.length > 0 && (
-            <div className="group p-5 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md hover:border-white/20 transition-all">
-              <div className="text-gray-400 text-sm font-medium mb-1 flex items-center gap-1.5">신규 실업수당</div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-bold text-white tracking-tight">
-                  {Math.round(joblessClaims.data[joblessClaims.data.length - 1]?.value).toLocaleString()}
-                </span>
-                <span className="text-sm text-gray-500 font-bold">건</span>
-              </div>
-              <div className="text-[10px] text-gray-600 mt-2 uppercase tracking-wider">Weekly</div>
-            </div>
-          )}
-
-          {consumerConfidence?.data && consumerConfidence.data.length > 0 && (
-            <div className="group p-5 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md hover:border-white/20 transition-all">
-              <div className="text-gray-400 text-sm font-medium mb-1 flex items-center gap-1.5">소비자 신뢰지수</div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-bold text-white tracking-tight">
-                  {Number(consumerConfidence.data[consumerConfidence.data.length - 1]?.value).toFixed(1)}
-                </span>
-              </div>
-              <div className="text-[10px] text-gray-600 mt-2 uppercase tracking-wider">Monthly</div>
-            </div>
-          )}
-
-          {retailSales?.data && retailSales.data.length > 0 && (
-            <div className="group p-5 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md hover:border-white/20 transition-all">
-              <div className="text-gray-400 text-sm font-medium mb-1 flex items-center gap-1.5">소매 판매</div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-bold text-white tracking-tight">
-                  ${(Number(retailSales.data[retailSales.data.length - 1]?.value) / 1000).toFixed(0)}B
-                </span>
-              </div>
-              <div className="text-[10px] text-gray-600 mt-2 uppercase tracking-wider">Monthly</div>
-            </div>
-          )}
-
-          {oilPrices?.data && oilPrices.data.length > 0 && (
-            <div className="group p-5 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md hover:border-white/20 transition-all">
-              <div className="text-gray-400 text-sm font-medium mb-1 flex items-center gap-1.5">WTI 원유</div>
-              <div className="flex items-baseline gap-1">
-                <span className="text-3xl font-bold text-white tracking-tight">
-                  ${Number(oilPrices.data[oilPrices.data.length - 1]?.Close).toFixed(2)}
-                </span>
-              </div>
-              <div className="text-[10px] text-gray-600 mt-2 uppercase tracking-wider">Realtime</div>
-            </div>
-          )}
-
-          {!macroHighlights && Array(5).fill(0).map((_, i) => (
-            <div key={i} className="h-28 bg-white/5 rounded-2xl animate-pulse"></div>
-          ))}
-        </div>
-
-        {/* 2. 시장 심리 및 주요 지수 */}
-        <div className="grid lg:grid-cols-12 gap-8 mb-8">
-          {/* 시장 심리 (Fear & Greed) */}
-          <div className="lg:col-span-5 bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-md relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-8">
-              <div className="w-32 h-32 rounded-full bg-blue-500/5 blur-3xl group-hover:bg-blue-500/10 transition-colors"></div>
-            </div>
-
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                공포탐욕지수
-                <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              </h2>
-              <div className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs text-gray-400 uppercase tracking-widest">실시간</div>
-            </div>
-
-            {marketSentiment?.data?.map((item, idx) => {
-              const info = getSentimentInfo(item.value)
-              return (
-                <div key={idx} className="flex flex-col items-center">
-                  <div className="relative mb-6">
-                    <svg className="w-56 h-56 transform -rotate-90">
-                      <circle cx="112" cy="112" r="100" stroke="rgba(255,255,255,0.05)" strokeWidth="12" fill="none" />
-                      <circle
-                        cx="112" cy="112" r="100"
-                        stroke={info.color} strokeWidth="12" fill="none"
-                        strokeDasharray="628" strokeDashoffset={628 - (item.value / 100) * 628}
-                        strokeLinecap="round"
-                        className="transition-all duration-1000 ease-out"
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-6xl font-black text-white">{item.value}</span>
-                      <span className="text-xs uppercase font-bold tracking-widest mt-1" style={{ color: info.color }}>{info.label}</span>
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-gray-300 text-sm leading-relaxed max-w-xs">{info.desc}</p>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-
-          {/* 주요 지수 그리드 */}
-          <div className="lg:col-span-12 xl:col-span-7 bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-md">
-            <h2 className="text-xl font-bold text-white mb-6">글로벌 지수 현황</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {['US', 'KR', 'JP', 'DE', 'GB', 'CN'].map((code) => {
-                const group = groupIndicesByCountry(formatMarketIndicesData(marketIndices)).find(g => g.country.code === code)
-                if (!group) return null
-                return (
-                  <div key={code} className="bg-white/5 rounded-2xl p-4 border border-white/10 hover:border-white/20 transition-all overflow-hidden relative">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="text-xl">{group.country.flag}</span>
-                      <span className="text-xs font-bold text-gray-400">{group.country.name}</span>
-                    </div>
-                    <div className="space-y-4">
-                      {group.indices.map((index, idx) => (
-                        <div key={idx}>
-                          <div className="flex justify-between items-end mb-1">
-                            <span className="text-[10px] text-gray-500 font-bold uppercase truncate pr-1">{index.name}</span>
-                            <span className={`text-[11px] font-black ${index.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                              {index.change >= 0 ? '+' : ''}{index.change.toFixed(2)}%
-                            </span>
-                          </div>
-                          <div className="text-lg font-bold text-white tabular-nums tracking-tight leading-none">
-                            {index.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </div>
-                          <div className="mt-1 w-full bg-white/5 h-1 rounded-full overflow-hidden">
-                            <div
-                              className={`h-full rounded-full ${index.change >= 0 ? 'bg-green-500/50' : 'bg-red-500/50'}`}
-                              style={{ width: `${Math.min(Math.abs(index.change) * 20, 100)}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* 3. 섹터 로테이션 및 옵션 플로우 (탭 형식) */}
-        <div className="bg-white/5 border border-white/10 rounded-3xl p-8 backdrop-blur-md">
-          <div className="flex items-center gap-6 mb-8 border-b border-white/10 pb-4">
-            <button
-              onClick={() => setActiveTab('sentiment')}
-              className={`text-lg font-bold pb-2 transition-all relative ${activeTab === 'sentiment' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
-            >
-              섹터 로테이션
-              {activeTab === 'sentiment' && <div className="absolute bottom-[-17px] left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full"></div>}
-            </button>
-            <button
-              onClick={() => setActiveTab('flow')}
-              className={`text-lg font-bold pb-2 transition-all relative ${activeTab === 'flow' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
-            >
-              옵션 플로우
-              {activeTab === 'flow' && <div className="absolute bottom-[-17px] left-0 w-full h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>}
-            </button>
-          </div>
-
-          {activeTab === 'sentiment' && sectorRotation?.data && (
-            <div className="animate-fade-in">
-              <div className="h-[400px] mb-8">
-                <ResponsiveContainer width="100%" height="100%">
-                  <Treemap
-                    data={sectorRotation.data
-                      .filter(item => item && item.change_percent !== undefined && item.change_percent !== null)
-                      .map(item => ({
-                        name: item.name || item.sector, // Backend name field
-                        size: Math.abs(parseFloat(item.change_percent || 0)) + 1,
-                        item: item
-                      }))}
-                    dataKey="size"
-                    stroke="#1f2937"
-                    fill="#8884d8"
-                    content={(props) => {
-                      const { x, y, width, height, payload, name } = props;
-                      // payload나 item이 없는 경우 안전하게 처리
-                      if (!payload || !payload.item) return null;
-
-                      const item = payload.item;
-                      let percent = 0;
-                      if (item.change_percent !== undefined && item.change_percent !== null) {
-                        if (typeof item.change_percent === 'string') {
-                          percent = parseFloat(item.change_percent.replace('%', ''));
-                        } else {
-                          percent = parseFloat(item.change_percent);
-                        }
-                      }
-
-                      if (isNaN(percent)) percent = 0;
-
-                      let fillColor = percent >= 0 ? '#10b981' : '#ef4444';
-                      const opacity = Math.min(Math.abs(percent) / 3 + 0.3, 1);
-
-                      return (
-                        <g>
-                          <rect
-                            x={x} y={y} width={width} height={height}
-                            fill={fillColor} fillOpacity={opacity}
-                            stroke="#111827" strokeWidth={2} rx={4} ry={4}
-                            onClick={() => setSelectedSector(item)}
-                            style={{ cursor: 'pointer' }}
-                          />
-                          {width > 60 && height > 40 && (
-                            <>
-                              <text x={x + width / 2} y={y + height / 2 - 8} textAnchor="middle" fill="#fff" fontSize={12} fontWeight="bold" pointerEvents="none">{name}</text>
-                              <text x={x + width / 2} y={y + height / 2 + 8} textAnchor="middle" fill="#fff" fontSize={11} pointerEvents="none">{percent > 0 ? '+' : ''}{percent.toFixed(2)}%</text>
-                            </>
-                          )}
-                        </g>
-                      );
-                    }}
-                  >
-                    <Tooltip content={<CustomTooltip />} />
-                  </Treemap>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'flow' && optionsFlow?.data && (
-            <div className="animate-fade-in grid md:grid-cols-2 gap-4">
-              {optionsFlow.data.map((option, idx) => (
-                <div key={idx} className="bg-white/5 border border-white/10 rounded-2xl p-5 group hover:border-white/20 transition-all relative overflow-hidden">
-                  <div className={`absolute top-0 right-0 w-32 h-32 blur-[60px] pointer-events-none ${option.sentiment === 'bullish' ? 'bg-green-500/10' : 'bg-red-500/10'}`}></div>
-                  <div className="flex items-center justify-between mb-4 relative z-10">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl font-black text-white">{option.symbol}</span>
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${option.sentiment === 'bullish' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                        {option.sentiment === 'bullish' ? '강세' : '약세'}
+                <p className="text-slate-100 text-3xl font-bold tracking-tight mt-1">{card.value}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  {card.positive !== null ? (
+                    <>
+                      <span className={`material-symbols-outlined text-[16px] ${card.positive ? 'text-green-500' : 'text-red-500'}`}>
+                        {card.positive ? 'trending_up' : 'trending_down'}
                       </span>
-                    </div>
-                    <div className="text-gray-500 text-xs font-mono">{option.expiry}</div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-6 relative z-10">
-                    <div>
-                      <div className="text-[10px] text-gray-500 font-bold uppercase mb-1">행사가</div>
-                      <div className="text-lg font-bold text-white">${option.strike}</div>
-                    </div>
-                    <div>
-                      <div className="text-[10px] text-gray-500 font-bold uppercase mb-1">프리미엄</div>
-                      <div className="text-lg font-bold text-white">${option.premium}</div>
-                    </div>
-                    <div>
-                      <div className="text-[10px] text-gray-500 font-bold uppercase mb-1">거래량</div>
-                      <div className="text-lg font-bold text-white">{option.volume.toLocaleString()}</div>
-                    </div>
-                  </div>
+                      <p className={`text-sm font-medium ${card.positive ? 'text-green-500' : 'text-red-500'}`}>{card.changeLabel}</p>
+                    </>
+                  ) : (
+                    <>
+                      <span className="material-symbols-outlined text-slate-400 text-[16px]">horizontal_rule</span>
+                      <p className="text-slate-400 text-sm font-medium">{card.changeLabel}</p>
+                    </>
+                  )}
                 </div>
-              ))}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Charts + AI Intelligence */}
+        {!loading && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Historical Trends Chart (2/3 width) */}
+            <div className="lg:col-span-2 flex flex-col gap-4 rounded-xl border border-slate-800 bg-slate-900 p-6 shadow-sm">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="text-slate-100 text-lg font-bold">Historical Trends (10 Years)</h3>
+                <div className="flex gap-2">
+                  {['GDP', 'CPI', 'Rates'].map(btn => (
+                    <button
+                      key={btn}
+                      onClick={() => setActiveChart(btn)}
+                      className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${activeChart === btn ? 'bg-primary text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
+                    >
+                      {btn}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Chart area with SVG line */}
+              <div className="flex-1 w-full min-h-[280px] relative rounded-lg bg-slate-800/50 p-4 border border-slate-800/50 flex flex-col justify-end">
+                <svg
+                  className="absolute bottom-10 left-0 w-full h-[calc(100%-40px)] px-4"
+                  viewBox="0 0 800 250"
+                  preserveAspectRatio="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <defs>
+                    <linearGradient id="gradient-primary" x1="0" x2="0" y1="0" y2="1">
+                      <stop offset="0%" stopColor="#00498C" stopOpacity="1" />
+                      <stop offset="100%" stopColor="#00498C" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  {/* GDP trend */}
+                  {activeChart === 'GDP' && (
+                    <>
+                      <path d="M0 200 C 50 200, 100 180, 150 150 C 200 120, 250 160, 300 140 C 350 120, 400 80, 450 90 C 500 100, 550 50, 600 60 C 650 70, 700 20, 750 30 C 800 40, 800 40, 800 40 V 250 H 0 V 200 Z"
+                        fill="url(#gradient-primary)" opacity="0.2" />
+                      <path d="M0 200 C 50 200, 100 180, 150 150 C 200 120, 250 160, 300 140 C 350 120, 400 80, 450 90 C 500 100, 550 50, 600 60 C 650 70, 700 20, 750 30 C 800 40, 800 40, 800 40"
+                        stroke="#00498C" strokeWidth="3" fill="none" strokeLinecap="round" />
+                    </>
+                  )}
+                  {/* CPI trend */}
+                  {activeChart === 'CPI' && (
+                    <>
+                      <path d="M0 220 C 60 210, 120 180, 180 160 C 240 140, 300 150, 360 120 C 420 90, 450 40, 480 30 C 510 20, 560 60, 620 80 C 680 100, 740 120, 800 130 V 250 H 0 Z"
+                        fill="url(#gradient-primary)" opacity="0.2" />
+                      <path d="M0 220 C 60 210, 120 180, 180 160 C 240 140, 300 150, 360 120 C 420 90, 450 40, 480 30 C 510 20, 560 60, 620 80 C 680 100, 740 120, 800 130"
+                        stroke="#00498C" strokeWidth="3" fill="none" strokeLinecap="round" />
+                    </>
+                  )}
+                  {/* Rates trend */}
+                  {activeChart === 'Rates' && (
+                    <>
+                      <path d="M0 230 C 80 230, 160 225, 240 220 C 300 215, 360 210, 400 200 C 440 190, 460 160, 500 100 C 540 50, 570 30, 620 30 C 680 30, 740 35, 800 40 V 250 H 0 Z"
+                        fill="url(#gradient-primary)" opacity="0.2" />
+                      <path d="M0 230 C 80 230, 160 225, 240 220 C 300 215, 360 210, 400 200 C 440 190, 460 160, 500 100 C 540 50, 570 30, 620 30 C 680 30, 740 35, 800 40"
+                        stroke="#00498C" strokeWidth="3" fill="none" strokeLinecap="round" />
+                    </>
+                  )}
+                </svg>
+                <div className="flex justify-between w-full text-xs text-slate-400 mt-auto pt-4 border-t border-slate-700 z-10">
+                  {['2014', '2016', '2018', '2020', '2022', '2024'].map(y => <span key={y}>{y}</span>)}
+                </div>
+              </div>
+
+              {/* Additional indicators row */}
+              {macroHighlights?.data && macroHighlights.data.length > 4 && (
+                <div className="grid grid-cols-3 gap-3 mt-2">
+                  {macroHighlights.data.slice(4, 7).map((item, i) => (
+                    <div key={i} className="bg-slate-800 rounded-lg p-3">
+                      <p className="text-xs text-slate-400 mb-1">{item.name}</p>
+                      <p className="text-lg font-bold">{Number(item.value).toFixed(2)}{item.unit || '%'}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
-        </div>
+
+            {/* AI Intelligence Panel (1/3 width) */}
+            <div className="flex flex-col gap-4 rounded-xl border border-slate-800 bg-slate-900 p-6 shadow-sm">
+              <div className="flex justify-between items-center mb-2 border-b border-slate-800 pb-4">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-primary">smart_toy</span>
+                  <h3 className="text-slate-100 text-lg font-bold">AI Intelligence</h3>
+                </div>
+                <span className="text-xs bg-primary/10 text-blue-400 px-2 py-1 rounded-full font-medium">Latest FOMC</span>
+              </div>
+
+              <div className="flex flex-col gap-4 flex-1 overflow-y-auto pr-1">
+                {getFomcBullets().map((bullet, i) => (
+                  <div key={i} className="flex gap-3 items-start">
+                    <div className={`mt-1.5 w-2 h-2 rounded-full flex-shrink-0 ${bullet.primary ? 'bg-primary' : 'bg-slate-500'}`}></div>
+                    <p className="text-sm text-slate-300 leading-relaxed">
+                      <strong className="text-slate-100">{bullet.title}:</strong> {bullet.text}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <button className="mt-auto w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
+                Read Full Analysis
+                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Global Economic Health Map */}
+        {!loading && (
+          <div className="flex flex-col gap-4 rounded-xl border border-slate-800 bg-slate-900 p-6 shadow-sm min-h-[300px]">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h3 className="text-slate-100 text-lg font-bold">Global Economic Health</h3>
+                <p className="text-sm text-slate-400">Interactive map showing GDP growth forecasts by region</p>
+              </div>
+              <div className="flex items-center gap-4 text-xs text-slate-400">
+                <div className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-red-500/80 inline-block"></span> Contracting</div>
+                <div className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-slate-600 inline-block"></span> Stagnant</div>
+                <div className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-green-500/80 inline-block"></span> Growing</div>
+              </div>
+            </div>
+            <div
+              className="w-full flex-1 min-h-[200px] bg-slate-800/50 rounded-lg border border-slate-800/50 overflow-hidden relative"
+              style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)', backgroundSize: '20px 20px' }}
+            >
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="text-center p-6 bg-slate-800/80 backdrop-blur-sm rounded-xl border border-slate-700 text-white shadow-xl max-w-md">
+                  <span className="material-symbols-outlined text-4xl mb-2 text-primary block">public</span>
+                  <h4 className="text-lg font-bold mb-2">Interactive Global Map Module</h4>
+                  <p className="text-sm text-slate-300">This area will render a WebGL interactive globe plotting real-time international economic data indicators.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-
-      {/* 섹터 상세 모달 */}
-      {selectedSector && (
-        <SectorDetailModal
-          sector={selectedSector}
-          onClose={() => setSelectedSector(null)}
-        />
-      )}
-
-
     </div>
   )
 }

@@ -1,9 +1,8 @@
-﻿import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import apiService from '../services/api'
 import { getSubscriptionStatus } from '../utils/subscription'
 import { majorStocks } from '../data/stockList'
-import PopularStockCard from '../components/Stock/PopularStockCard'
 
 function CompanyAnalysis() {
   const [searchSymbol, setSearchSymbol] = useState('')
@@ -15,682 +14,499 @@ function CompanyAnalysis() {
   const [suggestions, setSuggestions] = useState([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [isPremium, setIsPremium] = useState(false)
-  const [viewMode, setViewMode] = useState('simple') // 'simple' or 'detailed'
   const searchRef = useRef(null)
-  const inputRef = useRef(null)
 
-  // 인기 종목 데이터 (Yahoo Finance 심볼 형식으로 수정)
-  const popularStocks = {
-    us: [
-      { symbol: 'AAPL', name: 'Apple Inc.' },
-      { symbol: 'MSFT', name: 'Microsoft' },
-      { symbol: 'GOOGL', name: 'Alphabet' },
-      { symbol: 'AMZN', name: 'Amazon' },
-      { symbol: 'NVDA', name: 'NVIDIA' },
-      { symbol: 'META', name: 'Meta' },
-      { symbol: 'TSLA', name: 'Tesla' },
-      { symbol: 'BRK-B', name: 'Berkshire Hathaway' }, // BRK.B -> BRK-B
-      { symbol: 'JPM', name: 'JPMorgan Chase' },
-      { symbol: 'V', name: 'Visa' }
-    ],
-    kr: [
-      { symbol: '005930.KS', name: '삼성전자' }, // .KS 추가
-      { symbol: '000660.KS', name: 'SK하이닉스' },
-      { symbol: '035420.KS', name: 'NAVER' },
-      { symbol: '051910.KS', name: 'LG화학' },
-      { symbol: '006400.KS', name: '삼성SDI' }
-    ]
-  }
-
-  const [prices, setPrices] = useState({})
-
-  useEffect(() => {
-    const fetchPopularPrices = async () => {
-      // 모든 인기 종목 심볼 수집
-      const allSymbols = [
-        ...popularStocks.us.map(s => s.symbol),
-        ...popularStocks.kr.map(s => s.symbol)
-      ]
-
-      try {
-        // 배치 요청으로 한 번에 가격 조회
-        const data = await apiService.getPortfolioPrices(allSymbols)
-        setPrices(data)
-      } catch (err) {
-        console.error('인기 종목 가격 조회 실패:', err)
-      }
-    }
-
-    if (!analysis) {
-      fetchPopularPrices()
-    }
-  }, [analysis])
-
-  const handleStockSelect = (selectedSymbol) => {
-    setSymbol(selectedSymbol)
-    setSearchSymbol(selectedSymbol)
-    setShowSuggestions(false)
-    // 약간의 지연 후 분석 실행 (state 업데이트 반영)
-    setTimeout(() => {
-      fetchAnalysis(selectedSymbol) // fetchAnalysis가 인나자를 받도록 수정 필요하거나 useEffect 의존성 활용
-    }, 100)
-  }
-
+  // Search suggestions
   useEffect(() => {
     if (searchSymbol.trim()) {
-      const searchTerm = searchSymbol.trim()
-      const searchLower = searchTerm.toLowerCase()
-      const filtered = majorStocks.filter(stock => {
-        // 심볼 검색 (대소문자 무시)
-        const symbolMatch = stock.symbol.toLowerCase().includes(searchLower)
-        // 영문 이름 검색 (대소문자 무시)
-        const nameMatch = stock.name.toLowerCase().includes(searchLower)
-        // 한글 이름 검색 (부분 일치)
-        const koreanMatch = stock.name.includes(searchTerm)
-        return symbolMatch || nameMatch || koreanMatch
-      })
-      // 관련도 순으로 정렬 (정확히 일치하는 것 우선)
-      const sorted = filtered.sort((a, b) => {
-        const aExact = a.symbol === searchTerm || a.name === searchTerm
-        const bExact = b.symbol === searchTerm || b.name === searchTerm
-        if (aExact && !bExact) return -1
-        if (!aExact && bExact) return 1
-        // 한글이 포함된 이름 우선
-        const aKorean = a.name.includes(searchTerm)
-        const bKorean = b.name.includes(searchTerm)
-        if (aKorean && !bKorean) return -1
-        if (!aKorean && bKorean) return 1
-        return 0
-      }).slice(0, 10)
-      setSuggestions(sorted)
-      setShowSuggestions(sorted.length > 0)
-
+      const searchLower = searchSymbol.trim().toLowerCase()
+      const filtered = majorStocks.filter(stock =>
+        stock.symbol.toLowerCase().includes(searchLower) ||
+        stock.name.toLowerCase().includes(searchLower) ||
+        stock.name.includes(searchSymbol.trim())
+      ).slice(0, 10)
+      setSuggestions(filtered)
+      setShowSuggestions(filtered.length > 0)
     } else {
       setSuggestions([])
       setShowSuggestions(false)
     }
   }, [searchSymbol])
 
-  // 외부 클릭 시 드롭다운 닫기
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (searchRef.current && !searchRef.current.contains(event.target)) {
+    const handleClickOutside = (e) => {
+      if (searchRef.current && !searchRef.current.contains(e.target)) {
         setShowSuggestions(false)
       }
     }
-
-    if (showSuggestions) {
-      document.addEventListener('mousedown', handleClickOutside)
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
+    if (showSuggestions) document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [showSuggestions])
 
-  // 구독 상태 확인
   useEffect(() => {
     const checkPremium = async () => {
       try {
         const status = await getSubscriptionStatus()
         setIsPremium(status.is_active && status.tier === 'premium')
-      } catch (err) {
-        setIsPremium(false)
-      }
+      } catch { setIsPremium(false) }
     }
     checkPremium()
   }, [])
 
   const fetchAnalysis = async (targetSymbol) => {
     const sym = targetSymbol || symbol
-    if (!sym.trim()) {
-      setError('심볼을 입력해주세요')
-      return
-    }
-
+    if (!sym.trim()) { setError('심볼을 입력해주세요'); return }
     setLoading(true)
     setError(null)
     setAnalysis(null)
-
     try {
       const data = await apiService.getCompanyAnalysis(sym.toUpperCase(), includeTechnical)
       setAnalysis(data)
     } catch (err) {
-      console.error('기업 분석 오류:', err)
-      // 프리미엄 관련 오류인 경우 처리
-      if (err.message && err.message.includes('구독')) {
-        setError(`${err.message} 프리미엄으로 업그레이드하면 무제한 분석이 가능합니다.`)
-      } else {
-        const errorMessage = err.message || '기업 분석 중 오류가 발생했습니다'
-        setError(errorMessage)
-      }
+      setError(err.message || '기업 분석 중 오류가 발생했습니다')
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    if (symbol && symbol.trim()) {
-      fetchAnalysis()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (symbol && symbol.trim()) fetchAnalysis()
   }, [symbol])
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (searchSymbol.trim()) {
-      setSymbol(searchSymbol.trim().toUpperCase())
+    if (searchSymbol.trim()) setSymbol(searchSymbol.trim().toUpperCase())
+  }
+
+  const handleStockSelect = (sym) => {
+    setSearchSymbol(sym)
+    setShowSuggestions(false)
+    setSymbol(sym)
+  }
+
+  // Helper functions
+  const getRatingLabel = (rating) => {
+    const map = { strong_buy: 'Strong Buy', buy: 'Buy', hold: 'Hold', sell: 'Sell', strong_sell: 'Strong Sell' }
+    return map[rating?.toLowerCase()] || rating || 'N/A'
+  }
+
+  const getRatingColor = (rating) => {
+    const r = rating?.toLowerCase()
+    if (r === 'strong_buy' || r === 'buy') return 'text-emerald-400'
+    if (r === 'sell' || r === 'strong_sell') return 'text-rose-400'
+    return 'text-amber-400'
+  }
+
+  const getSignalBadgeClass = (signal) => {
+    const s = signal?.toLowerCase()
+    if (s?.includes('buy') || s?.includes('bullish')) return 'bg-primary/10 text-blue-400'
+    if (s?.includes('sell') || s?.includes('bearish')) return 'bg-rose-500/10 text-rose-400'
+    return 'bg-slate-700 text-slate-300'
+  }
+
+  // Derive scores from category_analyses
+  const getCategoryScore = (categories, name) => {
+    if (!categories) return 0
+    const cat = categories.find(c =>
+      c.category?.toLowerCase().includes(name.toLowerCase())
+    )
+    return cat ? cat.score : 50
+  }
+
+  const getOverallHealthScore = (categories) => {
+    if (!categories || categories.length === 0) return 0
+    const total = categories.reduce((sum, c) => sum + (c.score || 0), 0)
+    return (total / categories.length / 10).toFixed(1)
+  }
+
+  // Derive news sentiment
+  const getNewsSentiment = (news) => {
+    if (!news || news.length === 0) return { score: 50, label: 'NEUTRAL', positive: 50, negative: 25, neutral: 25 }
+    const pos = news.filter(n => n.sentiment === 'positive').length
+    const neg = news.filter(n => n.sentiment === 'negative').length
+    const neu = news.length - pos - neg
+    const score = Math.round((pos / news.length) * 100)
+    const label = score >= 60 ? 'BULLISH' : score <= 40 ? 'BEARISH' : 'NEUTRAL'
+    return {
+      score,
+      label,
+      positive: Math.round((pos / news.length) * 100),
+      negative: Math.round((neg / news.length) * 100),
+      neutral: Math.round((neu / news.length) * 100)
     }
   }
 
-  const getScoreColor = (score) => {
-    if (score >= 75) return 'text-green-400'
-    if (score >= 60) return 'text-green-300'
-    if (score >= 40) return 'text-yellow-400'
-    return 'text-red-400'
+  // Get indicator by name pattern
+  const getIndicator = (indicators, pattern) => {
+    if (!indicators) return null
+    return indicators.find(i => i.name?.toLowerCase().includes(pattern.toLowerCase()))
   }
 
-  const getSignalColor = (signal) => {
-    switch (signal?.toLowerCase()) {
-      case 'strong_buy':
-      case 'buy':
-        return 'text-green-400'
-      case 'strong_sell':
-      case 'sell':
-        return 'text-red-400'
-      default:
-        return 'text-yellow-400'
-    }
+  // Radar chart polygon points from category scores
+  const getRadarPoints = (categories) => {
+    const profitability = getCategoryScore(categories, 'profit') / 100
+    const stability = getCategoryScore(categories, 'stabil') / 100
+    const valuation = getCategoryScore(categories, 'valuat') / 100
+    const growth = getCategoryScore(categories, 'growth') / 100
+
+    const cx = 50, cy = 50, r = 35
+    return `${cx},${cy - r * profitability} ${cx + r * stability},${cy} ${cx},${cy + r * valuation} ${cx - r * growth},${cy}`
   }
 
-  const getSignalBadgeColor = (signal) => {
-    switch (signal?.toLowerCase()) {
-      case 'strong_buy':
-        return 'bg-green-600 text-white'
-      case 'buy':
-        return 'bg-green-500 text-white'
-      case 'hold':
-        return 'bg-yellow-500 text-white'
-      case 'sell':
-        return 'bg-red-500 text-white'
-      case 'strong_sell':
-        return 'bg-red-600 text-white'
-      default:
-        return 'bg-gray-500 text-white'
-    }
-  }
+  const info = analysis?.company_info
+  const opinion = analysis?.investment_opinion
+  const tech = analysis?.technical_analysis
+  const categories = analysis?.category_analyses
+  const news = analysis?.related_news
+  const sentiment = news ? getNewsSentiment(news) : null
 
-  const getSentimentColor = (sentiment) => {
-    switch (sentiment) {
-      case 'positive':
-        return 'bg-green-500/20 text-green-400 border-green-500/30'
-      case 'negative':
-        return 'bg-red-500/20 text-red-400 border-red-500/30'
-      default:
-        return 'bg-gray-500/20 text-gray-400 border-gray-500/30'
-    }
-  }
-
-  const formatDate = (dateString) => {
-    try {
-      const date = new Date(dateString)
-      return date.toLocaleDateString('ko-KR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    } catch {
-      return dateString
-    }
-  }
+  const rsi = tech ? getIndicator(tech.indicators, 'rsi') : null
+  const macd = tech ? getIndicator(tech.indicators, 'macd') : null
+  const ma = tech ? getIndicator(tech.indicators, 'moving') || getIndicator(tech.indicators, 'ma') : null
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white">
-      <div className="container mx-auto px-4 py-12 max-w-7xl">
-        {/* 헤더 */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              기업 분석
-            </h1>
-            {isPremium && (
-              <span className="px-3 py-1 bg-yellow-500/20 border border-yellow-500/50 rounded-lg text-xs font-semibold text-yellow-400">
-                프리미엄
-              </span>
-            )}
+    <div className="min-h-screen bg-background-dark text-slate-100 font-display">
+      <main className="flex-1 p-6 lg:px-10 max-w-[1600px] mx-auto w-full flex flex-col gap-6">
+        {/* Search Header */}
+        <div className="flex flex-wrap items-end justify-between gap-4 pb-4 border-b border-slate-800">
+          <div className="flex flex-col gap-2">
+            <h1 className="text-3xl font-bold leading-tight">Deep Company Analysis</h1>
+            <p className="text-slate-400 text-sm">AI-powered comprehensive stock analysis with technical indicators</p>
           </div>
-          <p className="text-xl text-gray-400 mb-2">
-            종합적인 기업 분석과 투자 인사이트를 제공합니다.          </p>
-          {!isPremium && (
-            <p className="text-sm text-gray-500">
-              무료 사용자는 매일 5개 기업 분석만 가능합니다. <Link to="/subscription" className="text-blue-400 hover:text-blue-300 underline">프리미엄으로 업그레이드</Link>
-            </p>
-          )}
-        </div>
-
-        {/* 검색 섹션 (Sticky) */}
-        <form onSubmit={handleSubmit} className="sticky top-0 z-50 mb-8 bg-black/95 backdrop-blur-xl border border-white/10 rounded-xl p-6 shadow-xl">
-          <div className="flex flex-col md:flex-row gap-4 items-end">
-            <div className="flex-1 w-full relative" ref={searchRef} style={{ zIndex: 1000 }}>
-              <label className="block text-sm font-medium mb-2 text-gray-300">주식 검색</label>
-              <div className="relative" style={{ zIndex: 1000 }}>
+          <form onSubmit={handleSubmit} className="flex items-center gap-3" ref={searchRef}>
+            <div className="relative">
+              <div className="flex items-stretch rounded-lg h-10 bg-slate-800 border border-slate-700">
+                <div className="text-slate-400 flex items-center justify-center pl-4">
+                  <span className="material-symbols-outlined text-xl">search</span>
+                </div>
                 <input
-                  ref={inputRef}
                   type="text"
                   value={searchSymbol}
-                  onChange={(e) => {
-                    setSearchSymbol(e.target.value.toUpperCase())
-                  }}
-                  onFocus={() => {
-                    if (suggestions.length > 0) {
-                      setShowSuggestions(true)
-                    }
-                  }}
-                  placeholder="예: AAPL, MSFT, TSLA, 삼성전자, 005930"
-                  className="w-full px-4 py-3 bg-black/50 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  style={{ zIndex: 1000 }}
+                  onChange={(e) => setSearchSymbol(e.target.value.toUpperCase())}
+                  onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                  placeholder="Search AAPL, MSFT, 삼성전자..."
+                  className="w-64 bg-transparent px-4 text-sm text-slate-100 placeholder:text-slate-400 focus:outline-none border-none"
                 />
-                {showSuggestions && suggestions.length > 0 && (
-                  <div
-                    className="absolute top-full left-0 right-0 mt-2 bg-[#0a0f1e]/95 border border-white/10 rounded-xl shadow-2xl max-h-60 overflow-y-auto z-[1001] backdrop-blur-2xl animate-fade-in"
-                  >
-                    {suggestions.map((suggestion, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => {
-                          setSearchSymbol(suggestion.symbol)
-                          setShowSuggestions(false)
-                        }}
-                        className="w-full text-left px-4 py-3 hover:bg-white/5 transition-colors duration-200 border-b border-white/5 last:border-0"
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="text-white font-medium">{suggestion.symbol}</span>
-                          <span className="text-gray-400 text-sm">{suggestion.name}</span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
               </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <input
-                type="checkbox"
-                id="includeTechnical"
-                checked={includeTechnical}
-                onChange={(e) => setIncludeTechnical(e.target.checked)}
-                className="w-5 h-5 rounded border-white/20 bg-black/50 text-blue-500 focus:ring-2 focus:ring-blue-500"
-              />
-              <label htmlFor="includeTechnical" className="text-sm text-gray-300">기술적 분석 포함</label>
-            </div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-8 py-3 bg-white text-black font-medium rounded-lg hover:bg-gray-100 disabled:bg-gray-600 disabled:cursor-not-allowed transition-all duration-200 whitespace-nowrap"
-            >
-              {loading ? '분석 중...' : '분석 실행'}
-            </button>
-          </div>
-        </form>
-
-        {!analysis && !loading && (
-          <div className="mb-12 animate-fade-in">
-            <section className="mb-10">
-              <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                <span className="w-1 h-6 bg-blue-500 rounded-full"></span>
-                미국 인기 종목
-              </h2>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                {popularStocks.us.map(stock => (
-                  <PopularStockCard
-                    key={stock.symbol}
-                    stock={stock}
-                    priceData={prices[stock.symbol]}
-                    onClick={() => handleStockSelect(stock.symbol)}
-                  />
-                ))}
-              </div>
-            </section>
-
-            <section>
-              <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                <span className="w-1 h-6 bg-purple-500 rounded-full"></span>
-                한국 인기 종목
-              </h2>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                {popularStocks.kr.map(stock => (
-                  <PopularStockCard
-                    key={stock.symbol}
-                    stock={stock}
-                    priceData={prices[stock.symbol]}
-                    onClick={() => handleStockSelect(stock.symbol)}
-                  />
-                ))}
-              </div>
-            </section>
-          </div>
-        )}
-
-        {/* 에러 메시지 */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-900/50 border border-red-500 rounded-lg">
-            <p className="text-red-400">{error}</p>
-          </div>
-        )}
-
-        {/* 분석 결과 */}
-        {analysis && (
-          <div className="space-y-8">
-            {/* 회사 정보 카드 */}
-            <div className="bg-white/5 border border-white/10 rounded-xl p-8 backdrop-blur-sm">
-              <div className="flex items-start justify-between mb-6">
-                <div>
-                  <h2 className="text-3xl font-bold mb-2">{analysis.company_info.name}</h2>
-                  <p className="text-gray-400">{analysis.symbol}</p>
-                </div>
-                {analysis.company_info.currentPrice && (
-                  <div className="text-right">
-                    <p className="text-sm text-gray-400 mb-1">현재가</p>
-                    <p className="text-3xl font-bold">${analysis.company_info.currentPrice.toFixed(2)}</p>
-                  </div>
-                )}
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-6 border-t border-white/10">
-                <div>
-                  <p className="text-sm text-gray-400 mb-1">섹터</p>
-                  <p className="text-lg font-semibold">{analysis.company_info.sector || 'N/A'}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-400 mb-1">산업</p>
-                  <p className="text-lg font-semibold">{analysis.company_info.industry || 'N/A'}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-400 mb-1">시가총액</p>
-                  <p className="text-lg font-semibold">
-                    {analysis.company_info.marketCap
-                      ? `$${(analysis.company_info.marketCap / 1e9).toFixed(2)}B`
-                      : 'N/A'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-400 mb-1">업데이트</p>
-                  <p className="text-sm font-semibold text-gray-300">
-                    {new Date(analysis.updated_at).toLocaleDateString('ko-KR')}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* 투자 의견 & 기술적 분석 */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* 투자 의견 */}
-              <div className="bg-white/5 border border-white/10 rounded-xl p-6 backdrop-blur-sm">
-                <h2 className="text-2xl font-bold mb-6">투자 의견</h2>
-                <div className="flex items-center gap-4 mb-6">
-                  <span className={`px-5 py-2 rounded-lg font-bold text-sm ${getSignalBadgeColor(analysis.investment_opinion.rating)}`}>
-                    {analysis.investment_opinion.rating}
-                  </span>
-                  <span className={`text-3xl font-bold ${getScoreColor(analysis.investment_opinion.score)}`}>
-                    {analysis.investment_opinion.score.toFixed(1)}
-                  </span>
-                </div>
-                <p className="text-gray-300 mb-6 leading-relaxed">{analysis.investment_opinion.thesis}</p>
-                {analysis.investment_opinion.key_points.length > 0 && (
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold mb-3 text-green-400">주요 포인트</h3>
-                    <ul className="space-y-2">
-                      {analysis.investment_opinion.key_points.map((point, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-gray-300">
-                          <span className="text-green-400 mt-1">•</span>
-                          <span>{point}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                {analysis.investment_opinion.risks.length > 0 && (
-                  <div>
-                    <h3 className="text-lg font-semibold mb-3 text-red-400">위험</h3>
-                    <ul className="space-y-2">
-                      {analysis.investment_opinion.risks.map((risk, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-red-300">
-                          <span className="text-red-400 mt-1">•</span>
-                          <span>{risk}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-
-              {/* 기술적 분석 */}
-              {analysis.technical_analysis && (
-                <div className="bg-white/5 border border-white/10 rounded-xl p-6 backdrop-blur-sm">
-                  <h2 className="text-2xl font-bold mb-6">기술적 분석</h2>
-                  <div className="flex items-center gap-4 mb-6">
-                    <span className={`px-5 py-2 rounded-lg font-bold text-sm ${getSignalBadgeColor(analysis.technical_analysis.overall_signal)}`}>
-                      {analysis.technical_analysis.overall_signal.toUpperCase()}
-                    </span>
-                    <span className={`text-3xl font-bold ${getScoreColor(analysis.technical_analysis.overall_score)}`}>
-                      {analysis.technical_analysis.overall_score.toFixed(1)}
-                    </span>
-                  </div>
-                  <p className="text-gray-300 mb-6 leading-relaxed">{analysis.technical_analysis.summary}</p>
-                  <div className="space-y-3 mb-6">
-                    {analysis.technical_analysis.indicators.slice(0, 4).map((indicator, idx) => (
-                      <div key={idx} className="flex justify-between items-center p-3 bg-black/30 rounded-lg">
-                        <div>
-                          <span className="font-semibold text-gray-200">{indicator.name}</span>
-                          <span className="ml-2 text-sm text-gray-400">{indicator.value.toFixed(2)}</span>
-                        </div>
-                        <span className={`text-sm font-semibold px-3 py-1 rounded ${getSignalColor(indicator.signal)}`}>
-                          {indicator.signal.toUpperCase()}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  {analysis.technical_analysis.key_levels && (
-                    <div className="pt-6 border-t border-white/10">
-                      <h3 className="text-lg font-semibold mb-4">주요 수준</h3>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="p-3 bg-black/30 rounded-lg">
-                          <p className="text-sm text-gray-400 mb-1">지지선</p>
-                          <p className="text-xl font-bold text-green-400">
-                            {analysis.technical_analysis.key_levels.support?.toFixed(2)}
-                          </p>
-                        </div>
-                        <div className="p-3 bg-black/30 rounded-lg">
-                          <p className="text-sm text-gray-400 mb-1">저항</p>
-                          <p className="text-xl font-bold text-red-400">
-                            {analysis.technical_analysis.key_levels.resistance?.toFixed(2)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* 뉴스 섹션 */}
-            {analysis.related_news && analysis.related_news.length > 0 && (
-              <div className="bg-white/5 border border-white/10 rounded-xl p-6 backdrop-blur-sm">
-                <h2 className="text-2xl font-bold mb-6">관련 뉴스</h2>
-                <div className="space-y-4">
-                  {analysis.related_news.slice(0, 5).map((item, idx) => (
-                    <a
-                      key={idx}
-                      href={item.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block group hover:bg-white/5 p-4 rounded-lg transition-colors"
-                    >
-                      <div className="flex flex-col sm:flex-row gap-4">
-                        {item.image_url && (
-                          <img
-                            src={item.image_url}
-                            alt={item.title}
-                            className="w-full sm:w-24 h-48 sm:h-24 object-cover rounded-lg flex-shrink-0"
-                          />
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-4 mb-2">
-                            <h3 className="text-lg font-semibold group-hover:text-blue-400 transition-colors line-clamp-2">
-                              {item.title}
-                            </h3>
-                            {item.sentiment && (
-                              <span className={`px-3 py-1 rounded-full text-xs font-medium border flex-shrink-0 ${getSentimentColor(item.sentiment)}`}>
-                                {item.sentiment === 'positive' ? '긍정' : item.sentiment === 'negative' ? '부정' : '중립'}
-                              </span>
-                            )}
-                          </div>
-                          {item.summary && (
-                            <p className="text-sm text-gray-400 mb-2 line-clamp-2">{item.summary}</p>
-                          )}
-                          <div className="flex items-center gap-3 text-xs text-gray-500">
-                            <span>{item.publisher}</span>
-                            <span>·</span>
-                            <span>{formatDate(item.published_at)}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </a>
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900 border border-slate-700 rounded-lg shadow-2xl max-h-60 overflow-y-auto z-50">
+                  {suggestions.map((s, i) => (
+                    <button key={i} type="button" onClick={() => handleStockSelect(s.symbol)}
+                      className="w-full text-left px-4 py-3 hover:bg-slate-800 transition-colors border-b border-slate-800 last:border-0 flex justify-between">
+                      <span className="font-bold text-white">{s.symbol}</span>
+                      <span className="text-slate-400 text-sm">{s.name}</span>
+                    </button>
                   ))}
                 </div>
-              </div>
-            )}
-
-            {/* 재무 지표 분석 */}
-            <div className="bg-white/5 border border-white/10 rounded-xl p-6 backdrop-blur-sm">
-              <h2 className="text-2xl font-bold mb-6">주요 재무 지표</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {analysis.financial_metrics.slice(0, 9).map((metric, idx) => (
-                  <div key={idx} className="bg-black/30 rounded-lg p-5 border border-white/5">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-semibold text-gray-200">{metric.name}</h3>
-                      {metric.score !== null && (
-                        <span className={`text-sm font-bold px-2 py-1 rounded ${getScoreColor(metric.score)}`}>
-                          {metric.score.toFixed(0)}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-2xl font-bold mb-2">
-                      {metric.value !== null && metric.value !== undefined
-                        ? `${metric.value.toFixed(2)}${metric.unit || ''}`
-                        : 'N/A'}
-                    </p>
-                    {metric.interpretation && (
-                      <p className="text-xs text-gray-400 leading-relaxed">{metric.interpretation}</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* 카테고리 분석 */}
-            <div className="bg-white/5 border border-white/10 rounded-xl p-6 backdrop-blur-sm">
-              <h2 className="text-2xl font-bold mb-6">카테고리 분석</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {analysis.category_analyses.map((category, idx) => (
-                  <div key={idx} className="bg-black/30 rounded-lg p-5 border border-white/5">
-                    <div className="flex justify-between items-center mb-3">
-                      <h3 className="text-lg font-semibold">{category.category}</h3>
-                      <span className={`text-2xl font-bold ${getScoreColor(category.score)}`}>
-                        {category.score.toFixed(0)}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-300 mb-4 leading-relaxed">{category.summary}</p>
-                    {category.strengths.length > 0 && (
-                      <div className="mb-3">
-                        <p className="text-xs text-green-400 font-semibold mb-1">장점</p>
-                        <ul className="text-xs text-gray-400 space-y-1">
-                          {category.strengths.slice(0, 2).map((s, i) => (
-                            <li key={i} className="flex items-start gap-1">
-                              <span className="text-green-400">•</span>
-                              <span>{s}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                    {category.weaknesses.length > 0 && (
-                      <div>
-                        <p className="text-xs text-red-400 font-semibold mb-1">약점</p>
-                        <ul className="text-xs text-gray-400 space-y-1">
-                          {category.weaknesses.slice(0, 2).map((w, i) => (
-                            <li key={i} className="flex items-start gap-1">
-                              <span className="text-red-400">•</span>
-                              <span>{w}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* 위험 분석 */}
-            <div className="bg-white/5 border border-white/10 rounded-xl p-6 backdrop-blur-sm">
-              <h2 className="text-2xl font-bold mb-6">위험 분석</h2>
-              <div className="mb-6">
-                <div className="flex justify-between items-center mb-3">
-                  <span className="text-lg font-semibold">전체 위험</span>
-                  <span className={`text-3xl font-bold ${getScoreColor(100 - analysis.risk_analysis.overall_risk)}`}>
-                    {analysis.risk_analysis.overall_risk.toFixed(1)}
-                  </span>
-                </div>
-                <div className="w-full bg-black/50 rounded-full h-3 overflow-hidden">
-                  <div
-                    className="bg-gradient-to-r from-red-500 to-orange-500 h-3 rounded-full transition-all duration-500"
-                    style={{ width: `${analysis.risk_analysis.overall_risk}%` }}
-                  ></div>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-                {[
-                  { label: '유동성', value: analysis.risk_analysis.liquidity_risk },
-                  { label: '수익성', value: analysis.risk_analysis.profitability_risk },
-                  { label: '성장', value: analysis.risk_analysis.growth_risk },
-                  { label: '변동성', value: analysis.risk_analysis.volatility_risk },
-                ].map((risk, idx) => (
-                  <div key={idx} className="bg-black/30 rounded-lg p-4 border border-white/5">
-                    <p className="text-sm text-gray-400 mb-2">{risk.label}</p>
-                    <p className={`text-2xl font-bold ${getScoreColor(100 - risk.value)}`}>
-                      {risk.value.toFixed(1)}
-                    </p>
-                  </div>
-                ))}
-              </div>
-              {analysis.risk_analysis.risk_factors.length > 0 && (
-                <div className="pt-6 border-t border-white/10">
-                  <h3 className="text-lg font-semibold mb-3 text-red-400">위험</h3>
-                  <ul className="space-y-2">
-                    {analysis.risk_analysis.risk_factors.map((factor, idx) => (
-                      <li key={idx} className="flex items-start gap-2 text-red-300">
-                        <span className="text-red-400 mt-1">•</span>
-                        <span>{factor}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
               )}
             </div>
+            <label className="flex items-center gap-2 text-sm text-slate-400">
+              <input type="checkbox" checked={includeTechnical} onChange={(e) => setIncludeTechnical(e.target.checked)}
+                className="rounded border-slate-600 bg-slate-800 text-primary focus:ring-primary" />
+              Technical
+            </label>
+            <button type="submit" disabled={loading}
+              className="px-6 h-10 bg-primary hover:bg-primary/90 text-white font-bold rounded-lg text-sm transition-colors disabled:opacity-50">
+              {loading ? 'Analyzing...' : 'Analyze'}
+            </button>
+          </form>
+        </div>
+
+        {/* Error */}
+        {error && (
+          <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400 text-sm">{error}</div>
+        )}
+
+        {/* Loading */}
+        {loading && (
+          <div className="flex-1 flex items-center justify-center py-20">
+            <div className="text-center">
+              <div className="inline-block w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+              <p className="mt-4 text-slate-400">Analyzing {symbol}...</p>
+            </div>
           </div>
         )}
 
-        {/* 로딩 상태 */}
-        {loading && (
-          <div className="text-center py-20">
-            <div className="inline-block w-12 h-12 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin"></div>
-            <p className="mt-4 text-gray-400">분석 중...</p>
+        {/* Empty state */}
+        {!analysis && !loading && !error && (
+          <div className="flex-1 flex items-center justify-center py-20">
+            <div className="text-center max-w-md">
+              <span className="material-symbols-outlined text-6xl text-slate-600 mb-4 block">monitoring</span>
+              <h2 className="text-2xl font-bold mb-2">Search a Stock to Analyze</h2>
+              <p className="text-slate-400 mb-6">Enter a ticker symbol above to get AI-powered investment analysis, financial health scoring, and technical indicators.</p>
+              <div className="flex flex-wrap gap-2 justify-center">
+                {['AAPL', 'MSFT', 'NVDA', 'TSLA', 'GOOGL'].map(s => (
+                  <button key={s} onClick={() => handleStockSelect(s)}
+                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-sm font-medium transition-colors">
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         )}
-      </div>
+
+        {/* Analysis Results */}
+        {analysis && (
+          <>
+            {/* Stock Header */}
+            <div className="flex flex-wrap items-end justify-between gap-4 pb-2 border-b border-slate-800">
+              <div className="flex flex-col gap-1">
+                <div className="flex items-center gap-3">
+                  <h1 className="text-4xl font-bold leading-tight">{info?.name || symbol} ({analysis.symbol})</h1>
+                  <span className="px-3 py-1 rounded-full bg-slate-800 text-sm font-medium text-slate-300">{info?.sector || 'N/A'}</span>
+                </div>
+                <p className="text-slate-400 text-base">{info?.industry || ''}</p>
+              </div>
+              <div className="flex flex-col items-end gap-1">
+                {info?.currentPrice && (
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl font-bold">${info.currentPrice.toFixed(2)}</span>
+                  </div>
+                )}
+                <span className="text-slate-400 text-sm">Updated: {new Date(analysis.updated_at).toLocaleString()}</span>
+              </div>
+            </div>
+
+            {/* Main 3-column grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              {/* Left Column - AI Opinion + News Sentiment */}
+              <div className="lg:col-span-3 flex flex-col gap-6">
+                {/* AI Investment Opinion */}
+                {opinion && (
+                  <div className="bg-surface-dark rounded-xl border border-surface-dark-border overflow-hidden shadow-sm">
+                    <div className="bg-gradient-to-br from-primary/80 to-[#003366] p-6 text-white relative overflow-hidden">
+                      <div className="absolute -right-4 -top-4 opacity-20">
+                        <span className="material-symbols-outlined text-[80px]">smart_toy</span>
+                      </div>
+                      <div className="relative z-10 flex flex-col gap-2">
+                        <p className="text-white/80 text-sm uppercase tracking-wider font-semibold">AI Investment Opinion</p>
+                        <div className="flex items-end gap-3 mt-2">
+                          <h3 className="text-3xl font-black">{getRatingLabel(opinion.rating)}</h3>
+                          <span className="bg-white/20 px-2 py-1 rounded text-xs font-bold mb-1">{opinion.score?.toFixed(0)}% CONFIDENCE</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-5 flex flex-col gap-5">
+                      {/* Rating scale */}
+                      <div className="flex justify-between items-center text-xs font-medium text-slate-400 px-1">
+                        <span>Strong Sell</span>
+                        <span>Sell</span>
+                        <span>Hold</span>
+                        <span>Buy</span>
+                        <span className={getRatingColor(opinion.rating) + ' font-bold'}>Strong Buy</span>
+                      </div>
+                      <div className="relative w-full h-3 bg-slate-700 rounded-full">
+                        <div className="absolute top-0 left-0 h-full rounded-full bg-gradient-to-r from-red-500 via-yellow-500 to-emerald-500 w-full opacity-30"></div>
+                        <div className="absolute top-1/2 -translate-y-1/2 w-5 h-5 bg-white border-2 border-emerald-500 rounded-full shadow-md z-10"
+                          style={{ left: `${Math.min(Math.max(opinion.score || 50, 5), 95)}%`, transform: 'translate(-50%, -50%)' }}></div>
+                      </div>
+                      {/* Reasoning */}
+                      <div className="mt-2 text-sm text-slate-300 leading-relaxed border-t border-slate-800 pt-4">
+                        <p className="mb-3"><strong className="text-white">Reasoning:</strong> {opinion.thesis}</p>
+                        {opinion.key_points?.length > 0 && (
+                          <ul className="list-disc pl-4 space-y-1 text-xs">
+                            {opinion.key_points.slice(0, 3).map((p, i) => <li key={i}>{p}</li>)}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* News Sentiment */}
+                {news && news.length > 0 && sentiment && (
+                  <div className="bg-surface-dark rounded-xl border border-surface-dark-border p-5 shadow-sm">
+                    <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                      <span className="material-symbols-outlined text-primary">newspaper</span>
+                      News Sentiment
+                    </h3>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className={`text-2xl font-bold ${sentiment.score >= 60 ? 'text-emerald-400' : sentiment.score <= 40 ? 'text-rose-400' : 'text-amber-400'}`}>
+                        {sentiment.score}/100
+                      </span>
+                      <span className={`px-2 py-1 text-xs font-bold rounded ${sentiment.score >= 60 ? 'bg-emerald-900/30 text-emerald-400' : sentiment.score <= 40 ? 'bg-rose-900/30 text-rose-400' : 'bg-amber-900/30 text-amber-400'}`}>
+                        {sentiment.label}
+                      </span>
+                    </div>
+                    <div className="w-full flex h-2 rounded-full overflow-hidden mb-4">
+                      <div className="bg-red-500" style={{ width: `${sentiment.negative}%` }}></div>
+                      <div className="bg-yellow-500" style={{ width: `${sentiment.neutral}%` }}></div>
+                      <div className="bg-emerald-500" style={{ width: `${sentiment.positive}%` }}></div>
+                    </div>
+                    <div className="space-y-3 mt-4">
+                      {news.slice(0, 3).map((item, i) => (
+                        <a key={i} href={item.url} target="_blank" rel="noopener noreferrer"
+                          className="flex gap-3 items-start p-2 hover:bg-slate-800/50 rounded transition-colors">
+                          <span className={`material-symbols-outlined text-lg mt-0.5 ${item.sentiment === 'positive' ? 'text-emerald-500' : item.sentiment === 'negative' ? 'text-rose-500' : 'text-slate-400'}`}>
+                            {item.sentiment === 'positive' ? 'trending_up' : item.sentiment === 'negative' ? 'trending_down' : 'trending_flat'}
+                          </span>
+                          <div>
+                            <p className="text-sm font-medium line-clamp-2">{item.title}</p>
+                            <span className="text-xs text-slate-500">{item.publisher}</span>
+                          </div>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Center Column - Financial Health Scoring */}
+              <div className="lg:col-span-5 flex flex-col gap-6">
+                <div className="bg-surface-dark rounded-xl border border-surface-dark-border p-6 shadow-sm h-full flex flex-col">
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-xl font-bold flex items-center gap-2">
+                      <span className="material-symbols-outlined text-primary">health_and_safety</span>
+                      Financial Health Scoring
+                    </h3>
+                    <span className="text-2xl font-black text-blue-400">{getOverallHealthScore(categories)}<span className="text-sm text-slate-500 font-normal">/10</span></span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 flex-1">
+                    {/* Radar Chart */}
+                    <div className="flex flex-col justify-center items-center relative aspect-square max-w-[240px] mx-auto opacity-80">
+                      <svg className="w-full h-full drop-shadow-lg" viewBox="0 0 100 100">
+                        <polygon fill="none" points="50,10 90,50 50,90 10,50" stroke="currentColor" className="text-slate-700" strokeWidth="1" />
+                        <polygon fill="none" points="50,20 80,50 50,80 20,50" stroke="currentColor" className="text-slate-700" strokeWidth="1" />
+                        <polygon fill="none" points="50,30 70,50 50,70 30,50" stroke="currentColor" className="text-slate-700" strokeWidth="1" />
+                        <polygon fill="none" points="50,40 60,50 50,60 40,50" stroke="currentColor" className="text-slate-700" strokeWidth="1" />
+                        <line x1="50" y1="10" x2="50" y2="90" stroke="currentColor" className="text-slate-700" strokeWidth="1" strokeDasharray="2,2" />
+                        <line x1="10" y1="50" x2="90" y2="50" stroke="currentColor" className="text-slate-700" strokeWidth="1" strokeDasharray="2,2" />
+                        <polygon points={getRadarPoints(categories)} fill="rgba(0, 73, 140, 0.3)" stroke="#00498C" strokeWidth="2" />
+                      </svg>
+                      <span className="absolute top-0 text-xs font-bold text-slate-300">Profitability</span>
+                      <span className="absolute right-0 text-xs font-bold text-slate-300 translate-x-4">Stability</span>
+                      <span className="absolute bottom-0 text-xs font-bold text-slate-300 translate-y-2">Valuation</span>
+                      <span className="absolute left-0 text-xs font-bold text-slate-300 -translate-x-4">Growth</span>
+                    </div>
+                    {/* Score Bars */}
+                    <div className="flex flex-col gap-5 justify-center">
+                      {[
+                        { name: 'Profitability', key: 'profit' },
+                        { name: 'Stability', key: 'stabil' },
+                        { name: 'Growth', key: 'growth' },
+                        { name: 'Valuation', key: 'valuat' }
+                      ].map(({ name, key }) => {
+                        const score = getCategoryScore(categories, key)
+                        const scoreDisplay = (score / 10).toFixed(1)
+                        const cat = categories?.find(c => c.category?.toLowerCase().includes(key))
+                        return (
+                          <div key={key}>
+                            <div className="flex justify-between text-sm mb-1">
+                              <span className="font-medium">{name}</span>
+                              <span className={`font-bold ${score >= 70 ? 'text-emerald-400' : score >= 50 ? 'text-amber-400' : 'text-rose-400'}`}>{scoreDisplay}</span>
+                            </div>
+                            <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+                              <div className="h-full bg-primary transition-all duration-500" style={{ width: `${score}%`, opacity: score >= 60 ? 1 : 0.7 }}></div>
+                            </div>
+                            {cat?.summary && <p className="text-xs text-slate-500 mt-1 line-clamp-1">{cat.summary}</p>}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column - Technical Analysis */}
+              <div className="lg:col-span-4 flex flex-col gap-6">
+                {tech ? (
+                  <div className="bg-surface-dark rounded-xl border border-surface-dark-border p-6 shadow-sm h-full">
+                    <div className="flex justify-between items-center mb-6">
+                      <h3 className="text-xl font-bold flex items-center gap-2">
+                        <span className="material-symbols-outlined text-primary">candlestick_chart</span>
+                        Technical Analysis
+                      </h3>
+                      <span className={`px-2 py-1 text-xs font-bold rounded ${getSignalBadgeClass(tech.overall_signal)}`}>
+                        {tech.overall_signal?.toUpperCase()} TREND
+                      </span>
+                    </div>
+                    <div className="space-y-6">
+                      {/* Moving Averages */}
+                      <div className="flex items-center justify-between p-3 bg-[#152331] rounded-lg border border-slate-800">
+                        <div>
+                          <p className="text-sm font-semibold mb-1">Moving Averages (MA)</p>
+                          <p className="text-xs text-slate-500">{ma ? `Value: ${ma.value?.toFixed(2)}` : 'Price vs 50-day & 200-day MA'}</p>
+                        </div>
+                        <div className={`flex items-center gap-2 ${getRatingColor(ma?.signal || tech.overall_signal)}`}>
+                          <span className="font-bold text-sm">{ma?.signal?.replace('_', ' ') || tech.overall_signal?.replace('_', ' ')}</span>
+                          <span className="material-symbols-outlined">trending_up</span>
+                        </div>
+                      </div>
+
+                      {/* RSI */}
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-sm font-semibold">RSI (14)</span>
+                          <span className="text-sm font-bold">{rsi?.value?.toFixed(1) || 'N/A'}</span>
+                        </div>
+                        <div className="relative h-2 w-full bg-slate-700 rounded-full mt-2">
+                          <div className="absolute left-[30%] right-[30%] h-full bg-primary/20"></div>
+                          {rsi?.value && (
+                            <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-primary border border-slate-800 rounded-full z-10"
+                              style={{ left: `${Math.min(Math.max(rsi.value, 0), 100)}%`, marginLeft: '-6px' }}></div>
+                          )}
+                        </div>
+                        <div className="flex justify-between text-[10px] text-slate-500 mt-1 uppercase">
+                          <span>Oversold (&lt;30)</span>
+                          <span>Neutral</span>
+                          <span>Overbought (&gt;70)</span>
+                        </div>
+                      </div>
+
+                      {/* MACD */}
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-sm font-semibold">MACD (12,26,9)</span>
+                          <div className={`flex items-center gap-1 ${getRatingColor(macd?.signal)}`}>
+                            <span className="text-sm font-bold">{macd?.signal?.replace('_', ' ') || 'N/A'}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-end gap-1 h-12 mt-2 pt-2 border-b border-slate-700">
+                          {[2, 1, 2, 4, 6, 8, 10, 7, 5, 3, 2, 1].map((h, i) => (
+                            <div key={i} className={`w-1/12 rounded-t-sm ${i < 2 ? 'bg-red-400/50' : 'bg-emerald-400/70'}`}
+                              style={{ height: `${h * 10}%` }}></div>
+                          ))}
+                        </div>
+                        <p className="text-xs text-slate-500 mt-2">{tech.summary || 'MACD analysis based on current trend signals.'}</p>
+                      </div>
+
+                      {/* Additional indicators */}
+                      {tech.indicators?.slice(0, 3).filter(i => !['rsi', 'macd', 'moving'].some(p => i.name?.toLowerCase().includes(p))).map((ind, i) => (
+                        <div key={i} className="flex items-center justify-between p-3 bg-[#152331] rounded-lg border border-slate-800">
+                          <div>
+                            <p className="text-sm font-semibold">{ind.name}</p>
+                            <p className="text-xs text-slate-500">Value: {ind.value?.toFixed(2)}</p>
+                          </div>
+                          <span className={`text-sm font-bold ${getRatingColor(ind.signal)}`}>{ind.signal?.replace('_', ' ')}</span>
+                        </div>
+                      ))}
+
+                      {/* Key levels */}
+                      {tech.key_levels && (
+                        <div className="grid grid-cols-2 gap-3 pt-2">
+                          <div className="p-3 bg-[#152331] rounded-lg border border-slate-800 text-center">
+                            <p className="text-xs text-slate-500 mb-1">Support</p>
+                            <p className="text-lg font-bold text-emerald-400">${tech.key_levels.support?.toFixed(2)}</p>
+                          </div>
+                          <div className="p-3 bg-[#152331] rounded-lg border border-slate-800 text-center">
+                            <p className="text-xs text-slate-500 mb-1">Resistance</p>
+                            <p className="text-lg font-bold text-rose-400">${tech.key_levels.resistance?.toFixed(2)}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-surface-dark rounded-xl border border-surface-dark-border p-6 shadow-sm flex items-center justify-center h-full">
+                    <p className="text-slate-500 text-sm">Technical analysis not included. Enable the checkbox above.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+      </main>
     </div>
   )
 }

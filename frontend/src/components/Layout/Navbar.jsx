@@ -68,7 +68,7 @@ function Navbar() {
             ) : (
               <Link
                 to="/login"
-                className="px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest bg-blue-600 text-white hover:bg-blue-500 shadow-lg shadow-[#00498C]/20 transition-all duration-300"
+                className="px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest bg-[#00498C] text-white hover:bg-[#0059B3] shadow-lg shadow-[#00498C]/20 transition-all duration-300"
               >
                 Sign In
               </Link>
@@ -121,7 +121,7 @@ function Navbar() {
                 <Link
                   to="/login"
                   onClick={() => setIsMenuOpen(false)}
-                  className="block w-full px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest bg-blue-600 text-white text-center shadow-lg shadow-[#00498C]/20"
+                  className="block w-full px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest bg-[#00498C] text-white text-center shadow-lg shadow-[#00498C]/20"
                 >
                   Sign In
                 </Link>
