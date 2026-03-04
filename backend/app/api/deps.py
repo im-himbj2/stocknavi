@@ -73,18 +73,24 @@ async def get_current_user_optional(
     """Get current user if authenticated, otherwise return None"""
     if SessionLocal is None or not token:
         return None
-    
+
     try:
         payload = decode_access_token(token)
         if payload is None:
             return None
-        
+
         user_id = payload.get("sub")
         if user_id is None:
             return None
-        
-        # Try to parse as int or keep as string (UUID)
+
+        # Try to parse as int first, otherwise keep as string (UUID)
+        try:
+            user_id = int(user_id)
+        except (ValueError, TypeError):
+            pass
+
         user = db.query(User).filter(User.id == user_id).first()
         return user
-    except Exception:
+    except Exception as e:
+        print(f"[Optional Auth Error] {e}")
         return None

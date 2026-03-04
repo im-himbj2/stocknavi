@@ -1,7 +1,7 @@
 """
 Subscription Model
 """
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Boolean, Uuid
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
 from app.core.database import Base
@@ -12,7 +12,7 @@ class Subscription(Base):
     __tablename__ = "subscriptions"
     
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True)
+    user_id = Column(Uuid, ForeignKey("users.id"), nullable=False, unique=True)
     tier = Column(String, nullable=False, default="free")
     is_active = Column(Boolean, default=True)
     toss_payment_id = Column(String, nullable=True, unique=True)
