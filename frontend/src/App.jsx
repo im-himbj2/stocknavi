@@ -30,70 +30,55 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/dividend" element={
             <div className="min-h-screen bg-[#0A090C] text-white flex flex-col">
-              <Navbar />
               <main className="flex-1">
                 <Dividend />
               </main>
-              <Footer />
             </div>
           } />
           <Route path="/company" element={
             <div className="min-h-screen bg-[#0A090C] text-white flex flex-col">
-              <Navbar />
               <main className="flex-1">
                 <CompanyAnalysis />
               </main>
-              <Footer />
             </div>
           } />
           <Route path="/economic" element={
             <div className="min-h-screen bg-[#0A090C] text-white flex flex-col">
-              <Navbar />
               <main className="flex-1">
                 <EconomicIndicators />
               </main>
-              <Footer />
             </div>
           } />
           <Route path="/speech" element={
             <div className="min-h-screen bg-[#0A090C] text-white flex flex-col">
-              <Navbar />
               <main className="flex-1">
                 <SpeechSummary />
               </main>
-              <Footer />
             </div>
           } />
           <Route path="/portfolio" element={
             <div className="min-h-screen bg-[#0A090C] text-white flex flex-col">
-              <Navbar />
               <main className="flex-1">
                 <Portfolio />
               </main>
-              <Footer />
             </div>
           } />
           <Route path="/news" element={
             <div className="min-h-screen bg-[#0A090C] text-white flex flex-col">
-              <Navbar />
               <main className="flex-1">
                 <News />
               </main>
-              <Footer />
             </div>
           } />
           <Route path="/subscription" element={
             <div className="min-h-screen bg-[#0A090C] text-white flex flex-col">
-              <Navbar />
               <main className="flex-1">
                 <Subscription />
               </main>
-              <Footer />
             </div>
           } />
           <Route path="/subscription/success" element={
             <div className="min-h-screen bg-[#0A090C] text-white flex flex-col">
-              <Navbar />
               <main className="flex-1 flex items-center justify-center">
                 <div className="text-center">
                   <h1 className="text-4xl font-bold mb-4 text-green-400">구독 완료!</h1>
@@ -103,12 +88,10 @@ function App() {
                   </a>
                 </div>
               </main>
-              <Footer />
             </div>
           } />
           <Route path="/subscription/cancel" element={
             <div className="min-h-screen bg-[#0A090C] text-white flex flex-col">
-              <Navbar />
               <main className="flex-1 flex items-center justify-center">
                 <div className="text-center">
                   <h1 className="text-4xl font-bold mb-4 text-gray-400">구독 취소됨</h1>
@@ -118,16 +101,13 @@ function App() {
                   </a>
                 </div>
               </main>
-              <Footer />
             </div>
           } />
           <Route path="/login" element={
             <div className="min-h-screen bg-[#0A090C] text-white flex flex-col">
-              <Navbar />
               <main className="flex-1">
                 <Login />
               </main>
-              <Footer />
             </div>
           } />
         </Routes>
