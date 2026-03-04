@@ -36,7 +36,7 @@ function Home() {
   }, [searchSymbol])
 
   return (
-    <div className="bg-[#0A090C] text-white min-h-screen selection:bg-[#00498C]/30 overflow-x-hidden">
+    <div className="bg-[#0a0f15] text-white min-h-screen selection:bg-[#0070cc]/30 overflow-x-hidden">
       {/* 최상단 내비게이션 바 */}
       <Navbar />
 
@@ -48,26 +48,26 @@ function Home() {
 
       {/* 배경 장식 - 더욱 섬세한 조명 효과 */}
       <div className="fixed inset-0 pointer-events-none z-0">
-        <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-[#00498C]/12 rounded-full blur-[150px] animate-pulse"></div>
-        <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-[#00498C]/8 rounded-full blur-[150px] animate-pulse" style={{ animationDelay: '3s' }}></div>
-        <div className="absolute top-[30%] left-[20%] w-[30%] h-[30%] bg-[#00498C]/5 rounded-full blur-[120px]"></div>
+        <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-[#0070cc]/12 rounded-full blur-[150px] animate-pulse"></div>
+        <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-[#0070cc]/8 rounded-full blur-[150px] animate-pulse" style={{ animationDelay: '3s' }}></div>
+        <div className="absolute top-[30%] left-[20%] w-[30%] h-[30%] bg-[#0070cc]/5 rounded-full blur-[120px]"></div>
       </div>
 
       <div className="relative z-10">
         {/* 히어로 섹션 - 더욱 대담한 타이포그래피 */}
         <section className="pt-32 pb-24 px-6">
           <div className="container mx-auto text-center max-w-5xl">
-            <div className="inline-flex items-center gap-3 px-4 py-1.5 mb-10 rounded-full border border-[#00498C]/40 bg-[#00498C]/10 backdrop-blur-3xl animate-fade-in shadow-[0_0_20px_rgba(0,73,140,0.15)]">
+            <div className="inline-flex items-center gap-3 px-4 py-1.5 mb-10 rounded-full border border-[#0070cc]/40 bg-[#0070cc]/10 backdrop-blur-3xl animate-fade-in shadow-[0_0_20px_rgba(0,73,140,0.15)]">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#5BA4D4] opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00498C]"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#0070cc]"></span>
               </span>
               <span className="text-[11px] text-[#5BA4D4] font-black uppercase tracking-[0.2em]">The Future of Market Wisdom</span>
             </div>
 
             <h1 className="text-7xl md:text-[10rem] font-black mb-10 leading-[0.85] tracking-[-0.05em] animate-title">
               Precise<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-br from-white via-blue-50 to-[#00498C]/60">
+              <span className="text-transparent bg-clip-text bg-gradient-to-br from-white via-blue-50 to-[#0070cc]/60">
                 Intelligence
               </span>
             </h1>
@@ -79,8 +79,8 @@ function Home() {
 
             {/* 통합 검색바 - 더욱 세련된 글래스모피즘 */}
             <div className="max-w-2xl mx-auto relative group" ref={searchRef}>
-              <div className="absolute -inset-1 bg-gradient-to-r from-[#00498C] to-[#0066CC] rounded-[2rem] blur opacity-20 group-focus-within:opacity-40 transition duration-1000"></div>
-              <div className="relative flex items-center bg-white/[0.03] border border-white/10 p-2.5 rounded-[1.8rem] backdrop-blur-3xl focus-within:bg-white/[0.06] focus-within:border-[#00498C]/60 transition-all shadow-2xl">
+              <div className="absolute -inset-1 bg-gradient-to-r from-[#0070cc] to-[#0066CC] rounded-[2rem] blur opacity-20 group-focus-within:opacity-40 transition duration-1000"></div>
+              <div className="relative flex items-center bg-white/[0.03] border border-white/10 p-2.5 rounded-[1.8rem] backdrop-blur-3xl focus-within:bg-white/[0.06] focus-within:border-[#0070cc]/60 transition-all shadow-2xl">
                 <div className="pl-6 text-[#5BA4D4]/60">
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                 </div>
@@ -93,7 +93,7 @@ function Home() {
                 />
                 <Link
                   to={searchSymbol ? `/company?symbol=${searchSymbol}` : '/company'}
-                  className="bg-[#00498C] hover:bg-[#0059B3] text-white px-10 py-4 rounded-[1.2rem] text-sm font-black transition-all shadow-lg shadow-[#00498C]/30 hover:scale-[1.02] active:scale-[0.98]"
+                  className="bg-[#0070cc] hover:bg-[#0059B3] text-white px-10 py-4 rounded-[1.2rem] text-sm font-black transition-all shadow-lg shadow-[#0070cc]/30 hover:scale-[1.02] active:scale-[0.98]"
                 >
                   분석 실행
                 </Link>
@@ -111,7 +111,7 @@ function Home() {
                         <span className="font-black text-white text-lg tracking-tight">{s.symbol}</span>
                         <span className="text-xs text-[#5BA4D4]/60 font-bold uppercase tracking-widest">{s.name}</span>
                       </div>
-                      <div className="text-[#00498C]/50">
+                      <div className="text-[#0070cc]/50">
                         <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" /></svg>
                       </div>
                     </Link>
@@ -124,7 +124,7 @@ function Home() {
 
         {/* 선반 디스플레이 섹션 - 메인 콘텐츠로 격상 */}
         <section className="py-20 relative overflow-hidden">
-          <div className="absolute inset-0 bg-[#00498C]/8 blur-[120px] rounded-full translate-y-1/2"></div>
+          <div className="absolute inset-0 bg-[#0070cc]/8 blur-[120px] rounded-full translate-y-1/2"></div>
           <div className="container mx-auto px-6 relative">
             <div className="text-center mb-24">
               <h2 className="text-5xl md:text-7xl font-black text-white uppercase tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white to-white/40">Market Insight</h2>
@@ -135,7 +135,7 @@ function Home() {
         </section>
 
         {/* Footer CTA - 마지막 인상 */}
-        <section className="py-40 bg-gradient-to-b from-transparent via-[#00498C]/8 to-[#00498C]/15 border-t border-white/5">
+        <section className="py-40 bg-gradient-to-b from-transparent via-[#0070cc]/8 to-[#0070cc]/15 border-t border-white/5">
           <div className="container mx-auto px-6 text-center">
             <h2 className="text-6xl md:text-8xl font-black text-white mb-10 tracking-tighter uppercase leading-[0.9]">Elevate Your<br />Visibility</h2>
             <p className="text-gray-400 mb-16 max-w-2xl mx-auto text-lg font-semibold italic">"시장은 소음으로 가득합니다. 우리는 당신이 행동할 수 있는 정적을 제공합니다."</p>

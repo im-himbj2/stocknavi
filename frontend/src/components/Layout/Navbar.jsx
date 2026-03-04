@@ -30,14 +30,14 @@ function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
-    <nav className="bg-[#0A090C]/80 backdrop-blur-2xl border-b border-white/5 sticky top-0 z-[100] transition-colors duration-500">
+    <nav className="bg-[#0a0f15]/80 backdrop-blur-2xl border-b border-white/5 sticky top-0 z-[100] transition-colors duration-500">
       <div className="container mx-auto px-6">
         <div className="flex items-center justify-between h-20">
           <Link to="/" className="group flex items-center gap-2">
-            <span className="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white via-[#5BA4D4] to-[#00498C] tracking-tighter transition-all duration-300 group-hover:opacity-80">
+            <span className="text-2xl font-black bg-clip-text text-transparent bg-gradient-to-r from-white via-[#5BA4D4] to-[#0070cc] tracking-tighter transition-all duration-300 group-hover:opacity-80">
               StockNavi
             </span>
-            <div className="w-1.5 h-1.5 rounded-full bg-[#00498C] animate-pulse"></div>
+            <div className="w-1.5 h-1.5 rounded-full bg-[#0070cc] animate-pulse"></div>
           </Link>
 
           {/* 데스크탑 메뉴 */}
@@ -47,13 +47,13 @@ function Navbar() {
                 key={item.path}
                 to={item.path}
                 className={`relative px-5 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 ${isActive(item.path)
-                  ? 'text-white bg-[#00498C]/20 border border-[#00498C]/40'
+                  ? 'text-white bg-[#0070cc]/20 border border-[#0070cc]/40'
                   : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
               >
                 {item.label}
                 {isActive(item.path) && (
-                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-[#00498C] rounded-full shadow-[0_0_10px_#00498C]"></span>
+                  <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-[#0070cc] rounded-full shadow-[0_0_10px_#0070cc]"></span>
                 )}
               </Link>
             ))}
@@ -68,7 +68,7 @@ function Navbar() {
             ) : (
               <Link
                 to="/login"
-                className="px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest bg-[#00498C] text-white hover:bg-[#0059B3] shadow-lg shadow-[#00498C]/20 transition-all duration-300"
+                className="px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest bg-[#0070cc] text-white hover:bg-[#0085ff] shadow-lg shadow-[#0070cc]/20 transition-all duration-300"
               >
                 Sign In
               </Link>
@@ -99,7 +99,7 @@ function Navbar() {
                 to={item.path}
                 onClick={() => setIsMenuOpen(false)}
                 className={`block px-6 py-3 rounded-xl text-sm font-black uppercase tracking-widest transition-all ${isActive(item.path)
-                  ? 'bg-[#00498C]/20 text-[#5BA4D4] border border-[#00498C]/30'
+                  ? 'bg-[#0070cc]/20 text-[#5BA4D4] border border-[#0070cc]/30'
                   : 'text-gray-400 hover:text-white hover:bg-white/5'
                   }`}
               >
@@ -121,7 +121,7 @@ function Navbar() {
                 <Link
                   to="/login"
                   onClick={() => setIsMenuOpen(false)}
-                  className="block w-full px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest bg-[#00498C] text-white text-center shadow-lg shadow-[#00498C]/20"
+                  className="block w-full px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest bg-[#0070cc] text-white text-center shadow-lg shadow-[#0070cc]/20"
                 >
                   Sign In
                 </Link>

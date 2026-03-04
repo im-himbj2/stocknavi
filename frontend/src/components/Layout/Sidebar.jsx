@@ -17,7 +17,7 @@ function Sidebar() {
   const isActive = (path) => location.pathname === path
 
   return (
-    <aside className={`${isOpen ? 'w-64' : 'w-20'} bg-surface-dark border-r border-surface-dark-border transition-all duration-300 flex flex-col min-h-screen`}>
+    <aside className={`${isOpen ? 'w-64' : 'w-20'} bg-[#0e2234] border-r border-surface-dark-border transition-all duration-300 flex flex-col min-h-screen`}>
       {/* Logo / Brand */}
       <div className="h-16 border-b border-surface-dark-border flex items-center justify-between px-4 gap-3">
         <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-sm shrink-0">
@@ -34,8 +34,8 @@ function Sidebar() {
             to={item.path}
             className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
               isActive(item.path)
-                ? 'bg-primary/20 text-blue-200 border border-primary/30'
-                : 'text-slate-400 hover:text-slate-100 hover:bg-surface-dark-border/30'
+                ? 'bg-[#0070cc]/25 text-blue-200 border border-[#0070cc]/40'
+                : 'text-slate-300 hover:text-white hover:bg-white/5'
             }`}
             title={!isOpen ? item.label : ''}
           >
