@@ -11,7 +11,6 @@ from app.core.security import verify_password, get_password_hash, create_access_
 from app.core.config import settings
 from pydantic import BaseModel, EmailStr
 from app.models.user import User, SubscriptionTier
-from app.models.subscription import Subscription
 from app.api.deps import oauth2_scheme, get_current_user
 
 router = APIRouter()
@@ -68,15 +67,6 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db)):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-
-    # Create free subscription record
-    new_subscription = Subscription(
-        user_id=new_user.id,
-        tier="free",
-        is_active=True
-    )
-    db.add(new_subscription)
-    db.commit()
 
     return new_user
 
