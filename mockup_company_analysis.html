@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Deep Company Analysis Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#00498C",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0f1923",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "Noto Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { font-family: 'Space Grotesk', sans-serif; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display min-h-screen">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-300 dark:border-slate-800 px-10 py-3 bg-white dark:bg-[#152331]">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4 text-slate-900 dark:text-white">
+<div class="size-6 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl">monitoring</span>
+</div>
+<h2 class="text-xl font-bold leading-tight tracking-[-0.015em]">StockNavi</h2>
+</div>
+<label class="flex flex-col min-w-40 !h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+<div class="text-slate-500 dark:text-slate-400 flex items-center justify-center pl-4 rounded-l-lg border-r-0">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-slate-900 dark:text-white focus:outline-0 focus:ring-0 border-none bg-transparent placeholder:text-slate-500 dark:placeholder:text-slate-400 px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal" placeholder="Search AAPL" value="AAPL"/>
+</div>
+</label>
+</div>
+<div class="flex flex-1 justify-end gap-8">
+<nav class="flex items-center gap-9">
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary transition-colors text-sm font-medium leading-normal" href="#">Dashboard</a>
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary transition-colors text-sm font-medium leading-normal" href="#">Markets</a>
+<a class="text-primary text-sm font-bold leading-normal border-b-2 border-primary pb-1" href="#">Analysis</a>
+<a class="text-slate-600 dark:text-slate-300 hover:text-primary dark:hover:text-primary transition-colors text-sm font-medium leading-normal" href="#">Portfolios</a>
+</nav>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary" data-alt="User profile picture" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB-Ip_KgONuHGOJjqlnBCWoX_X0xb34U7O-hZw_Bwn8nNl0uygmw_i_wA45qbk0CMdRYNPB0aXK8f4H3LvMWVapZl_fQFTnditCAsfAmhrRrZlD2o4PB4GgMRTl5y8nYX6wxLOMO3BcG6-EgKvIv2JM2uYM-Kbqg-U9LvtfGfBOCS0QiEsBMdnPb1cqVxvtrKTwJC9LbrgaV1oNJztfIHOJSeEiZ-9wrZ6D2ciS3rOVMHJ80hCbzIzdN2YLl8NvSs8CxMYCwwVEh1ox");'></div>
+</div>
+</header>
+<main class="flex-1 p-6 lg:px-10 max-w-[1600px] mx-auto w-full flex flex-col gap-6">
+<div class="flex flex-wrap items-end justify-between gap-4 pb-2 border-b border-slate-200 dark:border-slate-800">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-3">
+<h1 class="text-4xl font-bold leading-tight">Apple Inc. (AAPL)</h1>
+<span class="px-3 py-1 rounded-full bg-slate-200 dark:bg-slate-800 text-sm font-medium text-slate-700 dark:text-slate-300">NASDAQ</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-base font-normal">Information Technology - Consumer Electronics</p>
+</div>
+<div class="flex flex-col items-end gap-1">
+<div class="flex items-center gap-3">
+<span class="text-3xl font-bold">$189.43</span>
+<span class="text-emerald-600 dark:text-emerald-400 font-medium text-lg flex items-center"><span class="material-symbols-outlined text-lg mr-1">arrow_upward</span>+1.24 (0.66%)</span>
+</div>
+<span class="text-slate-500 dark:text-slate-400 text-sm">Last updated: Today, 15:45 EST</span>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+<div class="lg:col-span-3 flex flex-col gap-6">
+<div class="bg-white dark:bg-[#1a2b3c] rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+<div class="bg-gradient-to-br from-primary/80 to-[#003366] p-6 text-white relative overflow-hidden">
+<div class="absolute -right-4 -top-4 opacity-20">
+<span class="material-symbols-outlined text-9xl">smart_toy</span>
+</div>
+<div class="relative z-10 flex flex-col gap-2">
+<p class="text-white/80 text-sm uppercase tracking-wider font-semibold">AI Investment Opinion</p>
+<div class="flex items-end gap-3 mt-2">
+<h3 class="text-4xl font-black">Strong Buy</h3>
+<span class="bg-white/20 px-2 py-1 rounded text-xs font-bold mb-1">92% CONFIDENCE</span>
+</div>
+</div>
+</div>
+<div class="p-5 flex flex-col gap-5">
+<div class="flex justify-between items-center text-xs font-medium text-slate-500 dark:text-slate-400 px-1">
+<span>Strong Sell</span>
+<span>Sell</span>
+<span>Hold</span>
+<span>Buy</span>
+<span class="text-primary dark:text-blue-400 font-bold">Strong Buy</span>
+</div>
+<div class="relative w-full h-3 bg-slate-200 dark:bg-slate-700 rounded-full">
+<div class="absolute top-0 left-0 h-full rounded-full bg-gradient-to-r from-red-500 via-yellow-500 to-emerald-500 w-full opacity-30"></div>
+<div class="absolute top-1/2 -translate-y-1/2 right-[5%] w-5 h-5 bg-white border-2 border-emerald-500 rounded-full shadow-md z-10"></div>
+</div>
+<div class="mt-2 text-sm text-slate-700 dark:text-slate-300 leading-relaxed border-t border-slate-100 dark:border-slate-800 pt-4">
+<p class="mb-3"><strong class="text-slate-900 dark:text-white">Reasoning:</strong> AI models detect robust service revenue growth offsetting hardware cyclicality. Strong balance sheet and aggressive stock buybacks provide downside protection.</p>
+<ul class="list-disc pl-4 space-y-1 text-xs">
+<li>Projected Q4 margins: +1.2% above consensus</li>
+<li>Institutional accumulation trend: Positive</li>
+<li>Supply chain constraint alleviation</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-[#1a2b3c] rounded-xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm">
+<h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">newspaper</span>
+                            News Sentiment
+                        </h3>
+<div class="flex items-center justify-between mb-2">
+<span class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">78/100</span>
+<span class="px-2 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold rounded">BULLISH</span>
+</div>
+<div class="w-full flex h-2 rounded-full overflow-hidden mb-4">
+<div class="bg-red-500 w-[12%]"></div>
+<div class="bg-yellow-500 w-[10%]"></div>
+<div class="bg-emerald-500 w-[78%]"></div>
+</div>
+<div class="space-y-3 mt-4">
+<div class="flex gap-3 items-start p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded transition-colors">
+<span class="material-symbols-outlined text-emerald-500 text-lg mt-0.5">trending_up</span>
+<div>
+<p class="text-sm font-medium">New iPhone sales outpace expectations in emerging markets.</p>
+<span class="text-xs text-slate-500">Reuters • 2h ago</span>
+</div>
+</div>
+<div class="flex gap-3 items-start p-2 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded transition-colors">
+<span class="material-symbols-outlined text-emerald-500 text-lg mt-0.5">trending_up</span>
+<div>
+<p class="text-sm font-medium">Analysts upgrade AAPL price target citing AI features integration.</p>
+<span class="text-xs text-slate-500">Bloomberg • 5h ago</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="lg:col-span-5 flex flex-col gap-6">
+<div class="bg-white dark:bg-[#1a2b3c] rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm h-full flex flex-col">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-xl font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">health_and_safety</span>
+                                Financial Health Scoring
+                            </h3>
+<span class="text-2xl font-black text-primary dark:text-blue-400">8.4<span class="text-sm text-slate-500 font-normal">/10</span></span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 flex-1">
+<div class="flex flex-col justify-center items-center relative aspect-square max-w-[240px] mx-auto opacity-80">
+<svg class="w-full h-full drop-shadow-lg" viewbox="0 0 100 100">
+<polygon class="text-slate-300 dark:text-slate-700" fill="none" points="50,10 90,50 50,90 10,50" stroke="currentColor" stroke-width="1"></polygon>
+<polygon class="text-slate-300 dark:text-slate-700" fill="none" points="50,20 80,50 50,80 20,50" stroke="currentColor" stroke-width="1"></polygon>
+<polygon class="text-slate-300 dark:text-slate-700" fill="none" points="50,30 70,50 50,70 30,50" stroke="currentColor" stroke-width="1"></polygon>
+<polygon class="text-slate-300 dark:text-slate-700" fill="none" points="50,40 60,50 50,60 40,50" stroke="currentColor" stroke-width="1"></polygon>
+<line class="text-slate-300 dark:text-slate-700" stroke="currentColor" stroke-dasharray="2,2" stroke-width="1" x1="50" x2="50" y1="10" y2="90"></line>
+<line class="text-slate-300 dark:text-slate-700" stroke="currentColor" stroke-dasharray="2,2" stroke-width="1" x1="10" x2="90" y1="50" y2="50"></line>
+<polygon class="dark:fill-primary/30 dark:stroke-blue-400" fill="rgba(0, 73, 140, 0.2)" points="50,15 85,50 50,65 25,50" stroke="#00498C" stroke-width="2"></polygon>
+<circle class="dark:fill-blue-400" cx="50" cy="15" fill="#00498C" r="2"></circle>
+<circle class="dark:fill-blue-400" cx="85" cy="50" fill="#00498C" r="2"></circle>
+<circle class="dark:fill-blue-400" cx="50" cy="65" fill="#00498C" r="2"></circle>
+<circle class="dark:fill-blue-400" cx="25" cy="50" fill="#00498C" r="2"></circle>
+</svg>
+<span class="absolute top-0 text-xs font-bold text-slate-700 dark:text-slate-300">Profitability</span>
+<span class="absolute right-0 text-xs font-bold text-slate-700 dark:text-slate-300 translate-x-4">Stability</span>
+<span class="absolute bottom-0 text-xs font-bold text-slate-700 dark:text-slate-300 translate-y-2">Valuation</span>
+<span class="absolute left-0 text-xs font-bold text-slate-700 dark:text-slate-300 -translate-x-4">Growth</span>
+</div>
+<div class="flex flex-col gap-5 justify-center">
+<div>
+<div class="flex justify-between text-sm mb-1">
+<span class="font-medium">Profitability</span>
+<span class="font-bold text-emerald-600 dark:text-emerald-400">9.2</span>
+</div>
+<div class="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 92%"></div>
+</div>
+<p class="text-xs text-slate-500 mt-1">Industry leading gross margins (45%+)</p>
+</div>
+<div>
+<div class="flex justify-between text-sm mb-1">
+<span class="font-medium">Stability</span>
+<span class="font-bold text-emerald-600 dark:text-emerald-400">8.8</span>
+</div>
+<div class="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-primary" style="width: 88%"></div>
+</div>
+<p class="text-xs text-slate-500 mt-1">Massive cash reserves, low debt/equity</p>
+</div>
+<div>
+<div class="flex justify-between text-sm mb-1">
+<span class="font-medium">Growth</span>
+<span class="font-bold text-amber-600 dark:text-amber-400">6.5</span>
+</div>
+<div class="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-primary/70" style="width: 65%"></div>
+</div>
+<p class="text-xs text-slate-500 mt-1">Maturing hardware cycle, reliant on services</p>
+</div>
+<div>
+<div class="flex justify-between text-sm mb-1">
+<span class="font-medium">Valuation</span>
+<span class="font-bold text-amber-600 dark:text-amber-400">6.0</span>
+</div>
+<div class="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="h-full bg-primary/70" style="width: 60%"></div>
+</div>
+<p class="text-xs text-slate-500 mt-1">P/E premium vs historical average</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="lg:col-span-4 flex flex-col gap-6">
+<div class="bg-white dark:bg-[#1a2b3c] rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm h-full">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-xl font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">candlestick_chart</span>
+                                Technical Analysis
+                            </h3>
+<span class="px-2 py-1 bg-primary/10 text-primary dark:text-blue-400 text-xs font-bold rounded">BULLISH TREND</span>
+</div>
+<div class="space-y-6">
+<div class="flex items-center justify-between p-3 bg-slate-50 dark:bg-[#152331] rounded-lg border border-slate-100 dark:border-slate-800">
+<div>
+<p class="text-sm font-semibold mb-1">Moving Averages (MA)</p>
+<p class="text-xs text-slate-500">Price &gt; 50-day &amp; 200-day MA</p>
+</div>
+<div class="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+<span class="font-bold text-sm">Strong Buy</span>
+<span class="material-symbols-outlined">trending_up</span>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-center mb-1">
+<span class="text-sm font-semibold">RSI (14)</span>
+<span class="text-sm font-bold">58.4</span>
+</div>
+<div class="relative h-2 w-full bg-slate-200 dark:bg-slate-700 rounded-full mt-2">
+<div class="absolute left-[30%] right-[30%] h-full bg-primary/20"></div>
+<div class="absolute top-1/2 -translate-y-1/2 left-[58.4%] w-3 h-3 bg-primary border border-white dark:border-slate-800 rounded-full z-10 -ml-1.5"></div>
+</div>
+<div class="flex justify-between text-[10px] text-slate-500 mt-1 uppercase">
+<span>Oversold (&lt;30)</span>
+<span>Neutral</span>
+<span>Overbought (&gt;70)</span>
+</div>
+</div>
+<div>
+<div class="flex justify-between items-center mb-1">
+<span class="text-sm font-semibold">MACD (12,26,9)</span>
+<div class="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+<span class="text-sm font-bold">Buy</span>
+</div>
+</div>
+<div class="flex items-end gap-1 h-12 mt-2 pt-2 border-b border-slate-200 dark:border-slate-700">
+<div class="w-1/12 bg-red-400/50 h-2"></div>
+<div class="w-1/12 bg-red-400/70 h-1"></div>
+<div class="w-1/12 bg-emerald-400/70 h-2"></div>
+<div class="w-1/12 bg-emerald-400/80 h-4"></div>
+<div class="w-1/12 bg-emerald-400/90 h-6"></div>
+<div class="w-1/12 bg-emerald-500 h-8"></div>
+<div class="w-1/12 bg-emerald-500 h-10"></div>
+<div class="w-1/12 bg-emerald-500 h-7"></div>
+<div class="w-1/12 bg-emerald-400/90 h-5"></div>
+<div class="w-1/12 bg-emerald-400/80 h-3"></div>
+<div class="w-1/12 bg-emerald-400/70 h-2"></div>
+<div class="w-1/12 bg-emerald-400/50 h-1"></div>
+</div>
+<p class="text-xs text-slate-500 mt-2">MACD line crossed above signal line 4 days ago.</p>
+</div>
+<button class="w-full py-2 bg-primary/10 hover:bg-primary/20 text-primary dark:text-blue-400 font-semibold rounded-lg transition-colors text-sm">
+                                View Full Chart
+                            </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

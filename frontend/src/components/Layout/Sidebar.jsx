@@ -34,7 +34,7 @@ function Sidebar() {
             to={item.path}
             className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
               isActive(item.path)
-                ? 'bg-primary/20 text-primary border border-primary/30'
+                ? 'bg-primary/20 text-blue-200 border border-primary/30'
                 : 'text-slate-400 hover:text-slate-100 hover:bg-surface-dark-border/30'
             }`}
             title={!isOpen ? item.label : ''}
