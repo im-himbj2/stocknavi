@@ -11,7 +11,7 @@ from app.core.security import verify_password, get_password_hash, create_access_
 from app.core.config import settings
 from pydantic import BaseModel, EmailStr
 from app.models.user import User, SubscriptionTier
-from app.api.deps import oauth2_scheme, get_current_user
+from app.api.deps import oauth2_scheme, get_current_user, get_current_user_optional
 
 router = APIRouter()
 
@@ -106,7 +106,14 @@ async def login(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@router.get("/me", response_model=UserResponse)
-async def get_current_user_info(current_user: User = Depends(get_current_user)):
+@router.get("/me")
+async def get_current_user_info(current_user: User = Depends(get_current_user_optional)):
     """Get current user information"""
-    return current_user
+    if not current_user:
+        return None
+    return {
+        "id": str(current_user.id),
+        "email": current_user.email,
+        "full_name": current_user.full_name,
+        "subscription_tier": current_user.subscription_tier
+    }

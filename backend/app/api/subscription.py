@@ -9,7 +9,7 @@ from pydantic import BaseModel
 import httpx
 from app.core.database import get_db, SessionLocal
 from app.core.config import settings
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, get_current_user_optional
 from app.models.user import User
 from app.models.subscription import Subscription
 
@@ -58,23 +58,30 @@ class SubscriptionStatus(BaseModel):
 
 @router.get("/subscription/status", response_model=SubscriptionStatus)
 async def get_subscription_status(
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_current_user_optional),
     db: Session = Depends(get_db)
 ):
     """현재 구독 상태 조회"""
-    subscription = db.query(Subscription).filter(
-        Subscription.user_id == current_user.id
-    ).first()
-    
-    if not subscription:
+    if not current_user:
         return SubscriptionStatus(tier="free", is_active=False)
-    
-    return SubscriptionStatus(
-        tier=subscription.tier,
-        is_active=subscription.is_active,
-        current_period_end=subscription.current_period_end.isoformat() if subscription.current_period_end else None,
-        polar_subscription_id=subscription.toss_payment_id # Reusing field for simplicity
-    )
+
+    try:
+        subscription = db.query(Subscription).filter(
+            Subscription.user_id == current_user.id
+        ).first()
+
+        if not subscription:
+            return SubscriptionStatus(tier="free", is_active=False)
+
+        return SubscriptionStatus(
+            tier=subscription.tier,
+            is_active=subscription.is_active,
+            current_period_end=subscription.current_period_end.isoformat() if subscription.current_period_end else None,
+            polar_subscription_id=subscription.toss_payment_id # Reusing field for simplicity
+        )
+    except Exception as e:
+        print(f"[Subscription Status Error] {e}")
+        return SubscriptionStatus(tier="free", is_active=False)
 
 @router.post("/subscription/checkout")
 async def create_checkout_session(
