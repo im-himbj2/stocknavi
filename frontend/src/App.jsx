@@ -9,8 +9,7 @@ import Portfolio from './pages/Portfolio'
 import News from './pages/News'
 import Subscription from './pages/Subscription'
 import Login from './pages/Login'
-import Navbar from './components/Layout/Navbar'
-import Footer from './components/Layout/Footer'
+import Sidebar from './components/Layout/Sidebar'
 
 function App() {
   // 에러 바운더리 추가 (개발 환경에서 에러 확인)
@@ -29,50 +28,57 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/dividend" element={
-            <div className="min-h-screen bg-[#0A090C] text-white flex flex-col">
-              <main className="flex-1">
+            <div className="min-h-screen bg-[#0A090C] text-white flex">
+              <Sidebar />
+              <main className="flex-1 overflow-auto">
                 <Dividend />
               </main>
             </div>
           } />
           <Route path="/company" element={
-            <div className="min-h-screen bg-[#0A090C] text-white flex flex-col">
-              <main className="flex-1">
+            <div className="min-h-screen bg-[#0A090C] text-white flex">
+              <Sidebar />
+              <main className="flex-1 overflow-auto">
                 <CompanyAnalysis />
               </main>
             </div>
           } />
           <Route path="/economic" element={
-            <div className="min-h-screen bg-[#0A090C] text-white flex flex-col">
-              <main className="flex-1">
+            <div className="min-h-screen bg-[#0A090C] text-white flex">
+              <Sidebar />
+              <main className="flex-1 overflow-auto">
                 <EconomicIndicators />
               </main>
             </div>
           } />
           <Route path="/speech" element={
-            <div className="min-h-screen bg-[#0A090C] text-white flex flex-col">
-              <main className="flex-1">
+            <div className="min-h-screen bg-[#0A090C] text-white flex">
+              <Sidebar />
+              <main className="flex-1 overflow-auto">
                 <SpeechSummary />
               </main>
             </div>
           } />
           <Route path="/portfolio" element={
-            <div className="min-h-screen bg-[#0A090C] text-white flex flex-col">
-              <main className="flex-1">
+            <div className="min-h-screen bg-[#0A090C] text-white flex">
+              <Sidebar />
+              <main className="flex-1 overflow-auto">
                 <Portfolio />
               </main>
             </div>
           } />
           <Route path="/news" element={
-            <div className="min-h-screen bg-[#0A090C] text-white flex flex-col">
-              <main className="flex-1">
+            <div className="min-h-screen bg-[#0A090C] text-white flex">
+              <Sidebar />
+              <main className="flex-1 overflow-auto">
                 <News />
               </main>
             </div>
           } />
           <Route path="/subscription" element={
-            <div className="min-h-screen bg-[#0A090C] text-white flex flex-col">
-              <main className="flex-1">
+            <div className="min-h-screen bg-[#0A090C] text-white flex">
+              <Sidebar />
+              <main className="flex-1 overflow-auto">
                 <Subscription />
               </main>
             </div>
