@@ -83,8 +83,13 @@ async def get_current_user_optional(
         if user_id is None:
             return None
 
-        # Keep as string (UUID) - don't convert to int
-        user = db.query(User).filter(User.id == str(user_id)).first()
+        # Convert to int for integer-based user IDs
+        try:
+            user_id = int(user_id)
+        except (ValueError, TypeError):
+            return None
+
+        user = db.query(User).filter(User.id == user_id).first()
         return user
     except Exception as e:
         print(f"[Optional Auth Error] {e}")

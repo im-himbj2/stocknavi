@@ -1,7 +1,7 @@
 """
 User Model
 """
-from sqlalchemy import Column, String, Boolean, DateTime, Enum, Uuid
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, Enum
 from sqlalchemy.sql import func
 import enum
 from app.core.database import Base
@@ -17,7 +17,7 @@ class User(Base):
     """User model"""
     __tablename__ = "users"
 
-    id = Column(Uuid, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=True)  # OAuth 사용자는 비밀번호 없을 수 있음
     full_name = Column(String, nullable=True)
