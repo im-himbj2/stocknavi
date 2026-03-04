@@ -29,7 +29,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/dividend" element={
-            <div className="min-h-screen bg-[#020617] text-white flex flex-col">
+            <div className="min-h-screen bg-[#0A090C] text-white flex flex-col">
               <Navbar />
               <main className="flex-1">
                 <Dividend />
@@ -38,7 +38,7 @@ function App() {
             </div>
           } />
           <Route path="/company" element={
-            <div className="min-h-screen bg-[#020617] text-white flex flex-col">
+            <div className="min-h-screen bg-[#0A090C] text-white flex flex-col">
               <Navbar />
               <main className="flex-1">
                 <CompanyAnalysis />
@@ -47,7 +47,7 @@ function App() {
             </div>
           } />
           <Route path="/economic" element={
-            <div className="min-h-screen bg-[#020617] text-white flex flex-col">
+            <div className="min-h-screen bg-[#0A090C] text-white flex flex-col">
               <Navbar />
               <main className="flex-1">
                 <EconomicIndicators />
@@ -56,7 +56,7 @@ function App() {
             </div>
           } />
           <Route path="/speech" element={
-            <div className="min-h-screen bg-[#020617] text-white flex flex-col">
+            <div className="min-h-screen bg-[#0A090C] text-white flex flex-col">
               <Navbar />
               <main className="flex-1">
                 <SpeechSummary />
@@ -65,7 +65,7 @@ function App() {
             </div>
           } />
           <Route path="/portfolio" element={
-            <div className="min-h-screen bg-[#020617] text-white flex flex-col">
+            <div className="min-h-screen bg-[#0A090C] text-white flex flex-col">
               <Navbar />
               <main className="flex-1">
                 <Portfolio />
@@ -74,7 +74,7 @@ function App() {
             </div>
           } />
           <Route path="/news" element={
-            <div className="min-h-screen bg-[#020617] text-white flex flex-col">
+            <div className="min-h-screen bg-[#0A090C] text-white flex flex-col">
               <Navbar />
               <main className="flex-1">
                 <News />
@@ -83,7 +83,7 @@ function App() {
             </div>
           } />
           <Route path="/subscription" element={
-            <div className="min-h-screen bg-[#020617] text-white flex flex-col">
+            <div className="min-h-screen bg-[#0A090C] text-white flex flex-col">
               <Navbar />
               <main className="flex-1">
                 <Subscription />
@@ -92,7 +92,7 @@ function App() {
             </div>
           } />
           <Route path="/subscription/success" element={
-            <div className="min-h-screen bg-[#020617] text-white flex flex-col">
+            <div className="min-h-screen bg-[#0A090C] text-white flex flex-col">
               <Navbar />
               <main className="flex-1 flex items-center justify-center">
                 <div className="text-center">
@@ -107,7 +107,7 @@ function App() {
             </div>
           } />
           <Route path="/subscription/cancel" element={
-            <div className="min-h-screen bg-[#020617] text-white flex flex-col">
+            <div className="min-h-screen bg-[#0A090C] text-white flex flex-col">
               <Navbar />
               <main className="flex-1 flex items-center justify-center">
                 <div className="text-center">
@@ -122,7 +122,7 @@ function App() {
             </div>
           } />
           <Route path="/login" element={
-            <div className="min-h-screen bg-[#020617] text-white flex flex-col">
+            <div className="min-h-screen bg-[#0A090C] text-white flex flex-col">
               <Navbar />
               <main className="flex-1">
                 <Login />

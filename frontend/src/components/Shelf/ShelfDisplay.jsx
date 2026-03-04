@@ -167,7 +167,7 @@ const ShelfDisplay = () => {
         {/* The Physical Shelf Visual */}
         <div className="absolute top-[600px] left-0 w-full h-12 z-0 pointer-events-none animate-entrance" style={{ animationDelay: '800ms' }}>
           <div className="absolute top-0 w-full h-[1px] bg-gradient-to-r from-white/10 via-white/40 to-white/10"></div>
-          <div className="absolute top-[1px] w-full h-full bg-gradient-to-b from-[#111] to-[#050505]"></div>
+          <div className="absolute top-[1px] w-full h-full bg-gradient-to-b from-[#1C1C20] to-[#0A090C]"></div>
           <div className="absolute top-full w-full h-32 bg-gradient-to-b from-black/80 to-transparent"></div>
         </div>
       </div>

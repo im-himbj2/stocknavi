@@ -40,7 +40,7 @@ const FeatureCard = ({ item, variant, isFlipped = false, onClick, link }) => {
                 <div className={`
             absolute inset-0 w-full h-full
             rounded-[2rem] overflow-hidden
-            bg-[#050505]
+            bg-[#0A090C]
             border border-white/10
             group-hover:border-white/30
             transition-all duration-500
@@ -101,7 +101,7 @@ const FeatureCard = ({ item, variant, isFlipped = false, onClick, link }) => {
                 <div className={`
             absolute inset-0 w-full h-full
             rounded-xl overflow-hidden
-            bg-[#0f0f0f]
+            bg-[#110F12]
             border border-white/20
             [backface-visibility:hidden] [transform:rotateY(180deg)]
             flex flex-col
