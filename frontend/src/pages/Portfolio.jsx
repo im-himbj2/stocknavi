@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom'
 import apiService from '../services/api'
 import { getSubscriptionStatus } from '../utils/subscription'
 import { majorStocks } from '../data/stockList'
+import { useLanguage } from '../contexts/LanguageContext'
 
 function Portfolio() {
+  const { t } = useLanguage()
   const [portfolioItems, setPortfolioItems] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -63,7 +65,7 @@ function Portfolio() {
   const handleAddItem = async (e) => {
     e.preventDefault()
     if (!formData.symbol || !formData.quantity || !formData.averagePrice) {
-      setError('모든 필수 항목을 입력해주세요.'); return
+      setError(t('portfolio.errorRequired')); return
     }
     setLoading(true); setError(null)
     try {
@@ -74,14 +76,14 @@ function Portfolio() {
       setFormData({ symbol: '', quantity: '', averagePrice: '', notes: '' })
       setShowAddForm(false)
     } catch (err) {
-      setError(err.message || '종목 추가 중 오류가 발생했습니다.')
+      setError(err.message || t('portfolio.errorAdd'))
     } finally {
       setLoading(false)
     }
   }
 
   const handleDeleteItem = async (itemId) => {
-    if (!window.confirm('이 종목을 포트폴리오에서 삭제하시겠습니까?')) return
+    if (!window.confirm(t('portfolio.deleteConfirm'))) return
     try {
       await apiService.deletePortfolioItem(itemId)
       await fetchPortfolio()
@@ -193,8 +195,8 @@ function Portfolio() {
           {/* Header */}
           <div className="flex flex-wrap justify-between items-end gap-4">
             <div className="flex flex-col gap-1">
-              <h1 className="text-[28px] font-bold leading-tight">Asset Portfolio &amp; Risk Management</h1>
-              <p className="text-text-muted text-sm">Real-time asset value, allocation breakdown, and risk analysis</p>
+              <h1 className="text-[28px] font-bold leading-tight">{t('portfolio.title')}</h1>
+              <p className="text-text-muted text-sm">{t('portfolio.subtitle')}</p>
             </div>
             <div className="flex gap-3">
               <button
@@ -202,14 +204,14 @@ function Portfolio() {
                 className="flex items-center gap-2 rounded-lg h-9 px-4 bg-surface-dark border border-surface-dark-border hover:bg-surface-dark-border transition-colors text-slate-100 text-sm font-medium"
               >
                 <span className="material-symbols-outlined text-[18px]">refresh</span>
-                Refresh Data
+                {t('portfolio.refresh')}
               </button>
               <button
                 onClick={() => setShowAddForm(!showAddForm)}
                 className="flex items-center gap-2 rounded-lg h-9 px-4 bg-primary hover:bg-primary/90 transition-colors text-white text-sm font-bold"
               >
                 <span className="material-symbols-outlined text-[18px]">add</span>
-                Add Asset
+                {t('portfolio.addAsset')}
               </button>
             </div>
           </div>
@@ -222,14 +224,14 @@ function Portfolio() {
           {/* Add Form */}
           {showAddForm && (
             <div className="rounded-xl border border-surface-dark-border bg-surface-dark p-5">
-              <h3 className="text-base font-bold mb-4">Add New Position</h3>
+              <h3 className="text-base font-bold mb-4">{t('portfolio.addPosition')}</h3>
               <form onSubmit={handleAddItem} className="grid grid-cols-1 md:grid-cols-4 gap-3">
                 <div className="relative" ref={searchRef}>
                   <input
                     type="text"
                     value={formData.symbol}
                     onChange={(e) => setFormData({ ...formData, symbol: e.target.value.toUpperCase() })}
-                    placeholder="Symbol (AAPL, 005930)"
+                    placeholder={t('portfolio.symbolPlaceholder')}
                     className="w-full h-10 bg-background-dark border border-surface-dark-border rounded-lg px-4 text-sm text-slate-100 placeholder:text-text-muted focus:outline-none focus:border-primary"
                     required
                   />
@@ -247,15 +249,15 @@ function Portfolio() {
                 </div>
                 <input type="number" step="0.01" value={formData.quantity}
                   onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                  placeholder="Quantity" required
+                  placeholder={t('portfolio.qtyPlaceholder')} required
                   className="h-10 bg-background-dark border border-surface-dark-border rounded-lg px-4 text-sm text-slate-100 placeholder:text-text-muted focus:outline-none focus:border-primary" />
                 <input type="number" step="0.01" value={formData.averagePrice}
                   onChange={(e) => setFormData({ ...formData, averagePrice: e.target.value })}
-                  placeholder="Avg Cost" required
+                  placeholder={t('portfolio.costPlaceholder')} required
                   className="h-10 bg-background-dark border border-surface-dark-border rounded-lg px-4 text-sm text-slate-100 placeholder:text-text-muted focus:outline-none focus:border-primary" />
                 <button type="submit" disabled={loading}
                   className="h-10 bg-primary hover:bg-primary/90 text-white font-bold rounded-lg text-sm transition-colors disabled:opacity-50">
-                  {loading ? 'Adding...' : 'Save Position'}
+                  {loading ? t('portfolio.saving') : t('portfolio.save')}
                 </button>
               </form>
             </div>
@@ -279,7 +281,7 @@ function Portfolio() {
           {/* Top Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="flex flex-col gap-2 rounded-xl p-5 bg-surface-dark border border-surface-dark-border shadow-sm">
-              <p className="text-text-muted text-sm font-medium uppercase tracking-wider">Total Asset Value</p>
+              <p className="text-text-muted text-sm font-medium uppercase tracking-wider">{t('portfolio.totalAsset')}</p>
               <p className="text-[28px] font-bold leading-tight">{fmtUsd(totalValue)}</p>
               <div className={`flex items-center gap-1 text-sm font-medium ${totalProfitPct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                 <span className="material-symbols-outlined text-[16px]">{totalProfitPct >= 0 ? 'trending_up' : 'trending_down'}</span>
@@ -287,14 +289,14 @@ function Portfolio() {
               </div>
             </div>
             <div className="flex flex-col gap-2 rounded-xl p-5 bg-surface-dark border border-surface-dark-border shadow-sm">
-              <p className="text-text-muted text-sm font-medium uppercase tracking-wider">Daily P/L</p>
+              <p className="text-text-muted text-sm font-medium uppercase tracking-wider">{t('portfolio.dailyPL')}</p>
               <p className={`text-[28px] font-bold leading-tight ${dailyPL >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                 {dailyPL >= 0 ? '+' : ''}{fmtUsd(dailyPL)}
               </p>
-              <p className="text-text-muted text-sm font-medium">Based on today's price change</p>
+              <p className="text-text-muted text-sm font-medium">{t('portfolio.dailyPLSub')}</p>
             </div>
             <div className="flex flex-col gap-2 rounded-xl p-5 bg-surface-dark border border-surface-dark-border shadow-sm">
-              <p className="text-text-muted text-sm font-medium uppercase tracking-wider">Total Return</p>
+              <p className="text-text-muted text-sm font-medium uppercase tracking-wider">{t('portfolio.totalReturn')}</p>
               <p className={`text-[28px] font-bold leading-tight ${totalProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                 {totalProfit >= 0 ? '+' : ''}{fmtUsd(totalProfit)}
               </p>
@@ -308,12 +310,12 @@ function Portfolio() {
           {/* Asset Allocation */}
           {portfolioItems.length > 0 && (
             <div className="flex flex-col gap-4">
-              <h2 className="text-xl font-bold">Asset Allocation</h2>
+              <h2 className="text-xl font-bold">{t('portfolio.allocation')}</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Sector Allocation Bars */}
                 <div className="flex flex-col gap-4 rounded-xl border border-surface-dark-border bg-surface-dark p-6">
                   <div>
-                    <p className="text-text-muted text-sm font-medium">Allocation by Stock</p>
+                    <p className="text-text-muted text-sm font-medium">{t('portfolio.allocationSub')}</p>
                     <p className="text-2xl font-bold mt-1">{stockWeights[0]?.symbol}: {stockWeights[0]?.pct.toFixed(0)}%</p>
                   </div>
                   <div className="grid gap-x-4 gap-y-3 items-center" style={{ gridTemplateColumns: '60px 1fr 40px' }}>
@@ -333,7 +335,7 @@ function Portfolio() {
                 <div className="flex flex-col gap-4 rounded-xl border border-surface-dark-border bg-surface-dark p-6">
                   <div>
                     <p className="text-text-muted text-sm font-medium">Value by Position</p>
-                    <p className="text-2xl font-bold mt-1">{portfolioItems.length} Holdings</p>
+                    <p className="text-2xl font-bold mt-1">{portfolioItems.length} {t('portfolio.holdings')}</p>
                   </div>
                   <div className="h-[140px] flex items-end justify-between gap-2 mt-auto pt-4 border-b border-surface-dark-border/50">
                     {stockWeights.map(({ symbol, pct, color }, i) => (
@@ -352,7 +354,7 @@ function Portfolio() {
           {/* Holdings Table */}
           <div className="flex flex-col gap-4 mt-2">
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-bold">Current Holdings</h2>
+              <h2 className="text-xl font-bold">{t('portfolio.holdings')}</h2>
               <span className="text-sm text-text-muted">{portfolioItems.length} positions</span>
             </div>
             {portfolioItems.length > 0 ? (
@@ -361,12 +363,12 @@ function Portfolio() {
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="border-b border-surface-dark-border text-text-muted text-xs uppercase tracking-wider bg-surface-dark-border/20">
-                        <th className="p-4 font-medium">Asset</th>
-                        <th className="p-4 font-medium text-right">Price</th>
-                        <th className="p-4 font-medium text-right">Quantity</th>
-                        <th className="p-4 font-medium text-right">Avg Cost</th>
-                        <th className="p-4 font-medium text-right">Total Value</th>
-                        <th className="p-4 font-medium text-right">Gain/Loss</th>
+                        <th className="p-4 font-medium">{t('portfolio.asset')}</th>
+                        <th className="p-4 font-medium text-right">{t('portfolio.price')}</th>
+                        <th className="p-4 font-medium text-right">{t('portfolio.qty')}</th>
+                        <th className="p-4 font-medium text-right">{t('portfolio.avgCost')}</th>
+                        <th className="p-4 font-medium text-right">{t('portfolio.totalValue')}</th>
+                        <th className="p-4 font-medium text-right">{t('portfolio.gainLoss')}</th>
                         <th className="p-4 font-medium text-right"></th>
                       </tr>
                     </thead>
@@ -414,8 +416,8 @@ function Portfolio() {
               !loading && (
                 <div className="rounded-xl border border-dashed border-surface-dark-border bg-surface-dark p-16 text-center">
                   <span className="material-symbols-outlined text-5xl text-slate-600 mb-4 block">account_balance_wallet</span>
-                  <h3 className="text-lg font-bold mb-2">Portfolio is Empty</h3>
-                  <p className="text-text-muted text-sm">Add positions to track your assets in real-time.</p>
+                  <h3 className="text-lg font-bold mb-2">{t('portfolio.emptyTitle')}</h3>
+                  <p className="text-text-muted text-sm">{t('portfolio.emptyDesc')}</p>
                 </div>
               )
             )}
@@ -429,21 +431,21 @@ function Portfolio() {
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-bold flex items-center gap-2">
                 <span className="material-symbols-outlined text-amber-500">warning</span>
-                Risk Assessment
+                {t('portfolio.riskTitle')}
               </h2>
             </div>
             <div className="flex flex-col gap-4">
               {/* Portfolio Beta/Volatility */}
               <div className="p-3 bg-background-dark rounded-lg border border-surface-dark-border">
                 <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-slate-100">Portfolio Volatility</span>
+                  <span className="text-sm font-medium text-slate-100">{t('portfolio.volatility')}</span>
                   <span className="text-sm font-bold text-amber-500">
                     {portfolioItems.length > 0 ? `${portfolioItems.length} assets` : 'N/A'}
                   </span>
                 </div>
                 <p className="text-xs text-text-muted">
                   {portfolioItems.length === 0
-                    ? 'Add positions to see risk analysis.'
+                    ? t('portfolio.emptyRisk')
                     : `Your portfolio contains ${portfolioItems.length} positions with a total value of ${fmtUsd(totalValue)}.`}
                 </p>
               </div>
@@ -454,7 +456,7 @@ function Portfolio() {
                   <div className="flex items-start gap-3">
                     <span className="material-symbols-outlined text-rose-500 text-[20px] mt-0.5">error</span>
                     <div>
-                      <h3 className="text-sm font-bold text-rose-500 mb-1">Concentration Risk</h3>
+                      <h3 className="text-sm font-bold text-rose-500 mb-1">{t('portfolio.concentration')}</h3>
                       <p className="text-xs text-rose-400/80">
                         High exposure to {stockWeights[0]?.symbol} ({stockWeights[0]?.pct.toFixed(0)}%). Consider diversifying to reduce concentration risk.
                       </p>
@@ -469,8 +471,8 @@ function Portfolio() {
                   <div className="flex items-start gap-3">
                     <span className="material-symbols-outlined text-emerald-500 text-[20px] mt-0.5">check_circle</span>
                     <div>
-                      <h3 className="text-sm font-bold text-emerald-500 mb-1">Liquidity Status</h3>
-                      <p className="text-xs text-emerald-400/80">Excellent. All your positions are liquid and can be sold within market hours.</p>
+                      <h3 className="text-sm font-bold text-emerald-500 mb-1">{t('portfolio.liquidity')}</h3>
+                      <p className="text-xs text-emerald-400/80">{t('portfolio.liquidityGood')}</p>
                     </div>
                   </div>
                 </div>
@@ -480,7 +482,7 @@ function Portfolio() {
               {portfolioItems.length > 0 && (
                 <div className="p-3 bg-background-dark rounded-lg border border-surface-dark-border">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium">Total Return</span>
+                    <span className="text-sm font-medium">{t('portfolio.totalReturn')}</span>
                     <span className={`text-sm font-bold ${totalProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                       {totalProfitPct >= 0 ? '+' : ''}{totalProfitPct.toFixed(2)}%
                     </span>
@@ -502,13 +504,13 @@ function Portfolio() {
               </div>
               <div className="relative z-10">
                 <span className="inline-block px-2 py-1 bg-primary/30 text-[10px] font-bold uppercase tracking-wider rounded text-white mb-2 border border-primary/50">
-                  Pro Feature
+                  {t('portfolio.proFeature')}
                 </span>
-                <h3 className="text-lg font-bold text-white mb-2">Premium AI Reports</h3>
-                <p className="text-sm text-text-muted mb-4">Unlock predictive portfolio modeling and advanced risk analysis for your holdings.</p>
+                <h3 className="text-lg font-bold text-white mb-2">{t('portfolio.premiumTitle')}</h3>
+                <p className="text-sm text-text-muted mb-4">{t('portfolio.premiumDesc')}</p>
                 <Link to="/subscription"
                   className="w-full flex items-center justify-center gap-2 rounded-lg h-10 bg-primary hover:bg-primary/90 transition-colors text-white text-sm font-bold">
-                  <span>Upgrade Now</span>
+                  <span>{t('portfolio.upgradeNow')}</span>
                   <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
                 </Link>
               </div>

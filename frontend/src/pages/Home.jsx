@@ -5,8 +5,10 @@ import ShelfDisplay from '../components/Shelf/ShelfDisplay'
 import MarketTicker from '../components/Home/MarketTicker'
 import Navbar from '../components/Layout/Navbar'
 import CandleBackground from '../components/Home/CandleBackground'
+import { useLanguage } from '../contexts/LanguageContext'
 
 function Home() {
+  const { t } = useLanguage()
   const [searchSymbol, setSearchSymbol] = useState('')
   const [suggestions, setSuggestions] = useState([])
   const [showSuggestions, setShowSuggestions] = useState(false)
@@ -62,7 +64,7 @@ function Home() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#5BA4D4] opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-[#0070cc]"></span>
               </span>
-              <span className="text-[11px] text-[#5BA4D4] font-black uppercase tracking-[0.2em]">The Future of Market Wisdom</span>
+              <span className="text-[11px] text-[#5BA4D4] font-black uppercase tracking-[0.2em]">{t('home.badge')}</span>
             </div>
 
             <h1 className="text-7xl md:text-[10rem] font-black mb-10 leading-[0.85] tracking-[-0.05em] animate-title">
@@ -72,9 +74,8 @@ function Home() {
               </span>
             </h1>
 
-            <p className="text-xl md:text-2xl text-gray-400/80 mb-16 max-w-3xl mx-auto font-medium leading-relaxed tracking-tight">
-              가장 정교한 AI 터미널로 시장의 소음을 제거하고 <br className="hidden md:block" />
-              숨겨진 투자 기회를 데이터를 통해 증명하세요.
+            <p className="text-xl md:text-2xl text-gray-400/80 mb-16 max-w-3xl mx-auto font-medium leading-relaxed tracking-tight whitespace-pre-line">
+              {t('home.subtitle')}
             </p>
 
             {/* 통합 검색바 - 더욱 세련된 글래스모피즘 */}
@@ -88,14 +89,14 @@ function Home() {
                   type="text"
                   value={searchSymbol}
                   onChange={(e) => setSearchSymbol(e.target.value.toUpperCase())}
-                  placeholder="분석할 종목을 입력하세요 (AAPL, NVDA, 삼성전자...)"
+                  placeholder={t('home.searchPlaceholder')}
                   className="w-full bg-transparent px-5 py-4 text-base font-medium focus:outline-none placeholder-gray-500"
                 />
                 <Link
                   to={searchSymbol ? `/company?symbol=${searchSymbol}` : '/company'}
                   className="bg-[#0070cc] hover:bg-[#0059B3] text-white px-10 py-4 rounded-[1.2rem] text-sm font-black transition-all shadow-lg shadow-[#0070cc]/30 hover:scale-[1.02] active:scale-[0.98]"
                 >
-                  분석 실행
+                  {t('home.searchBtn')}
                 </Link>
               </div>
 
@@ -127,8 +128,8 @@ function Home() {
           <div className="absolute inset-0 bg-[#0070cc]/8 blur-[120px] rounded-full translate-y-1/2"></div>
           <div className="container mx-auto px-6 relative">
             <div className="text-center mb-24">
-              <h2 className="text-5xl md:text-7xl font-black text-white uppercase tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white to-white/40">Market Insight</h2>
-              <p className="text-[#5BA4D4] font-bold uppercase tracking-[0.4em] text-[10px]">데이터로 정밀하게 탐색하세요</p>
+              <h2 className="text-5xl md:text-7xl font-black text-white uppercase tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white to-white/40">{t('home.marketInsightTitle')}</h2>
+              <p className="text-[#5BA4D4] font-bold uppercase tracking-[0.4em] text-[10px]">{t('home.marketInsightSub')}</p>
             </div>
             <ShelfDisplay />
           </div>
@@ -138,10 +139,10 @@ function Home() {
         <section className="py-40 bg-gradient-to-b from-transparent via-[#0070cc]/8 to-[#0070cc]/15 border-t border-white/5">
           <div className="container mx-auto px-6 text-center">
             <h2 className="text-6xl md:text-8xl font-black text-white mb-10 tracking-tighter uppercase leading-[0.9]">Elevate Your<br />Visibility</h2>
-            <p className="text-gray-400 mb-16 max-w-2xl mx-auto text-lg font-semibold italic">"시장은 소음으로 가득합니다. 우리는 당신이 행동할 수 있는 정적을 제공합니다."</p>
+            <p className="text-gray-400 mb-16 max-w-2xl mx-auto text-lg font-semibold italic">{t('home.ctaQuote')}</p>
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <Link to="/login" className="px-12 py-5 bg-white text-black font-black uppercase text-sm rounded-[1.2rem] hover:bg-gray-200 transition-all shadow-[0_10px_30px_rgba(255,255,255,0.2)]">지금 시작하기</Link>
-              <Link to="/subscription" className="px-12 py-5 bg-white/5 border border-white/20 text-white font-black uppercase text-sm rounded-[1.2rem] hover:bg-white/10 transition-all backdrop-blur-md">요금제 보기</Link>
+              <Link to="/login" className="px-12 py-5 bg-white text-black font-black uppercase text-sm rounded-[1.2rem] hover:bg-gray-200 transition-all shadow-[0_10px_30px_rgba(255,255,255,0.2)]">{t('home.ctaStart')}</Link>
+              <Link to="/subscription" className="px-12 py-5 bg-white/5 border border-white/20 text-white font-black uppercase text-sm rounded-[1.2rem] hover:bg-white/10 transition-all backdrop-blur-md">{t('home.ctaPricing')}</Link>
             </div>
 
             <div className="mt-32 pt-16 border-t border-white/5">

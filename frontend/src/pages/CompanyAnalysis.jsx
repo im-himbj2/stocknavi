@@ -5,8 +5,10 @@ import { getSubscriptionStatus } from '../utils/subscription'
 import { majorStocks } from '../data/stockList'
 import PopularStockCard from '../components/Stock/PopularStockCard'
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import { useLanguage } from '../contexts/LanguageContext'
 
 function CompanyAnalysis() {
+  const { t } = useLanguage()
   const [searchSymbol, setSearchSymbol] = useState('')
   const [symbol, setSymbol] = useState('')
   const [loading, setLoading] = useState(false)
@@ -291,7 +293,7 @@ function CompanyAnalysis() {
             </label>
             <button type="submit" disabled={loading}
               className="px-6 h-10 bg-primary hover:bg-primary/90 text-white font-bold rounded-lg text-sm transition-colors disabled:opacity-50">
-              {loading ? 'Analyzing...' : 'Analyze'}
+              {loading ? t('company.analyzing') : t('home.searchBtn')}
             </button>
           </form>
         </div>
@@ -302,13 +304,13 @@ function CompanyAnalysis() {
             onClick={() => setActiveTab('analysis')}
             className={`flex items-center gap-2 px-6 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'analysis' ? 'border-primary text-blue-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
             <span className="material-symbols-outlined text-[16px]">monitoring</span>
-            종합 분석
+            {t('company.tabAnalysis')}
           </button>
           <button
             onClick={() => setActiveTab('dividend')}
             className={`flex items-center gap-2 px-6 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'dividend' ? 'border-emerald-500 text-emerald-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
             <span className="material-symbols-outlined text-[16px]">paid</span>
-            배당 분석
+            {t('company.tabDividend')}
           </button>
         </div>
 
@@ -325,7 +327,7 @@ function CompanyAnalysis() {
               <div className="flex-1 flex items-center justify-center py-20">
                 <div className="text-center">
                   <div className="inline-block w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
-                  <p className="mt-4 text-slate-400">Analyzing {symbol}...</p>
+                  <p className="mt-4 text-slate-400">{t('company.analyzing')} {symbol}...</p>
                 </div>
               </div>
             )}
@@ -335,8 +337,8 @@ function CompanyAnalysis() {
               <div className="flex-1 flex items-center justify-center py-20">
                 <div className="text-center max-w-md">
                   <span className="material-symbols-outlined text-6xl text-slate-600 mb-4 block">monitoring</span>
-                  <h2 className="text-2xl font-bold mb-2">Search a Stock to Analyze</h2>
-                  <p className="text-slate-400 mb-6">Enter a ticker symbol above to get AI-powered investment analysis, financial health scoring, and technical indicators.</p>
+                  <h2 className="text-2xl font-bold mb-2">{t('company.searchPrompt')}</h2>
+                  <p className="text-slate-400 mb-6">{t('company.searchDesc')}</p>
                   <div className="flex flex-wrap gap-2 justify-center">
                     {['AAPL', 'MSFT', 'NVDA', 'TSLA', 'GOOGL'].map(s => (
                       <button key={s} onClick={() => handleStockSelect(s)}
@@ -382,10 +384,10 @@ function CompanyAnalysis() {
                         <span className="material-symbols-outlined text-[80px]">smart_toy</span>
                       </div>
                       <div className="relative z-10 flex flex-col gap-2">
-                        <p className="text-white/80 text-sm uppercase tracking-wider font-semibold">AI Investment Opinion</p>
+                        <p className="text-white/80 text-sm uppercase tracking-wider font-semibold">{t('company.aiOpinion')}</p>
                         <div className="flex items-end gap-3 mt-2">
                           <h3 className="text-3xl font-black">{getRatingLabel(opinion.rating)}</h3>
-                          <span className="bg-white/20 px-2 py-1 rounded text-xs font-bold mb-1">{opinion.score?.toFixed(0)}% CONFIDENCE</span>
+                          <span className="bg-white/20 px-2 py-1 rounded text-xs font-bold mb-1">{opinion.score?.toFixed(0)}{t('company.confidence')}</span>
                         </div>
                       </div>
                     </div>
@@ -405,7 +407,7 @@ function CompanyAnalysis() {
                       </div>
                       {/* Reasoning */}
                       <div className="mt-2 text-sm text-slate-300 leading-relaxed border-t border-slate-800 pt-4">
-                        <p className="mb-3"><strong className="text-white">Reasoning:</strong> {opinion.thesis}</p>
+                        <p className="mb-3"><strong className="text-white">{t('company.reasoning')}</strong> {opinion.thesis}</p>
                         {opinion.key_points?.length > 0 && (
                           <ul className="list-disc pl-4 space-y-1 text-xs">
                             {opinion.key_points.slice(0, 3).map((p, i) => <li key={i}>{p}</li>)}
@@ -421,7 +423,7 @@ function CompanyAnalysis() {
                   <div className="bg-surface-dark rounded-xl border border-surface-dark-border p-5 shadow-sm">
                     <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
                       <span className="material-symbols-outlined text-primary">newspaper</span>
-                      News Sentiment
+                      {t('company.newsSentiment')}
                     </h3>
                     <div className="flex items-center justify-between mb-2">
                       <span className={`text-2xl font-bold ${sentiment.score >= 60 ? 'text-emerald-400' : sentiment.score <= 40 ? 'text-rose-400' : 'text-amber-400'}`}>
@@ -619,7 +621,7 @@ function CompanyAnalysis() {
               <div>
                 <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
                   <span className="w-1 h-5 bg-emerald-500 rounded-full inline-block"></span>
-                  고배당 추천 종목
+                  {t('company.highDividend')}
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                   {highDividendStocks.map(stock => (
@@ -635,7 +637,7 @@ function CompanyAnalysis() {
               <div className="flex items-center justify-center py-20">
                 <div className="text-center">
                   <div className="inline-block w-12 h-12 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin"></div>
-                  <p className="mt-4 text-slate-400">배당 데이터 분석 중...</p>
+                  <p className="mt-4 text-slate-400">{t('company.analyzing')}</p>
                 </div>
               </div>
             )}
@@ -701,17 +703,17 @@ function CompanyAnalysis() {
                     <div className="bg-surface-dark rounded-xl border border-surface-dark-border p-6">
                       <div className="flex items-center justify-between mb-5">
                         <div>
-                          <h3 className="text-lg font-bold text-emerald-400">배당 이력 및 분석</h3>
-                          <p className="text-xs text-slate-400">최근 5년간 배당 내역 및 성장률</p>
+                          <h3 className="text-lg font-bold text-emerald-400">{t('company.dividendHistory')}</h3>
+                          <p className="text-xs text-slate-400">{t('company.dividendRecent')}</p>
                         </div>
                         <div className="flex items-center gap-3">
                           {olderDivs.length > 0 && (
                             <button onClick={() => setShowOlderData(!showOlderData)}
                               className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs text-slate-300 transition-colors">
-                              {showOlderData ? '이전 데이터 숨기기' : `${olderDivs.length}개 이전 데이터`}
+                              {showOlderData ? t('company.hideOlder') : `${olderDivs.length}${t('company.showOlder')}`}
                             </button>
                           )}
-                          <span className="px-3 py-1.5 bg-emerald-500/20 border border-emerald-500/30 rounded-lg text-emerald-400 text-xs font-semibold">{recentDivs.length}개 기록</span>
+                          <span className="px-3 py-1.5 bg-emerald-500/20 border border-emerald-500/30 rounded-lg text-emerald-400 text-xs font-semibold">{recentDivs.length}{t('company.records')}</span>
                         </div>
                       </div>
 
@@ -721,10 +723,10 @@ function CompanyAnalysis() {
                           <table className="w-full text-sm">
                             <thead>
                               <tr className="border-b border-slate-700 text-slate-400 text-xs uppercase tracking-wider">
-                                <th className="text-left py-3 px-2">날짜</th>
-                                <th className="text-right py-3 px-2">배당금</th>
-                                <th className="text-right py-3 px-2">수익률</th>
-                                <th className="text-right py-3 px-2">변화율</th>
+                                <th className="text-left py-3 px-2">{t('company.date')}</th>
+                                <th className="text-right py-3 px-2">{t('company.dividend')}</th>
+                                <th className="text-right py-3 px-2">{t('company.yield')}</th>
+                                <th className="text-right py-3 px-2">{t('company.change')}</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -756,7 +758,7 @@ function CompanyAnalysis() {
 
                         {/* Chart */}
                         <div className="bg-background-dark rounded-xl p-4 border border-surface-dark-border">
-                          <h4 className="text-sm font-bold text-slate-300 mb-3">배당 성장 추이</h4>
+                          <h4 className="text-sm font-bold text-slate-300 mb-3">{t('company.dividendGrowthChart')}</h4>
                           <ResponsiveContainer width="100%" height={200}>
                             <LineChart data={[...recentDivs].reverse().map(d => ({
                               date: new Date(d.date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'short' }),
@@ -770,7 +772,7 @@ function CompanyAnalysis() {
                                 name={isKoreanStock ? '배당금 (원)' : '배당금 ($)'} />
                             </LineChart>
                           </ResponsiveContainer>
-                          <h4 className="text-sm font-bold text-slate-300 mt-4 mb-3">연도별 평균 배당</h4>
+                          <h4 className="text-sm font-bold text-slate-300 mt-4 mb-3">{t('company.dividendYearChart')}</h4>
                           <ResponsiveContainer width="100%" height={140}>
                             <BarChart data={(() => {
                               const yr = {}
@@ -795,7 +797,7 @@ function CompanyAnalysis() {
                       {showOlderData && olderDivs.length > 0 && (
                         <div className="mt-5 pt-5 border-t border-slate-700">
                           <div className="flex justify-between items-center mb-3">
-                            <h4 className="text-sm font-semibold text-slate-300">5년 이전 배당 이력</h4>
+                            <h4 className="text-sm font-semibold text-slate-300">{t('company.dividendOlder')}</h4>
                             <button onClick={() => setShowOlderData(false)} className="text-slate-500 hover:text-white">
                               <span className="material-symbols-outlined text-[18px]">close</span>
                             </button>
@@ -804,9 +806,9 @@ function CompanyAnalysis() {
                             <table className="w-full text-xs">
                               <thead>
                                 <tr className="border-b border-slate-700 text-slate-500 uppercase tracking-wider">
-                                  <th className="text-left py-2 px-2">날짜</th>
-                                  <th className="text-right py-2 px-2">배당금</th>
-                                  <th className="text-right py-2 px-2">수익률</th>
+                                  <th className="text-left py-2 px-2">{t('company.date')}</th>
+                                  <th className="text-right py-2 px-2">{t('company.dividend')}</th>
+                                  <th className="text-right py-2 px-2">{t('company.yield')}</th>
                                 </tr>
                               </thead>
                               <tbody>
@@ -833,7 +835,7 @@ function CompanyAnalysis() {
               <div>
                 <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
                   <span className="w-1 h-5 bg-emerald-500 rounded-full inline-block"></span>
-                  고배당 추천 종목
+                  {t('company.highDividend')}
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                   {highDividendStocks.map(stock => (

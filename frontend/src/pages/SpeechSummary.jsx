@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import apiService from '../services/api'
+import { useLanguage } from '../contexts/LanguageContext'
 
 function SpeechSummary() {
+  const { t } = useLanguage()
   const [fomcMeetings, setFomcMeetings] = useState([])
   const [recentSpeeches, setRecentSpeeches] = useState([])
   const [selectedSpeech, setSelectedSpeech] = useState(null)
@@ -69,9 +71,9 @@ function SpeechSummary() {
     const diffMinutes = Math.floor(diffMs / 60000)
     const diffHours = Math.floor(diffMs / 3600000)
 
-    if (diffMinutes < 1) return '방금 전'
-    if (diffMinutes < 60) return `${diffMinutes}분 전`
-    if (diffHours < 24) return `${diffHours}시간 전`
+    if (diffMinutes < 1) return t('speech.justNow')
+    if (diffMinutes < 60) return `${diffMinutes}${t('speech.minutesAgo')}`
+    if (diffHours < 24) return `${diffHours}${t('speech.hoursAgo')}`
     return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
   }
 
@@ -137,17 +139,17 @@ function SpeechSummary() {
 
   const getSentimentText = (sentiment) => {
     switch (sentiment) {
-      case 'positive': return '긍정적 (Dovish)'
-      case 'negative': return '부정적 (Hawkish)'
-      default: return '중립적'
+      case 'positive': return t('speech.bullish')
+      case 'negative': return t('speech.bearish')
+      default: return t('speech.neutral')
     }
   }
 
   // 매파/비둘기파 라벨 및 색상
   const getHawkDoveInfo = (score) => {
-    if (score >= 70) return { label: '매파적 (Hawkish)', color: 'text-red-400', bg: 'bg-red-400/10' }
-    if (score <= 30) return { label: '비둘기파적 (Dovish)', color: 'text-blue-400', bg: 'bg-blue-400/10' }
-    return { label: '중립적 (Neutral)', color: 'text-gray-400', bg: 'bg-gray-400/10' }
+    if (score >= 70) return { label: t('speech.hawkish'), color: 'text-red-400', bg: 'bg-red-400/10' }
+    if (score <= 30) return { label: t('speech.dovish'), color: 'text-blue-400', bg: 'bg-blue-400/10' }
+    return { label: t('speech.neutral'), color: 'text-gray-400', bg: 'bg-gray-400/10' }
   }
 
   return (
@@ -165,12 +167,12 @@ function SpeechSummary() {
             <h1 className="text-4xl md:text-5xl font-black text-white mb-3 tracking-tight">
               Fed <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Intelligence</span>
             </h1>
-            <p className="text-gray-400 text-lg">연준 인사들의 목소리와 정책 방향성을 AI로 정밀 분석합니다</p>
+            <p className="text-gray-400 text-lg">{t('speech.subtitle')}</p>
           </div>
           <div className="flex items-center gap-4">
             {lastUpdated && (
               <div className="text-sm text-gray-500">
-                <span className="text-gray-600">마지막 업데이트:</span> {formatUpdateTime(lastUpdated)}
+                <span className="text-gray-600">{t('speech.lastUpdated')}</span> {formatUpdateTime(lastUpdated)}
               </div>
             )}
             <button
@@ -186,7 +188,7 @@ function SpeechSummary() {
               >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
               </svg>
-              {refreshing ? '새로고침 중...' : '새로고침'}
+              {refreshing ? t('speech.refreshing') : t('speech.refresh')}
             </button>
           </div>
         </div>
@@ -198,7 +200,7 @@ function SpeechSummary() {
               onClick={() => activeTab === 'fomc' ? fetchFOMCMeetings() : fetchRecentSpeeches()}
               className="px-4 py-1.5 bg-red-500 text-white text-xs font-bold rounded-lg hover:bg-red-600 transition-colors"
             >
-              재시도
+              {t('speech.retry')}
             </button>
           </div>
         )}
@@ -211,13 +213,13 @@ function SpeechSummary() {
                 onClick={() => { setActiveTab('fomc'); setSelectedSpeech(null); }}
                 className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'fomc' ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
               >
-                FOMC MINUTES
+                {t('speech.tabMinutes')}
               </button>
               <button
                 onClick={() => { setActiveTab('speeches'); setSelectedSpeech(null); }}
                 className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'speeches' ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
               >
-                SPEECHES
+                {t('speech.tabSpeeches')}
               </button>
             </div>
 

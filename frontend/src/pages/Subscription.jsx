@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import apiService from '../services/api'
+import { useLanguage } from '../contexts/LanguageContext'
 
 function Subscription() {
+  const { t } = useLanguage()
   const [plans, setPlans] = useState([])
   const [subscriptionStatus, setSubscriptionStatus] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -76,10 +78,10 @@ function Subscription() {
         {/* 헤더 */}
         <div className="text-center mb-12 animate-fade-in">
           <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-amber-400 via-orange-400 to-red-400 bg-clip-text text-transparent">
-            구독 플랜
+            {t('subscription.title')}
           </h1>
           <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-            프리미엄 기능으로 더 나은 투자 결정을 내리세요
+            {t('subscription.subtitle')}
           </p>
         </div>
 
@@ -88,17 +90,17 @@ function Subscription() {
           <div className="mb-8 bg-white/5 border border-white/10 rounded-2xl p-6">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-bold text-white mb-2">현재 구독 상태</h2>
+                <h2 className="text-xl font-bold text-white mb-2">{t('subscription.currentStatus')}</h2>
                 <div className="flex items-center gap-4">
                   <span className={`px-3 py-1 rounded-lg text-sm font-semibold ${subscriptionStatus.is_active && subscriptionStatus.tier === 'premium'
                     ? 'bg-green-500/20 text-green-400 border border-green-500/50'
                     : 'bg-gray-500/20 text-gray-400 border border-gray-500/50'
                     }`}>
-                    {subscriptionStatus.is_active && subscriptionStatus.tier === 'premium' ? '프리미엄' : '무료'}
+                    {subscriptionStatus.is_active && subscriptionStatus.tier === 'premium' ? t('subscription.premium') : t('subscription.free')}
                   </span>
                   {subscriptionStatus.current_period_end && (
                     <span className="text-sm text-gray-400">
-                      만료일: {new Date(subscriptionStatus.current_period_end).toLocaleDateString('ko-KR')}
+                      {t('subscription.expiry')} {new Date(subscriptionStatus.current_period_end).toLocaleDateString('ko-KR')}
                     </span>
                   )}
                 </div>
@@ -109,7 +111,7 @@ function Subscription() {
                   disabled={loading}
                   className="px-6 py-3 bg-red-500/20 border border-red-500/50 text-red-400 rounded-lg hover:bg-red-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  구독 취소
+                  {t('subscription.cancel')}
                 </button>
               )}
             </div>
@@ -136,7 +138,7 @@ function Subscription() {
               >
                 {isAnnual && (
                   <div className="absolute top-4 right-4 px-3 py-1 bg-yellow-500/20 border border-yellow-500/50 rounded-lg text-xs font-semibold text-yellow-400">
-                    추천
+                    {t('subscription.recommended')}
                   </div>
                 )}
 
@@ -144,12 +146,12 @@ function Subscription() {
                   <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
                   <div className="flex items-baseline gap-2 mb-2">
                     <span className="text-4xl font-bold text-white">${plan.price}</span>
-                    <span className="text-gray-400">/{plan.interval === 'month' ? '월' : '년'}</span>
+                    <span className="text-gray-400">/{plan.interval === 'month' ? t('subscription.perMonth') : t('subscription.perYear')}</span>
                   </div>
                   {isAnnual && (
                     <div className="text-sm text-gray-400">
-                      월 ${monthlyPrice} (연간 결제)
-                      <span className="ml-2 text-green-400 font-semibold">절약 가능</span>
+                      {t('subscription.annualBilling').replace('${price}', monthlyPrice)}
+                      <span className="ml-2 text-green-400 font-semibold">{t('subscription.savings')}</span>
                     </div>
                   )}
                 </div>
@@ -175,10 +177,10 @@ function Subscription() {
                         : 'bg-white text-black hover:bg-gray-100 hover:scale-[1.02] active:scale-[0.98]'
                     } disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
-                  {loading ? '처리 중...' :
+                  {loading ? t('subscription.processing') :
                     subscriptionStatus?.is_active && subscriptionStatus?.tier === 'premium'
-                      ? '이미 구독 중'
-                      : '지금 시작하기'}
+                      ? t('subscription.alreadySubscribed')
+                      : t('subscription.startNow')}
                 </button>
               </div>
             )
@@ -187,14 +189,14 @@ function Subscription() {
 
         {/* 기능 비교 */}
         <div className="mt-12 bg-white/5 border border-white/10 rounded-2xl p-8">
-          <h2 className="text-2xl font-bold text-white mb-6 text-center">기능 비교</h2>
+          <h2 className="text-2xl font-bold text-white mb-6 text-center">{t('subscription.featuresTitle')}</h2>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-white/10">
-                  <th className="text-left py-3 px-4 text-gray-400 font-medium">기능</th>
-                  <th className="text-center py-3 px-4 text-gray-400 font-medium">무료</th>
-                  <th className="text-center py-3 px-4 text-gray-400 font-medium">프리미엄</th>
+                  <th className="text-left py-3 px-4 text-gray-400 font-medium">{t('subscription.featureCol')}</th>
+                  <th className="text-center py-3 px-4 text-gray-400 font-medium">{t('subscription.freeCol')}</th>
+                  <th className="text-center py-3 px-4 text-gray-400 font-medium">{t('subscription.premiumCol')}</th>
                 </tr>
               </thead>
               <tbody>

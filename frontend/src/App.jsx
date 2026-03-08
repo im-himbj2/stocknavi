@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
+import { LanguageProvider } from './contexts/LanguageContext'
 import Home from './pages/Home'
 import CompanyAnalysis from './pages/CompanyAnalysis'
 import EconomicIndicators from './pages/EconomicIndicators'
@@ -22,6 +23,7 @@ function App() {
   }
 
   return (
+    <LanguageProvider>
     <AuthProvider>
       <Router>
         <Routes>
@@ -111,6 +113,7 @@ function App() {
         </Routes>
       </Router>
     </AuthProvider>
+    </LanguageProvider>
   )
 }
 

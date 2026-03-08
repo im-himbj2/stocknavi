@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import apiService from '../services/api'
+import { useLanguage } from '../contexts/LanguageContext'
 
 function News() {
+  const { t } = useLanguage()
   const [country, setCountry] = useState('us')
   const [searchSymbol, setSearchSymbol] = useState('')
   const [symbol, setSymbol] = useState('')
@@ -117,7 +119,7 @@ function News() {
       setNewsData(data)
 
       if (!data || !data.news || data.news.length === 0) {
-        setError('뉴스가 없습니다. 다른 종목이나 지역을 시도해보세요.')
+        setError(t('news.noNews'))
       }
     } catch (err) {
       console.error('[News] 뉴스 조회 오류:', err)
@@ -126,7 +128,7 @@ function News() {
         response: err.response?.data,
         status: err.response?.status
       })
-      setError(err.message || '뉴스 조회 중 오류가 발생했습니다')
+      setError(err.message || t('news.errorNews'))
     } finally {
       setLoading(false)
     }
@@ -151,11 +153,11 @@ function News() {
   const getSentimentText = (sentiment) => {
     switch (sentiment) {
       case 'positive':
-        return '긍정'
+        return t('news.positive')
       case 'negative':
-        return '부정'
+        return t('news.negative')
       default:
-        return '중립'
+        return t('news.neutral')
     }
   }
 
@@ -180,10 +182,10 @@ function News() {
         {/* 헤더 */}
         <div className="mb-8">
           <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-            실시간 뉴스
+            {t('news.title')}
           </h1>
           <p className="text-xl text-gray-400">
-            최신 주식 시장 뉴스와 기업 소식을 확인하세요
+            {t('news.subtitle')}
           </p>
         </div>
 
@@ -192,7 +194,7 @@ function News() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1" ref={searchRef}>
-                <label className="block text-sm font-medium mb-2 text-gray-300">종목 심볼 (선택)</label>
+                <label className="block text-sm font-medium mb-2 text-gray-300">{t('news.symbolLabel')}</label>
                 <div className="relative">
                   <input
                     type="text"
@@ -206,7 +208,7 @@ function News() {
                         setShowSuggestions(true)
                       }
                     }}
-                    placeholder="예: AAPL, MSFT, 삼성전자, 005930 (비워두면 전체 뉴스)"
+                    placeholder={t('news.symbolPlaceholder')}
                     className="w-full px-4 py-3 bg-black/50 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   {showSuggestions && suggestions.length > 0 && (
@@ -249,7 +251,7 @@ function News() {
                   disabled={loading}
                   className="px-8 py-3 bg-white text-black font-medium rounded-lg hover:bg-gray-100 disabled:bg-gray-600 disabled:cursor-not-allowed transition-all duration-200"
                 >
-                  {loading ? '조회 중...' : '조회'}
+                  {loading ? `${t('news.search')}...` : t('news.search')}
                 </button>
               </div>
             </div>

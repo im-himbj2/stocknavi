@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import apiService from '../services/api'
 import Navbar from '../components/Layout/Navbar'
+import { useLanguage } from '../contexts/LanguageContext'
 import WorldConflictMap from '../components/Economic/WorldConflictMap'
 import MarketGrid from '../components/Economic/MarketGrid'
 import MacroPanel from '../components/Economic/MacroPanel'
@@ -12,6 +13,7 @@ import EconomicCalendarPanel from '../components/Economic/EconomicCalendarPanel'
 import BloombergPanelWrapper from '../components/Economic/BloombergPanelWrapper'
 
 const EconomicIndicators = () => {
+  const { t } = useLanguage()
   const [globalIndices, setGlobalIndices] = useState([])
   const [commodities, setCommodities] = useState([])
   const [crypto, setCrypto] = useState([])
@@ -204,7 +206,7 @@ const EconomicIndicators = () => {
         {/* 7. FOMC Analysis */}
         <BloombergPanelWrapper title="Latest FOMC Analysis" badge="AI">
           {!fomc ? (
-            <p className="text-[10px] text-gray-600 font-mono py-2">Loading FOMC data...</p>
+            <p className="text-[10px] text-gray-600 font-mono py-2">{t('economic.loading')}</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>

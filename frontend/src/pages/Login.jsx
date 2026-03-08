@@ -2,12 +2,14 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom'
 import { login, register } from '../services/auth'
 import { useAuth } from '../contexts/AuthContext'
+import { useLanguage } from '../contexts/LanguageContext'
 
 function Login() {
   const navigate = useNavigate()
   const location = useLocation()
   const [searchParams] = useSearchParams()
   const { login: setAuth, isAuth } = useAuth()
+  const { t } = useLanguage()
 
   const [activeTab, setActiveTab] = useState('login')
   const [email, setEmail] = useState('')
@@ -19,7 +21,6 @@ function Login() {
   const [registerSuccess, setRegisterSuccess] = useState(false)
   const [verifiedSuccess, setVerifiedSuccess] = useState(false)
 
-  // ?verified=true → 이메일 인증 완료 배너
   useEffect(() => {
     if (searchParams.get('verified') === 'true') {
       setVerifiedSuccess(true)
@@ -36,19 +37,17 @@ function Login() {
     e.preventDefault()
     setError(null)
     if (!email || !password) {
-      setError('이메일과 비밀번호를 입력해주세요.')
+      setError(t('login.emailLabel') + ' / ' + t('login.passwordLabel'))
       return
     }
     setLoading(true)
     try {
       const result = await login(email, password)
-      if (result.user) {
-        setAuth(result.user)
-      }
+      if (result.user) setAuth(result.user)
       const from = location.state?.from?.pathname || '/'
       navigate(from, { replace: true })
     } catch (err) {
-      const msg = err?.response?.data?.detail || err?.message || '로그인에 실패했습니다.'
+      const msg = err?.response?.data?.detail || err?.message || t('login.defaultError')
       setError(msg)
     } finally {
       setLoading(false)
@@ -59,27 +58,18 @@ function Login() {
     e.preventDefault()
     setError(null)
     setRegisterSuccess(false)
-    if (!email || !password) {
-      setError('이메일과 비밀번호를 입력해주세요.')
-      return
-    }
-    if (password.length < 6) {
-      setError('비밀번호는 최소 6자 이상이어야 합니다.')
-      return
-    }
-    if (password !== confirmPassword) {
-      setError('비밀번호가 일치하지 않습니다.')
-      return
-    }
+    if (!email || !password) return
+    if (password.length < 6) { setError('비밀번호는 최소 6자 이상이어야 합니다.'); return }
+    if (password !== confirmPassword) { setError('비밀번호가 일치하지 않습니다.'); return }
     setLoading(true)
     try {
       await register(email, password, fullName || null)
       setRegisterSuccess(true)
     } catch (err) {
-      const msg = err?.response?.data?.detail || err?.message || '회원가입에 실패했습니다.'
+      const msg = err?.response?.data?.detail || err?.message || t('login.defaultError')
       if (msg.includes('이미 등록된')) {
         setActiveTab('login')
-        setError('이미 가입된 이메일입니다. 로그인해주세요.')
+        setError(t('login.alreadyRegistered'))
       } else {
         setError(msg)
       }
@@ -90,7 +80,6 @@ function Login() {
 
   return (
     <div className="relative flex items-center justify-center p-6 py-24 min-h-[calc(100vh-120px)] overflow-hidden">
-      {/* 배경 장식 글로우 */}
       <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-blue-600/20 blur-[150px] rounded-full pointer-events-none z-0"></div>
       <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-indigo-600/10 blur-[150px] rounded-full pointer-events-none z-0"></div>
 
@@ -98,38 +87,24 @@ function Login() {
         {/* 탭 */}
         <div className="flex gap-2 mb-6">
           <button
-            onClick={() => {
-              setActiveTab('login')
-              setError(null)
-            }}
-            className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-all ${activeTab === 'login'
-              ? 'bg-white text-black'
-              : 'bg-white/5 text-gray-400 hover:bg-white/10'
-              }`}
+            onClick={() => { setActiveTab('login'); setError(null) }}
+            className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-all ${activeTab === 'login' ? 'bg-white text-black' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}
           >
-            로그인
+            {t('login.loginTab')}
           </button>
           <button
-            onClick={() => {
-              setActiveTab('register')
-              setError(null)
-            }}
-            className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-all ${activeTab === 'register'
-              ? 'bg-white text-black'
-              : 'bg-white/5 text-gray-400 hover:bg-white/10'
-              }`}
+            onClick={() => { setActiveTab('register'); setError(null) }}
+            className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-all ${activeTab === 'register' ? 'bg-white text-black' : 'bg-white/5 text-gray-400 hover:bg-white/10'}`}
           >
-            회원가입
+            {t('login.registerTab')}
           </button>
         </div>
 
         <h1 className="text-3xl font-bold mb-2 text-center">
-          {activeTab === 'login' ? '로그인' : '회원가입'}
+          {activeTab === 'login' ? t('login.loginTitle') : t('login.registerTitle')}
         </h1>
         <p className="text-gray-400 text-center mb-6">
-          {activeTab === 'login'
-            ? '계정에 로그인하고 기능을 이용하세요.'
-            : '새 계정을 만들고 시작하세요.'}
+          {activeTab === 'login' ? t('login.loginSubtitle') : t('login.registerSubtitle')}
         </p>
 
         {error && (
@@ -141,105 +116,81 @@ function Login() {
         {verifiedSuccess && (
           <div className="mb-4 px-4 py-3 rounded-lg bg-emerald-900/40 border border-emerald-500/40 text-emerald-200 text-sm flex items-center gap-2">
             <span>✅</span>
-            <span>이메일 인증이 완료되었습니다! 로그인해주세요.</span>
+            <span>{t('login.verifiedMsg')}</span>
           </div>
         )}
 
         {registerSuccess && (
           <div className="space-y-4">
             <div className="px-4 py-3 rounded-lg bg-blue-900/40 border border-blue-500/40 text-blue-200 text-sm">
-              <p className="font-semibold mb-1">📧 인증 이메일을 발송했습니다</p>
-              <p className="text-xs text-blue-300">가입하신 이메일 받은편지함을 확인하고 인증 링크를 클릭해주세요.<br/>인증 완료 후 로그인하실 수 있습니다.</p>
+              <p className="font-semibold mb-1">{t('login.emailSentTitle')}</p>
+              <p className="text-xs text-blue-300 whitespace-pre-line">{t('login.emailSentDesc')}</p>
             </div>
             <button
               onClick={() => { setActiveTab('login'); setRegisterSuccess(false); setError(null) }}
               className="w-full py-3 rounded-lg bg-white text-black font-semibold hover:bg-gray-100 transition-all"
             >
-              로그인하러 가기
+              {t('login.goToLogin')}
             </button>
           </div>
         )}
 
-        {/* 로그인 폼 */}
         {!registerSuccess && activeTab === 'login' ? (
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-300 mb-1">이메일</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
+              <label className="block text-sm text-gray-300 mb-1">{t('login.emailLabel')}</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                placeholder={t('login.emailPlaceholder')}
                 className="w-full px-4 py-3 rounded-lg bg-black/40 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-300 mb-1">비밀번호</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+              <label className="block text-sm text-gray-300 mb-1">{t('login.passwordLabel')}</label>
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 className="w-full px-4 py-3 rounded-lg bg-black/40 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            <button
-              type="submit"
-              disabled={loading}
+            <button type="submit" disabled={loading}
               className="w-full py-3 rounded-lg bg-white text-black font-semibold hover:bg-gray-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? '로그인 중...' : '로그인'}
+              {loading ? t('login.loginLoading') : t('login.loginBtn')}
             </button>
           </form>
         ) : !registerSuccess ? (
-          /* 회원가입 폼 */
           <form onSubmit={handleRegister} className="space-y-4">
             <div>
-              <label className="block text-sm text-gray-300 mb-1">이름 (선택사항)</label>
-              <input
-                type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="홍길동"
+              <label className="block text-sm text-gray-300 mb-1">{t('login.nameLabel')}</label>
+              <input type="text" value={fullName} onChange={(e) => setFullName(e.target.value)}
+                placeholder={t('login.namePlaceholder')}
                 className="w-full px-4 py-3 rounded-lg bg-black/40 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-300 mb-1">이메일</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
+              <label className="block text-sm text-gray-300 mb-1">{t('login.emailLabel')}</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                placeholder={t('login.emailPlaceholder')}
                 className="w-full px-4 py-3 rounded-lg bg-black/40 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-300 mb-1">비밀번호</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="최소 6자 이상"
+              <label className="block text-sm text-gray-300 mb-1">{t('login.passwordLabel')}</label>
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)}
+                placeholder={t('login.passwordPlaceholder')}
                 className="w-full px-4 py-3 rounded-lg bg-black/40 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-300 mb-1">비밀번호 확인</label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="비밀번호를 한 번 더 입력하세요"
+              <label className="block text-sm text-gray-300 mb-1">{t('login.confirmPasswordLabel')}</label>
+              <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder={t('login.confirmPlaceholder')}
                 className="w-full px-4 py-3 rounded-lg bg-black/40 border border-white/10 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
-            <button
-              type="submit"
-              disabled={loading}
+            <button type="submit" disabled={loading}
               className="w-full py-3 rounded-lg bg-white text-black font-semibold hover:bg-gray-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? '가입 중...' : '회원가입'}
+              {loading ? t('login.registerLoading') : t('login.registerBtn')}
             </button>
           </form>
         ) : null}
