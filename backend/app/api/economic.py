@@ -34,6 +34,69 @@ def set_cached(key: str, value: Any):
     _cache[key] = value
     _cache_ttl[key] = datetime.now() + timedelta(seconds=CACHE_DURATION)
 
+# ── Helper: Stooq CSV 조회 (API 키 불필요, 광범위한 글로벌 데이터) ─────────
+async def _fetch_stooq(client: httpx.AsyncClient, symbol: str, d1: str = None) -> Optional[Dict]:
+    """Stooq에서 종가 + 전일 대비 % 변화 조회"""
+    try:
+        params = {"s": symbol, "i": "d"}
+        if d1:
+            params["d1"] = d1  # YYYYMMDD 형식 시작 날짜
+        resp = await client.get(
+            "https://stooq.com/q/d/l/",
+            params=params,
+            timeout=10.0,
+            follow_redirects=True,
+        )
+        if resp.status_code != 200:
+            return None
+        text = resp.text.strip()
+        if not text or "No data" in text or len(text.splitlines()) < 3:
+            return None
+        import csv, io
+        rows = sorted(list(csv.DictReader(io.StringIO(text))), key=lambda r: r.get("Date", ""))
+        if len(rows) < 2:
+            return None
+        latest, prev = rows[-1], rows[-2]
+        close = float(latest.get("Close") or 0)
+        prev_close = float(prev.get("Close") or 0)
+        if close == 0 or prev_close == 0:
+            return None
+        return {
+            "close": round(close, 2),
+            "change_percent": round((close - prev_close) / prev_close * 100, 2),
+            "first_close": round(float(rows[0].get("Close") or close), 2),  # 1개월 변화 계산용
+            "date": latest.get("Date", ""),
+        }
+    except Exception:
+        return None
+
+# ── Helper: FRED 공공 시리즈 최신 값 (공공 데이터 전용 직접 조회) ──────────
+async def _fetch_fred_latest(series_id: str) -> Optional[float]:
+    """FRED 공공 시리즈 최근 단일 값 조회 (저작권 검사 생략)"""
+    if not fred_provider.api_key:
+        return None
+    try:
+        start = (datetime.now() - timedelta(days=60)).strftime("%Y-%m-%d")
+        async with httpx.AsyncClient() as c:
+            resp = await c.get(
+                "https://api.stlouisfed.org/fred/series/observations",
+                params={
+                    "series_id": series_id,
+                    "api_key": fred_provider.api_key,
+                    "file_type": "json",
+                    "observation_start": start,
+                    "sort_order": "desc",
+                    "limit": 5,
+                },
+                timeout=10.0,
+            )
+        if resp.status_code != 200:
+            return None
+        obs = [float(o["value"]) for o in resp.json().get("observations", []) if o["value"] != "."]
+        return obs[0] if obs else None
+    except Exception:
+        return None
+
 class EconomicIndicatorResponse(BaseModel):
     indicator: str
     data: List[Dict[str, Any]]
@@ -102,28 +165,57 @@ async def get_treasury_rates():
 @router.get("/economic/indices", response_model=EconomicIndicatorResponse)
 async def get_market_indices():
     """주요 시장 지수 조회"""
+    # 표시할 5개 지수만 필터
+    TARGET_SYMBOLS = {
+        'KS11':  '코스피',
+        'KQ11':  '코스닥',
+        'IXIC':  '나스닥',
+        'GSPC':  'S&P500',
+        'DJI':   '다우',
+    }
     try:
         cache_key = "market_indices"
         cached = get_cached(cache_key)
         if cached:
             return EconomicIndicatorResponse(**{**cached, "cached": True})
-            
+
         data = await fmp_provider.get_market_indices()
-        if not data:
-            # Fallback to Yahoo
-            symbols = ['^GSPC', '^DJI', '^IXIC', '^RUT', '^KS11', '^KQ11']
-            tasks = [yahoo_economic.get_economic_data(s) for s in symbols]
-            yahoo_results = await asyncio.gather(*tasks)
-            data = []
-            for s, r in zip(symbols, yahoo_results):
-                if r and 'current_value' in r:
-                    data.append({
-                        'symbol': s.replace('^', ''),
-                        'price': r['current_value'],
-                        'change': 0,
-                        'changePercent': 0
+        if data:
+            # FMP는 changesPercentage 필드로 제공 → changePercent로 정규화 + 5개만 필터
+            filtered = []
+            for item in data:
+                sym = item.get('symbol', '').lstrip('^')
+                if sym in TARGET_SYMBOLS:
+                    filtered.append({
+                        'symbol': sym,
+                        'name': TARGET_SYMBOLS[sym],
+                        'price': item.get('price', 0),
+                        'change': item.get('change', 0),
+                        'changePercent': item.get('changesPercentage', item.get('changePercent', 0)),
                     })
-        
+            # 지정 순서대로 정렬
+            order = list(TARGET_SYMBOLS.keys())
+            data = sorted(filtered, key=lambda x: order.index(x['symbol']) if x['symbol'] in order else 99)
+
+        if not data:
+            # Fallback: Stooq (API 키 불필요)
+            stooq_map = {
+                "^SPX": "GSPC", "^NDQ": "IXIC", "^DJI": "DJI",
+            }
+            async with httpx.AsyncClient() as client:
+                stooq_results = await asyncio.gather(*[_fetch_stooq(client, s) for s in stooq_map])
+            data = []
+            for stooq_sym, res in zip(stooq_map, stooq_results):
+                sym = stooq_map[stooq_sym]
+                if res and sym in TARGET_SYMBOLS:
+                    data.append({
+                        "symbol": sym,
+                        "name": TARGET_SYMBOLS[sym],
+                        "price": res["close"],
+                        "change": 0,
+                        "changePercent": res["change_percent"],
+                    })
+
         result = EconomicIndicatorResponse(
             indicator="market_indices",
             data=data,
@@ -137,21 +229,22 @@ async def get_market_indices():
 
 @router.get("/economic/treasury-yahoo/{maturity}")
 async def get_treasury_yahoo(maturity: str = "10y"):
-    """Yahoo Finance를 통한 국채 수익률 조회"""
+    """국채 수익률 조회 (FRED 공공 데이터)"""
     try:
         cache_key = f"treasury_yahoo_{maturity}"
         cached = get_cached(cache_key)
         if cached: return cached
-        
-        symbol_map = {"10y": "^TNX", "5y": "^FVX", "30y": "^TYX"}
-        symbol = symbol_map.get(maturity, "^TNX")
-        data = await yahoo_economic.get_economic_data(symbol)
-        
+
+        series_map = {"3m": "DGS3MO", "5y": "DGS5", "10y": "DGS10", "30y": "DGS30"}
+        series_id = series_map.get(maturity, "DGS10")
+        value = await _fetch_fred_latest(series_id)
+
         result = {
             "indicator": f"treasury_{maturity}",
-            "data": data if data else [],
-            "source": "Yahoo Finance",
-            "updated_at": datetime.now().isoformat()
+            "current_value": value,
+            "data": [{"date": datetime.now().strftime("%Y-%m-%d"), "value": value}] if value else [],
+            "source": "FRED",
+            "updated_at": datetime.now().isoformat(),
         }
         set_cached(cache_key, result)
         return result
@@ -172,21 +265,35 @@ async def get_economic_highlights():
         cache_key = "economic_macro_highlights"
         cached = get_cached(cache_key)
         if cached: return EconomicIndicatorResponse(**{**cached, "cached": True})
-        
+
         indicators = ["GDP", "CPI", "unemploymentRate", "interestRate"]
         tasks = [fmp_provider.get_economic_indicator("economic", name=name) for name in indicators]
         results = await asyncio.gather(*tasks)
-        
+
         combined_data = []
         for name, data in zip(indicators, results):
             if data and isinstance(data, list) and len(data) > 0:
                 latest = data[0]
                 combined_data.append({"name": name, "value": latest.get("value"), "date": latest.get("date")})
-        
+
+        # FMP 실패 시 Yahoo Finance fallback (^IRX = 13주 T-bill ≈ Fed Funds Rate)
+        names_found = {item["name"] for item in combined_data}
+        if "interestRate" not in names_found:
+            try:
+                irx = await yahoo_economic.get_economic_data("^IRX")
+                if irx and irx.get("current_value"):
+                    combined_data.append({
+                        "name": "interestRate",
+                        "value": round(float(irx["current_value"]), 2),
+                        "date": datetime.now().strftime("%Y-%m-%d"),
+                    })
+            except Exception:
+                pass
+
         result = {
             "indicator": "macro_highlights",
             "data": combined_data,
-            "source": "FMP",
+            "source": "FMP/Yahoo",
             "updated_at": datetime.now().isoformat()
         }
         set_cached(cache_key, result)
@@ -231,28 +338,31 @@ async def get_market_sentiment():
 
 @router.get("/sector-rotation", response_model=EconomicIndicatorResponse)
 async def get_sector_rotation():
+    """섹터 ETF 1개월 성과 (Stooq — API 키 불필요)"""
     try:
         cache_key = "sector_rotation"
         cached = get_cached(cache_key)
         if cached: return EconomicIndicatorResponse(**{**cached, "cached": True})
-        
-        import yfinance as yf
-        sector_etfs = {"XLK": "Tech", "XLV": "Health", "XLE": "Energy", "XLF": "Finance", "XLI": "Industrials", "XLY": "ConsDis", "XLP": "ConsStap", "XLU": "Utilities", "XLB": "Materials", "XLRE": "RealEstate", "XLC": "Comm"}
-        symbols = list(sector_etfs.keys())
-        df = await asyncio.to_thread(yf.download, symbols, period="1mo", interval="1d", progress=False)
-        
+
+        SECTOR_ETFS = {
+            "XLK": "Tech", "XLV": "Health", "XLE": "Energy", "XLF": "Finance",
+            "XLI": "Industrials", "XLY": "ConsDis", "XLP": "ConsStap",
+            "XLU": "Utilities", "XLB": "Materials", "XLRE": "RealEstate", "XLC": "Comm",
+        }
+        d1 = (datetime.now() - timedelta(days=45)).strftime("%Y%m%d")
+
+        async with httpx.AsyncClient() as client:
+            tasks = [_fetch_stooq(client, sym, d1=d1) for sym in SECTOR_ETFS]
+            results = await asyncio.gather(*tasks)
+
         sector_data = []
-        if not df.empty and 'Close' in df:
-            for symbol in symbols:
-                try:
-                    closes = df['Close'][symbol].dropna()
-                    if len(closes) >= 2:
-                        change = ((closes.iloc[-1] - closes.iloc[0]) / closes.iloc[0]) * 100
-                        sector_data.append({"symbol": symbol, "name": sector_etfs[symbol], "change_percent": float(change)})
-                except: pass
-        
+        for sym, res in zip(SECTOR_ETFS, results):
+            if res and res["first_close"] > 0:
+                chg = (res["close"] - res["first_close"]) / res["first_close"] * 100
+                sector_data.append({"symbol": sym, "name": SECTOR_ETFS[sym], "change_percent": round(chg, 2)})
+
         sector_data.sort(key=lambda x: x["change_percent"], reverse=True)
-        result = {"indicator": "sector_rotation", "data": sector_data, "source": "yfinance", "updated_at": datetime.now().isoformat()}
+        result = {"indicator": "sector_rotation", "data": sector_data, "source": "Stooq", "updated_at": datetime.now().isoformat()}
         set_cached(cache_key, result)
         return EconomicIndicatorResponse(**result)
     except Exception as e:
@@ -264,7 +374,8 @@ async def get_jobless_claims():
         cache_key = "jobless_claims"
         cached = get_cached(cache_key)
         if cached: return EconomicIndicatorResponse(**{**cached, "cached": True})
-        data = await fred_provider.get_numeric_data("ICSA")
+        fred_data = await fred_provider.get_series("ICSA")
+        data = fred_data.get('observations', []) if fred_data else []
         result = {"indicator": "jobless_claims", "data": data, "source": "FRED", "updated_at": datetime.now().isoformat()}
         set_cached(cache_key, result)
         return EconomicIndicatorResponse(**result)
@@ -277,7 +388,8 @@ async def get_consumer_confidence():
         cache_key = "consumer_confidence"
         cached = get_cached(cache_key)
         if cached: return EconomicIndicatorResponse(**{**cached, "cached": True})
-        data = await fred_provider.get_numeric_data("UMCSENT")
+        fred_data = await fred_provider.get_series("UMCSENT")
+        data = fred_data.get('observations', []) if fred_data else []
         result = {"indicator": "consumer_confidence", "data": data, "source": "FRED", "updated_at": datetime.now().isoformat()}
         set_cached(cache_key, result)
         return EconomicIndicatorResponse(**result)
@@ -290,7 +402,8 @@ async def get_retail_sales():
         cache_key = "retail_sales"
         cached = get_cached(cache_key)
         if cached: return EconomicIndicatorResponse(**{**cached, "cached": True})
-        data = await fred_provider.get_numeric_data("RSAFS")
+        fred_data = await fred_provider.get_series("RSAFS")
+        data = fred_data.get('observations', []) if fred_data else []
         result = {"indicator": "retail_sales", "data": data, "source": "FRED", "updated_at": datetime.now().isoformat()}
         set_cached(cache_key, result)
         return EconomicIndicatorResponse(**result)
@@ -299,12 +412,14 @@ async def get_retail_sales():
 
 @router.get("/economic/oil-prices", response_model=EconomicIndicatorResponse)
 async def get_oil_prices():
+    """WTI 원유 가격 (FRED 공공 데이터)"""
     try:
         cache_key = "oil_prices"
         cached = get_cached(cache_key)
         if cached: return EconomicIndicatorResponse(**{**cached, "cached": True})
-        data = await yahoo_economic.get_economic_data("CL=F")
-        result = {"indicator": "oil_prices", "data": data.get("data", []) if data else [], "source": "Yahoo", "updated_at": datetime.now().isoformat()}
+        value = await _fetch_fred_latest("DCOILWTICO")
+        data = [{"date": datetime.now().strftime("%Y-%m-%d"), "value": value}] if value else []
+        result = {"indicator": "oil_prices", "data": data, "source": "FRED", "updated_at": datetime.now().isoformat()}
         set_cached(cache_key, result)
         return EconomicIndicatorResponse(**result)
     except Exception as e:
@@ -331,3 +446,215 @@ async def get_options_flow():
         source="Sample",
         updated_at=datetime.now().isoformat()
     )
+
+@router.get("/economic/global-indices", response_model=EconomicIndicatorResponse)
+async def get_global_indices():
+    """글로벌 주요 지수 (Stooq — API 키 불필요)"""
+    try:
+        cache_key = "global_indices"
+        cached = get_cached(cache_key)
+        if cached: return EconomicIndicatorResponse(**{**cached, "cached": True})
+
+        # Stooq 심볼 → (표시명, 지역)
+        INDICES = {
+            "^SPX": ("S&P 500",     "US"),
+            "^NDQ": ("NASDAQ 100",  "US"),
+            "^DJI": ("Dow Jones",   "US"),
+            "^RUT": ("Russell 2000","US"),
+            "^NKX": ("Nikkei 225",  "Japan"),
+            "^UKX": ("FTSE 100",    "UK"),
+            "^DAX": ("DAX",         "Germany"),
+            "^CAC": ("CAC 40",      "France"),
+            "^HSI": ("Hang Seng",   "HK"),
+            "^SHC": ("Shanghai",    "China"),
+        }
+
+        async with httpx.AsyncClient() as client:
+            tasks = [_fetch_stooq(client, sym) for sym in INDICES]
+            results = await asyncio.gather(*tasks)
+
+        indices_data = []
+        for sym, res in zip(INDICES, results):
+            if res:
+                name, region = INDICES[sym]
+                indices_data.append({
+                    "symbol": sym.lstrip("^"),
+                    "name": name,
+                    "region": region,
+                    "price": res["close"],
+                    "change": 0,
+                    "change_percent": res["change_percent"],
+                })
+
+        result = {"indicator": "global_indices", "data": indices_data, "source": "Stooq", "updated_at": datetime.now().isoformat()}
+        set_cached(cache_key, result)
+        return EconomicIndicatorResponse(**result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/economic/commodities", response_model=EconomicIndicatorResponse)
+async def get_commodities():
+    """주요 원자재 가격 (FRED 공공 데이터 — WTI·Brent·천연가스)"""
+    try:
+        cache_key = "commodities"
+        cached = get_cached(cache_key)
+        if cached: return EconomicIndicatorResponse(**{**cached, "cached": True})
+
+        # FRED 공공 시리즈 ID (모두 공공 도메인)
+        FRED_SERIES = {
+            "DCOILWTICO":  {"name": "WTI Crude",   "unit": "$/bbl"},
+            "DCOILBRENTEU":{"name": "Brent Crude",  "unit": "$/bbl"},
+            "DHHNGSP":     {"name": "Natural Gas",  "unit": "$/MMBtu"},
+        }
+
+        tasks = [_fetch_fred_latest(sid) for sid in FRED_SERIES]
+        values = await asyncio.gather(*tasks)
+
+        commodities_data = []
+        for sid, val in zip(FRED_SERIES, values):
+            if val is not None:
+                meta = FRED_SERIES[sid]
+                commodities_data.append({
+                    "symbol": sid,
+                    "name": meta["name"],
+                    "unit": meta["unit"],
+                    "price": round(val, 2),
+                    "change_percent": None,  # FRED 일별 데이터에서 전일 대비 계산 생략
+                })
+
+        result = {"indicator": "commodities", "data": commodities_data, "source": "FRED", "updated_at": datetime.now().isoformat()}
+        set_cached(cache_key, result)
+        return EconomicIndicatorResponse(**result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/economic/crypto", response_model=EconomicIndicatorResponse)
+async def get_crypto_prices():
+    """암호화폐 실시간 가격 (Binance Public API — API 키 불필요)"""
+    try:
+        cache_key = "crypto_prices"
+        cached = get_cached(cache_key)
+        if cached: return EconomicIndicatorResponse(**{**cached, "cached": True})
+
+        import json as _json
+        SYMBOLS = {
+            "BTCUSDT": ("BTC", "Bitcoin"),
+            "ETHUSDT": ("ETH", "Ethereum"),
+            "BNBUSDT": ("BNB", "BNB"),
+            "SOLUSDT": ("SOL", "Solana"),
+        }
+
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                "https://api.binance.com/api/v3/ticker/24hr",
+                params={"symbols": _json.dumps(list(SYMBOLS.keys()))},
+                timeout=10.0,
+            )
+
+        crypto_data = []
+        if resp.status_code == 200:
+            for item in resp.json():
+                sym = item.get("symbol")
+                if sym in SYMBOLS:
+                    short, name = SYMBOLS[sym]
+                    crypto_data.append({
+                        "symbol": short,
+                        "name": name,
+                        "price": round(float(item["lastPrice"]), 2),
+                        "change_percent": round(float(item["priceChangePercent"]), 2),
+                    })
+
+        result = {"indicator": "crypto_prices", "data": crypto_data, "source": "Binance", "updated_at": datetime.now().isoformat()}
+        set_cached(cache_key, result)
+        return EconomicIndicatorResponse(**result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/economic/forex", response_model=EconomicIndicatorResponse)
+async def get_forex_rates():
+    """주요 외환 환율 (Frankfurter ECB 데이터 — API 키 불필요)"""
+    try:
+        cache_key = "forex_rates"
+        cached = get_cached(cache_key)
+        if cached: return EconomicIndicatorResponse(**{**cached, "cached": True})
+
+        # 최근 7일 시계열 → 마지막 2개 영업일 비교
+        start = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d")
+        end = datetime.now().strftime("%Y-%m-%d")
+        currencies = "USD,GBP,JPY,KRW,CNY,CHF,AUD"
+
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                f"https://api.frankfurter.app/{start}..{end}",
+                params={"from": "EUR", "to": currencies},
+                timeout=10.0,
+            )
+
+        forex_data = []
+        if resp.status_code == 200:
+            data = resp.json()
+            dates = sorted(data.get("rates", {}).keys())
+            if len(dates) >= 2:
+                L = data["rates"][dates[-1]]
+                P = data["rates"][dates[-2]]
+
+                def _pct(r, p):
+                    return round((r - p) / p * 100, 4) if p else 0
+
+                # Frankfurter base=EUR, so L["USD"] = EUR/USD directly
+                eu = L.get("USD"); pu = P.get("USD")
+                if eu and pu:
+                    forex_data.append({"symbol": "EUR/USD", "rate": round(eu, 4), "change_percent": _pct(eu, pu)})
+                    eg = L.get("GBP"); pg = P.get("GBP")
+                    if eg and pg:
+                        forex_data.append({"symbol": "GBP/USD", "rate": round(eu / eg, 4), "change_percent": _pct(eu / eg, pu / pg)})
+                    ej = L.get("JPY"); pj = P.get("JPY")
+                    if ej and pj:
+                        forex_data.append({"symbol": "USD/JPY", "rate": round(ej / eu, 2), "change_percent": _pct(ej / eu, pj / pu)})
+                    ek = L.get("KRW"); pk = P.get("KRW")
+                    if ek and pk:
+                        forex_data.append({"symbol": "USD/KRW", "rate": round(ek / eu, 2), "change_percent": _pct(ek / eu, pk / pu)})
+                    ec = L.get("CNY"); pc = P.get("CNY")
+                    if ec and pc:
+                        forex_data.append({"symbol": "USD/CNY", "rate": round(ec / eu, 4), "change_percent": _pct(ec / eu, pc / pu)})
+                    ef = L.get("CHF"); pf = P.get("CHF")
+                    if ef and pf:
+                        forex_data.append({"symbol": "USD/CHF", "rate": round(ef / eu, 4), "change_percent": _pct(ef / eu, pf / pu)})
+                    ea = L.get("AUD"); pa = P.get("AUD")
+                    if ea and pa:
+                        forex_data.append({"symbol": "AUD/USD", "rate": round(eu / ea, 4), "change_percent": _pct(eu / ea, pu / pa)})
+
+        result = {"indicator": "forex_rates", "data": forex_data, "source": "Frankfurter/ECB", "updated_at": datetime.now().isoformat()}
+        set_cached(cache_key, result)
+        return EconomicIndicatorResponse(**result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/economic/yield-curve")
+async def get_yield_curve():
+    """국채 수익률 곡선 (FRED 공공 데이터 — 3M/5Y/10Y/30Y)"""
+    try:
+        cache_key = "yield_curve"
+        cached = get_cached(cache_key)
+        if cached: return cached
+
+        # DGS* 시리즈: Federal Reserve 공공 데이터
+        MATURITIES = [
+            ("DGS3MO", "3M", 0),
+            ("DGS5",   "5Y", 1),
+            ("DGS10",  "10Y",2),
+            ("DGS30",  "30Y",3),
+        ]
+        values = await asyncio.gather(*[_fetch_fred_latest(sid) for sid, _, _ in MATURITIES])
+
+        curve_data = [
+            {"maturity": label, "yield": round(val, 3), "sort_order": order}
+            for (sid, label, order), val in zip(MATURITIES, values)
+            if val is not None
+        ]
+
+        result_obj = {"indicator": "yield_curve", "data": curve_data, "source": "FRED", "updated_at": datetime.now().isoformat()}
+        set_cached(cache_key, result_obj)
+        return result_obj
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

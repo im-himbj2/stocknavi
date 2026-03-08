@@ -19,8 +19,7 @@ function Navbar() {
   const navItems = [
     { path: '/', label: '홈' },
     { path: '/news', label: '뉴스' },
-    { path: '/dividend', label: '배당' },
-    { path: '/company', label: '기업 분석' },
+    { path: '/company', label: '기업·배당' },
     { path: '/economic', label: '경제 지표' },
     { path: '/speech', label: '연설 요약' },
     { path: '/portfolio', label: '포트폴리오' },

@@ -17,27 +17,23 @@ class AISummarizer:
     async def summarize_with_groq(self, text: str, max_length: int = 500) -> Optional[str]:
         """
         Groq API를 사용한 텍스트 요약 (무료, 초고속)
-        
-        Args:
-            text: 요약할 텍스트
-            max_length: 최대 요약 길이
-        
-        Returns:
-            요약된 텍스트 (한국어)
         """
         if not self.groq_api_key:
             return None
-        
+
         try:
-            prompt = f"""다음 경제/금융 관련 영문 텍스트를 한국어로 번역하고 요약해주세요.
-핵심 내용과 시장에 미치는 영향을 중심으로 {max_length}자 이내로 요약해주세요.
-반드시 한국어로 작성해주세요.
+            prompt = f"""다음 경제/금융 영문 문서를 전문 애널리스트 관점에서 한국어로 분석해주세요.
+다음 항목을 중심으로 {max_length}자 이내로 작성하세요:
+- 핵심 결정/발표 내용
+- 경제 지표 평가 (인플레이션, 고용, 성장률)
+- 시장에 미치는 영향
+- 향후 전망
 
 텍스트:
 {text[:6000]}
 
-한국어 요약:"""
-            
+한국어 분석:"""
+
             async with httpx.AsyncClient(timeout=30.0) as client:
                 response = await client.post(
                     "https://api.groq.com/openai/v1/chat/completions",
@@ -46,11 +42,11 @@ class AISummarizer:
                         "Content-Type": "application/json"
                     },
                     json={
-                        "model": "llama-3.1-8b-instant",  # 빠르고 무료
+                        "model": "llama-3.1-8b-instant",
                         "messages": [
                             {
                                 "role": "system",
-                                "content": "당신은 경제/금융 전문 번역가이자 분석가입니다. 영문 텍스트를 한국어로 번역하고 핵심 내용을 명확하게 요약합니다. 반드시 한국어로만 답변하세요."
+                                "content": "당신은 월스트리트 출신 연준 전문 애널리스트입니다. 경제/금융 문서를 정밀하게 분석하고 투자자에게 유용한 인사이트를 한국어로 제공합니다."
                             },
                             {
                                 "role": "user",
@@ -58,10 +54,10 @@ class AISummarizer:
                             }
                         ],
                         "max_tokens": 1024,
-                        "temperature": 0.3
+                        "temperature": 0.2
                     }
                 )
-                
+
                 if response.status_code == 200:
                     result = response.json()
                     summary = result["choices"][0]["message"]["content"].strip()
@@ -70,10 +66,109 @@ class AISummarizer:
                 else:
                     print(f"[AI Summarizer] Groq API 오류: {response.status_code}")
                     return None
-                
+
         except Exception as e:
             error_msg = str(e).encode('ascii', errors='ignore').decode('ascii')
             print(f"[AI Summarizer] Groq 오류: {error_msg}")
+            return None
+
+    async def summarize_fomc(self, text: str) -> Optional[dict]:
+        """
+        FOMC 회의록/연설 전문 구조화 분석 - JSON dict 반환
+        market_impact_score, hawk_dove_score를 AI가 직접 판단
+        """
+        import json as _json
+
+        fomc_prompt = f"""당신은 연준(Federal Reserve) 전문 애널리스트입니다.
+아래 FOMC 문서를 분석하여 반드시 아래 JSON 형식으로만 답변하세요. JSON 외의 텍스트는 절대 포함하지 마세요.
+
+문서:
+{text[:8000]}
+
+답변 형식 (JSON만):
+{{
+  "summary": "핵심 요약 (300자 이내 한국어)",
+  "policy_decision": "금리 결정 내용 (예: 기준금리 동결 5.25-5.50%)",
+  "economic_assessment": "인플레이션, 고용, GDP 등 경제 평가 (한국어 2-3문장)",
+  "forward_guidance": "다음 회의 전망 및 정책 방향 (한국어 1-2문장)",
+  "market_impact_score": 시장 충격도 1-10 정수 (1=미미, 10=매우 중요),
+  "hawk_dove_score": 매파/비둘기 지수 0-100 정수 (0=완전 비둘기, 100=완전 매파),
+  "sentiment": "positive 또는 negative 또는 neutral"
+}}"""
+
+        system_content = "당신은 FOMC 문서 전문 분석가입니다. 반드시 유효한 JSON만 반환하세요. 다른 텍스트는 포함하지 마세요."
+
+        async def _call_groq():
+            if not self.groq_api_key:
+                return None
+            try:
+                async with httpx.AsyncClient(timeout=45.0) as client:
+                    resp = await client.post(
+                        "https://api.groq.com/openai/v1/chat/completions",
+                        headers={"Authorization": f"Bearer {self.groq_api_key}", "Content-Type": "application/json"},
+                        json={
+                            "model": "llama-3.3-70b-versatile",
+                            "messages": [
+                                {"role": "system", "content": system_content},
+                                {"role": "user", "content": fomc_prompt}
+                            ],
+                            "max_tokens": 1024,
+                            "temperature": 0.1
+                        }
+                    )
+                    if resp.status_code == 200:
+                        return resp.json()["choices"][0]["message"]["content"].strip()
+            except Exception as e:
+                print(f"[FOMC Summarizer] Groq 오류: {e}")
+            return None
+
+        async def _call_openai():
+            if not self.openai_api_key:
+                return None
+            try:
+                async with httpx.AsyncClient(timeout=60.0) as client:
+                    resp = await client.post(
+                        "https://api.openai.com/v1/chat/completions",
+                        headers={"Authorization": f"Bearer {self.openai_api_key}", "Content-Type": "application/json"},
+                        json={
+                            "model": "gpt-4o-mini",
+                            "messages": [
+                                {"role": "system", "content": system_content},
+                                {"role": "user", "content": fomc_prompt}
+                            ],
+                            "max_tokens": 1024,
+                            "temperature": 0.1,
+                            "response_format": {"type": "json_object"}
+                        }
+                    )
+                    if resp.status_code == 200:
+                        return resp.json()["choices"][0]["message"]["content"].strip()
+            except Exception as e:
+                print(f"[FOMC Summarizer] OpenAI 오류: {e}")
+            return None
+
+        raw = await _call_groq() or await _call_openai()
+        if not raw:
+            return None
+
+        # JSON 파싱
+        try:
+            # ```json ... ``` 래핑 제거
+            clean = raw.strip()
+            if clean.startswith("```"):
+                clean = clean.split("```")[1]
+                if clean.startswith("json"):
+                    clean = clean[4:]
+            parsed = _json.loads(clean.strip())
+            # 필수 필드 검증 및 타입 보정
+            parsed["market_impact_score"] = int(parsed.get("market_impact_score", 7))
+            parsed["hawk_dove_score"] = float(parsed.get("hawk_dove_score", 50))
+            parsed["sentiment"] = parsed.get("sentiment", "neutral")
+            parsed["summary"] = parsed.get("summary", "")
+            print(f"[FOMC Summarizer] 구조화 분석 완료 impact={parsed['market_impact_score']} h/d={parsed['hawk_dove_score']}")
+            return parsed
+        except Exception as e:
+            print(f"[FOMC Summarizer] JSON 파싱 실패: {e} | raw={raw[:200]}")
             return None
     
     async def summarize_with_openai(self, text: str, max_length: int = 500) -> Optional[str]:

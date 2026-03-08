@@ -361,6 +361,57 @@ export const getPMI = async () => {
   }
 }
 
+// 블룸버그 터미널 - 신규 API
+export const getGlobalIndices = async () => {
+  try {
+    const response = await api.get('/economic/global-indices', { timeout: 60000 })
+    return response.data
+  } catch (error) {
+    console.error('[API] 글로벌 지수 조회 오류:', error)
+    return { indicator: 'global_indices', data: [], source: 'Error', cached: false }
+  }
+}
+
+export const getCommodities = async () => {
+  try {
+    const response = await api.get('/economic/commodities', { timeout: 30000 })
+    return response.data
+  } catch (error) {
+    console.error('[API] 원자재 가격 조회 오류:', error)
+    return { indicator: 'commodities', data: [], source: 'Error', cached: false }
+  }
+}
+
+export const getCryptoPrices = async () => {
+  try {
+    const response = await api.get('/economic/crypto', { timeout: 30000 })
+    return response.data
+  } catch (error) {
+    console.error('[API] 암호화폐 가격 조회 오류:', error)
+    return { indicator: 'crypto_prices', data: [], source: 'Error', cached: false }
+  }
+}
+
+export const getForexRates = async () => {
+  try {
+    const response = await api.get('/economic/forex', { timeout: 30000 })
+    return response.data
+  } catch (error) {
+    console.error('[API] 외환 환율 조회 오류:', error)
+    return { indicator: 'forex_rates', data: [], source: 'Error', cached: false }
+  }
+}
+
+export const getYieldCurve = async () => {
+  try {
+    const response = await api.get('/economic/yield-curve', { timeout: 30000 })
+    return response.data
+  } catch (error) {
+    console.error('[API] 수익률 곡선 조회 오류:', error)
+    return { indicator: 'yield_curve', data: [], source: 'Error', cached: false }
+  }
+}
+
 // 연설 요약 API
 export const getFOMCMeetings = async (limit = 10, forceRefresh = false) => {
   try {
@@ -466,6 +517,11 @@ const apiService = {
   getRetailSales,
   getOilPrices,
   getPMI,
+  getGlobalIndices,
+  getCommodities,
+  getCryptoPrices,
+  getForexRates,
+  getYieldCurve,
   getFOMCMeetings,
   getSpeechSummary,
   getRecentSpeeches,

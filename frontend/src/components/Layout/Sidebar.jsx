@@ -7,8 +7,7 @@ function Sidebar() {
 
   const menuItems = [
     { path: '/', label: 'Home', icon: 'home' },
-    { path: '/company', label: 'Company Analysis', icon: 'monitoring' },
-    { path: '/dividend', label: 'Dividend Strategy', icon: 'paid' },
+    { path: '/company', label: 'Company & Dividend', icon: 'monitoring' },
     { path: '/economic', label: 'Economic Indicators', icon: 'show_chart' },
     { path: '/speech', label: 'AI Intelligence', icon: 'smart_toy' },
     { path: '/portfolio', label: 'Portfolio', icon: 'account_balance_wallet' },

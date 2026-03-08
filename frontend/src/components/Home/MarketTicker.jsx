@@ -29,12 +29,12 @@ const MarketTicker = () => {
                 {tickerItems.length > 0 ? (
                     tickerItems.map((item, idx) => (
                         <div key={idx} className="flex items-center gap-4 px-8 border-r border-white/10">
-                            <span className="text-gray-400 text-xs font-black tracking-tighter uppercase">{item.symbol}</span>
+                            <span className="text-gray-400 text-xs font-black tracking-tighter">{item.name || item.symbol}</span>
                             <span className="text-white text-sm font-black">
-                                {item.price?.toLocaleString()}
+                                {typeof item.price === 'number' ? item.price.toLocaleString(undefined, { maximumFractionDigits: 2 }) : item.price}
                             </span>
                             <span className={`text-[10px] font-black ${parseFloat(item.changePercent) >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                {parseFloat(item.changePercent) >= 0 ? '▲' : '▼'}{Math.abs(item.changePercent).toFixed(2)}%
+                                {parseFloat(item.changePercent) >= 0 ? '▲' : '▼'}{Math.abs(parseFloat(item.changePercent) || 0).toFixed(2)}%
                             </span>
                         </div>
                     ))

@@ -35,15 +35,18 @@ async def get_current_user(
     try:
         # JWT decoding
         payload = jwt.decode(
-            token, 
+            token,
             settings.SECRET_KEY,
-            algorithms=[settings.ALGORITHM],
-            audience="authenticated"
+            algorithms=[settings.ALGORITHM]
         )
         user_id = payload.get("sub")
         if not user_id:
             raise HTTPException(status_code=401, detail="Invalid token payload")
-            
+        try:
+            user_id = int(user_id)
+        except (ValueError, TypeError):
+            raise HTTPException(status_code=401, detail="Invalid token")
+
         user = db.query(User).filter(User.id == user_id).first()
         
         if not user:
@@ -58,6 +61,10 @@ async def get_current_user(
         if payload:
             user_id = payload.get("sub")
             if user_id:
+                try:
+                    user_id = int(user_id)
+                except (ValueError, TypeError):
+                    raise HTTPException(status_code=401, detail="Invalid token")
                 user = db.query(User).filter(User.id == user_id).first()
                 if user:
                     return user

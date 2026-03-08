@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import apiService from '../services/api'
 import { getSubscriptionStatus } from '../utils/subscription'
 import { majorStocks } from '../data/stockList'
+import PopularStockCard from '../components/Stock/PopularStockCard'
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 
 function CompanyAnalysis() {
   const [searchSymbol, setSearchSymbol] = useState('')
@@ -14,7 +16,28 @@ function CompanyAnalysis() {
   const [suggestions, setSuggestions] = useState([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [isPremium, setIsPremium] = useState(false)
+  const [activeTab, setActiveTab] = useState('analysis')
+  // Dividend tab state
+  const [dividendData, setDividendData] = useState(null)
+  const [dividendLoading, setDividendLoading] = useState(false)
+  const [dividendError, setDividendError] = useState(null)
+  const [isKoreanStock, setIsKoreanStock] = useState(false)
+  const [showOlderData, setShowOlderData] = useState(false)
+  const [dividendPrices, setDividendPrices] = useState({})
   const searchRef = useRef(null)
+
+  const highDividendStocks = [
+    { symbol: 'T', name: 'AT&T', yield: '6.5%' },
+    { symbol: 'VZ', name: 'Verizon', yield: '6.2%' },
+    { symbol: 'MO', name: 'Altria', yield: '8.1%' },
+    { symbol: 'O', name: 'Realty Income', yield: '5.2%' },
+    { symbol: 'PFE', name: 'Pfizer', yield: '5.8%' },
+    { symbol: 'KO', name: 'Coca-Cola', yield: '3.1%' },
+    { symbol: 'JNJ', name: 'Johnson & Johnson', yield: '3.0%' },
+    { symbol: 'MAIN', name: 'Main Street Capital', yield: '6.8%' },
+    { symbol: 'SCHD', name: 'Schwab US Dividend ETF', yield: '3.4%' },
+    { symbol: 'JEPI', name: 'JPMorgan Equity Premium', yield: '7.5%' },
+  ]
 
   // Search suggestions
   useEffect(() => {
@@ -83,6 +106,67 @@ function CompanyAnalysis() {
     setShowSuggestions(false)
     setSymbol(sym)
   }
+
+  // Dividend tab functions
+  const fetchDividendData = async (targetSymbol) => {
+    const sym = targetSymbol || symbol
+    if (!sym?.trim()) return
+    setDividendLoading(true)
+    setDividendError(null)
+    setDividendData(null)
+    setShowOlderData(false)
+    try {
+      const symbolClean = sym.replace('.KS', '').replace('.KQ', '')
+      const isKR = symbolClean.match(/^\d+$/) !== null || sym.endsWith('.KS') || sym.endsWith('.KQ')
+      setIsKoreanStock(isKR)
+      const data = await apiService.getDividendHistory(sym.toUpperCase())
+      if (data?.currency) setIsKoreanStock(data.currency === 'KRW')
+      if (data?.dividends?.length > 0) {
+        setDividendData(data)
+      } else {
+        setDividendError('배당 데이터가 없습니다')
+      }
+    } catch (err) {
+      setDividendError(err.message || '배당 분석 중 오류가 발생했습니다')
+    } finally {
+      setDividendLoading(false)
+    }
+  }
+
+  const calculateDividendStats = () => {
+    if (!dividendData?.dividends?.length) return null
+    const amounts = dividendData.dividends.map(d => d.amount).filter(a => a !== null)
+    if (!amounts.length) return null
+    const total = amounts.reduce((s, a) => s + a, 0)
+    return { total, avg: total / amounts.length, max: Math.max(...amounts) }
+  }
+
+  const getDividendSections = () => {
+    if (!dividendData?.dividends) return { recent: [], older: [] }
+    const cutoff = new Date(); cutoff.setFullYear(cutoff.getFullYear() - 5)
+    const recent = [], older = []
+    dividendData.dividends.forEach(d => (new Date(d.date) >= cutoff ? recent : older).push(d))
+    return { recent, older }
+  }
+
+  // Fetch popular dividend stock prices on mount
+  useEffect(() => {
+    const fetchPopularPrices = async () => {
+      try {
+        const data = await apiService.getPortfolioPrices(highDividendStocks.map(s => s.symbol))
+        const rawPrices = data?.prices || data
+        setDividendPrices(rawPrices)
+      } catch { /* silent */ }
+    }
+    fetchPopularPrices()
+  }, [])
+
+  // Auto-fetch dividend when switching to dividend tab with a symbol
+  useEffect(() => {
+    if (activeTab === 'dividend' && symbol && !dividendData && !dividendLoading) {
+      fetchDividendData(symbol)
+    }
+  }, [activeTab, symbol])
 
   // Helper functions
   const getRatingLabel = (rating) => {
@@ -212,44 +296,62 @@ function CompanyAnalysis() {
           </form>
         </div>
 
-        {/* Error */}
-        {error && (
-          <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400 text-sm">{error}</div>
-        )}
+        {/* Tab navigation */}
+        <div className="flex gap-0 border-b border-slate-800">
+          <button
+            onClick={() => setActiveTab('analysis')}
+            className={`flex items-center gap-2 px-6 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'analysis' ? 'border-primary text-blue-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
+            <span className="material-symbols-outlined text-[16px]">monitoring</span>
+            종합 분석
+          </button>
+          <button
+            onClick={() => setActiveTab('dividend')}
+            className={`flex items-center gap-2 px-6 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'dividend' ? 'border-emerald-500 text-emerald-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
+            <span className="material-symbols-outlined text-[16px]">paid</span>
+            배당 분석
+          </button>
+        </div>
 
-        {/* Loading */}
-        {loading && (
-          <div className="flex-1 flex items-center justify-center py-20">
-            <div className="text-center">
-              <div className="inline-block w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
-              <p className="mt-4 text-slate-400">Analyzing {symbol}...</p>
-            </div>
-          </div>
-        )}
-
-        {/* Empty state */}
-        {!analysis && !loading && !error && (
-          <div className="flex-1 flex items-center justify-center py-20">
-            <div className="text-center max-w-md">
-              <span className="material-symbols-outlined text-6xl text-slate-600 mb-4 block">monitoring</span>
-              <h2 className="text-2xl font-bold mb-2">Search a Stock to Analyze</h2>
-              <p className="text-slate-400 mb-6">Enter a ticker symbol above to get AI-powered investment analysis, financial health scoring, and technical indicators.</p>
-              <div className="flex flex-wrap gap-2 justify-center">
-                {['AAPL', 'MSFT', 'NVDA', 'TSLA', 'GOOGL'].map(s => (
-                  <button key={s} onClick={() => handleStockSelect(s)}
-                    className="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-sm font-medium transition-colors">
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Analysis Results */}
-        {analysis && (
+        {/* ─── Tab 1: 종합 분석 ─── */}
+        {activeTab === 'analysis' && (
           <>
-            {/* Stock Header */}
+            {/* Error */}
+            {error && (
+              <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400 text-sm">{error}</div>
+            )}
+
+            {/* Loading */}
+            {loading && (
+              <div className="flex-1 flex items-center justify-center py-20">
+                <div className="text-center">
+                  <div className="inline-block w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+                  <p className="mt-4 text-slate-400">Analyzing {symbol}...</p>
+                </div>
+              </div>
+            )}
+
+            {/* Empty state */}
+            {!analysis && !loading && !error && (
+              <div className="flex-1 flex items-center justify-center py-20">
+                <div className="text-center max-w-md">
+                  <span className="material-symbols-outlined text-6xl text-slate-600 mb-4 block">monitoring</span>
+                  <h2 className="text-2xl font-bold mb-2">Search a Stock to Analyze</h2>
+                  <p className="text-slate-400 mb-6">Enter a ticker symbol above to get AI-powered investment analysis, financial health scoring, and technical indicators.</p>
+                  <div className="flex flex-wrap gap-2 justify-center">
+                    {['AAPL', 'MSFT', 'NVDA', 'TSLA', 'GOOGL'].map(s => (
+                      <button key={s} onClick={() => handleStockSelect(s)}
+                        className="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-sm font-medium transition-colors">
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Analysis Results */}
+            {analysis && (
+              <>
             <div className="flex flex-wrap items-end justify-between gap-4 pb-2 border-b border-slate-800">
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-3">
@@ -505,6 +607,243 @@ function CompanyAnalysis() {
               </div>
             </div>
           </>
+            )}
+          </>
+        )}
+
+        {/* ─── Tab 2: 배당 분석 ─── */}
+        {activeTab === 'dividend' && (
+          <div className="flex flex-col gap-6">
+            {/* Popular dividend stocks (shown when no symbol selected) */}
+            {!dividendData && !dividendLoading && !symbol && (
+              <div>
+                <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                  <span className="w-1 h-5 bg-emerald-500 rounded-full inline-block"></span>
+                  고배당 추천 종목
+                </h2>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  {highDividendStocks.map(stock => (
+                    <PopularStockCard key={stock.symbol} stock={stock} priceData={dividendPrices[stock.symbol]}
+                      onClick={() => { setSearchSymbol(stock.symbol); setSymbol(stock.symbol) }} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Dividend loading */}
+            {dividendLoading && (
+              <div className="flex items-center justify-center py-20">
+                <div className="text-center">
+                  <div className="inline-block w-12 h-12 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin"></div>
+                  <p className="mt-4 text-slate-400">배당 데이터 분석 중...</p>
+                </div>
+              </div>
+            )}
+
+            {/* Dividend error */}
+            {dividendError && !dividendLoading && (
+              <div className="p-6 bg-amber-900/20 border border-amber-500/30 rounded-xl text-center">
+                <span className="text-4xl block mb-3">🚧</span>
+                <h3 className="text-lg font-bold text-amber-400 mb-1">배당 데이터 없음</h3>
+                <p className="text-slate-400 text-sm">{symbol}에 대한 배당 데이터를 찾을 수 없습니다. 일부 기업은 배당을 지급하지 않거나 데이터가 일시적으로 사용 불가능할 수 있습니다.</p>
+              </div>
+            )}
+
+            {/* Dividend results */}
+            {dividendData && (() => {
+              const dStats = calculateDividendStats()
+              const { recent: recentDivs, older: olderDivs } = getDividendSections()
+              const companyInfo = dividendData.company_info
+              return (
+                <>
+                  {/* Company info */}
+                  {companyInfo && (
+                    <div className="flex items-center gap-4 p-4 bg-surface-dark rounded-xl border border-surface-dark-border">
+                      {companyInfo.logo_url && (
+                        <img src={companyInfo.logo_url} alt={companyInfo.name}
+                          className="w-12 h-12 rounded-lg object-contain bg-white/5 p-1 border border-surface-dark-border"
+                          onError={(e) => { e.target.style.display = 'none' }} />
+                      )}
+                      <div className="flex-1">
+                        <h2 className="text-lg font-bold">{companyInfo.name}</h2>
+                        <p className="text-slate-400 text-sm">{companyInfo.sector} · {companyInfo.industry}</p>
+                      </div>
+                      {dividendData.five_year_growth_rate != null && (
+                        <div className="text-right">
+                          <p className="text-xs text-slate-400">5년 성장률</p>
+                          <p className={`text-xl font-bold ${dividendData.five_year_growth_rate >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                            {dividendData.five_year_growth_rate >= 0 ? '+' : ''}{dividendData.five_year_growth_rate.toFixed(1)}%
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Stats cards */}
+                  {dStats && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {[
+                        { label: '총 배당금', value: isKoreanStock ? `${Math.round(dStats.total).toLocaleString()}원` : `$${dStats.total.toFixed(2)}`, color: 'emerald' },
+                        { label: '평균 배당', value: isKoreanStock ? `${Math.round(dStats.avg).toLocaleString()}원` : `$${dStats.avg.toFixed(2)}`, color: 'blue' },
+                        { label: '최대 배당', value: isKoreanStock ? `${Math.round(dStats.max).toLocaleString()}원` : `$${dStats.max.toFixed(2)}`, color: 'purple' },
+                        { label: '기록 수', value: `${dividendData.dividends.length}건`, color: 'amber' },
+                      ].map(({ label, value, color }) => (
+                        <div key={label} className="bg-surface-dark rounded-xl border border-surface-dark-border p-5">
+                          <p className="text-text-muted text-xs font-medium uppercase tracking-wider mb-2">{label}</p>
+                          <p className={`text-2xl font-bold text-${color}-400`}>{value}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* History table + chart */}
+                  {recentDivs.length > 0 && (
+                    <div className="bg-surface-dark rounded-xl border border-surface-dark-border p-6">
+                      <div className="flex items-center justify-between mb-5">
+                        <div>
+                          <h3 className="text-lg font-bold text-emerald-400">배당 이력 및 분석</h3>
+                          <p className="text-xs text-slate-400">최근 5년간 배당 내역 및 성장률</p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          {olderDivs.length > 0 && (
+                            <button onClick={() => setShowOlderData(!showOlderData)}
+                              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs text-slate-300 transition-colors">
+                              {showOlderData ? '이전 데이터 숨기기' : `${olderDivs.length}개 이전 데이터`}
+                            </button>
+                          )}
+                          <span className="px-3 py-1.5 bg-emerald-500/20 border border-emerald-500/30 rounded-lg text-emerald-400 text-xs font-semibold">{recentDivs.length}개 기록</span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Table */}
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="border-b border-slate-700 text-slate-400 text-xs uppercase tracking-wider">
+                                <th className="text-left py-3 px-2">날짜</th>
+                                <th className="text-right py-3 px-2">배당금</th>
+                                <th className="text-right py-3 px-2">수익률</th>
+                                <th className="text-right py-3 px-2">변화율</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {recentDivs.map((d, idx) => {
+                                const prev = recentDivs[idx + 1]
+                                const changeRate = prev?.amount && d.amount ? ((d.amount - prev.amount) / prev.amount) * 100 : null
+                                return (
+                                  <tr key={idx} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
+                                    <td className="py-3 px-2 text-slate-300">{new Date(d.date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
+                                    <td className="py-3 px-2 text-right font-bold text-emerald-400">
+                                      {isKoreanStock ? `${d.amount ? Math.round(d.amount).toLocaleString() : 'N/A'}원` : `$${d.amount?.toFixed(2) || 'N/A'}`}
+                                    </td>
+                                    <td className="py-3 px-2 text-right">
+                                      {d.yield_ ? <span className="text-emerald-400">{(d.yield_ * 100).toFixed(2)}%</span> : <span className="text-slate-600">N/A</span>}
+                                    </td>
+                                    <td className="py-3 px-2 text-right">
+                                      {changeRate != null ? (
+                                        <span className={changeRate >= 0 ? 'text-emerald-400' : 'text-rose-400'}>
+                                          {changeRate >= 0 ? '↑' : '↓'}{Math.abs(changeRate).toFixed(1)}%
+                                        </span>
+                                      ) : <span className="text-slate-600">—</span>}
+                                    </td>
+                                  </tr>
+                                )
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+
+                        {/* Chart */}
+                        <div className="bg-background-dark rounded-xl p-4 border border-surface-dark-border">
+                          <h4 className="text-sm font-bold text-slate-300 mb-3">배당 성장 추이</h4>
+                          <ResponsiveContainer width="100%" height={200}>
+                            <LineChart data={[...recentDivs].reverse().map(d => ({
+                              date: new Date(d.date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'short' }),
+                              amount: d.amount || 0
+                            }))}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                              <XAxis dataKey="date" stroke="#64748b" tick={{ fontSize: 10 }} />
+                              <YAxis stroke="#64748b" tick={{ fontSize: 10 }} />
+                              <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }} />
+                              <Line type="monotone" dataKey="amount" stroke="#10b981" strokeWidth={2} dot={{ fill: '#10b981', r: 3 }}
+                                name={isKoreanStock ? '배당금 (원)' : '배당금 ($)'} />
+                            </LineChart>
+                          </ResponsiveContainer>
+                          <h4 className="text-sm font-bold text-slate-300 mt-4 mb-3">연도별 평균 배당</h4>
+                          <ResponsiveContainer width="100%" height={140}>
+                            <BarChart data={(() => {
+                              const yr = {}
+                              recentDivs.forEach(d => {
+                                const y = new Date(d.date).getFullYear()
+                                if (!yr[y]) yr[y] = { year: y.toString(), total: 0, count: 0 }
+                                yr[y].total += d.amount || 0; yr[y].count += 1
+                              })
+                              return Object.values(yr).map(y => ({ year: y.year, avg: y.total / y.count })).sort((a, b) => a.year.localeCompare(b.year))
+                            })()}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                              <XAxis dataKey="year" stroke="#64748b" tick={{ fontSize: 10 }} />
+                              <YAxis stroke="#64748b" tick={{ fontSize: 10 }} />
+                              <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px' }} />
+                              <Bar dataKey="avg" fill="#10b981" name={isKoreanStock ? '평균 (원)' : '평균 ($)'} />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+
+                      {/* Older data */}
+                      {showOlderData && olderDivs.length > 0 && (
+                        <div className="mt-5 pt-5 border-t border-slate-700">
+                          <div className="flex justify-between items-center mb-3">
+                            <h4 className="text-sm font-semibold text-slate-300">5년 이전 배당 이력</h4>
+                            <button onClick={() => setShowOlderData(false)} className="text-slate-500 hover:text-white">
+                              <span className="material-symbols-outlined text-[18px]">close</span>
+                            </button>
+                          </div>
+                          <div className="max-h-64 overflow-y-auto">
+                            <table className="w-full text-xs">
+                              <thead>
+                                <tr className="border-b border-slate-700 text-slate-500 uppercase tracking-wider">
+                                  <th className="text-left py-2 px-2">날짜</th>
+                                  <th className="text-right py-2 px-2">배당금</th>
+                                  <th className="text-right py-2 px-2">수익률</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {olderDivs.map((d, i) => (
+                                  <tr key={i} className="border-b border-slate-800/50 hover:bg-slate-800/20">
+                                    <td className="py-2 px-2 text-slate-400">{new Date(d.date).toLocaleDateString('ko-KR')}</td>
+                                    <td className="py-2 px-2 text-right text-slate-300">{isKoreanStock ? `${d.amount ? Math.round(d.amount).toLocaleString() : 'N/A'}원` : `$${d.amount?.toFixed(2) || 'N/A'}`}</td>
+                                    <td className="py-2 px-2 text-right text-slate-400">{d.yield_ ? `${(d.yield_ * 100).toFixed(2)}%` : 'N/A'}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
+              )
+            })()}
+
+            {/* Dividend tab: show popular stocks when symbol exists but no data yet */}
+            {symbol && !dividendData && !dividendLoading && !dividendError && (
+              <div>
+                <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                  <span className="w-1 h-5 bg-emerald-500 rounded-full inline-block"></span>
+                  고배당 추천 종목
+                </h2>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                  {highDividendStocks.map(stock => (
+                    <PopularStockCard key={stock.symbol} stock={stock} priceData={dividendPrices[stock.symbol]}
+                      onClick={() => { setSearchSymbol(stock.symbol); setSymbol(stock.symbol) }} />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         )}
       </main>
     </div>

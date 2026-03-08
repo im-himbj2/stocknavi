@@ -138,32 +138,51 @@ async def get_portfolio_prices(
     symbols: str = Query(..., description="쉼표로 구분된 종목 심볼"),
     current_user: User = Depends(get_current_user_optional)
 ):
-    """포트폴리오 종목들의 현재가 대량 조회"""
+    """포트폴리오 종목들의 현재가 대량 조회 (한국 주식 KRW/USD 환율 포함)"""
+    import yfinance as yf
     from app.services.data.yahoo_finance import YahooFinanceDataProvider
-    
+
     symbol_list = [s.strip().upper() for s in symbols.split(",")]
     if not symbol_list:
-        return {}
-        
+        return {"prices": {}, "usd_krw_rate": None}
+
     provider = YahooFinanceDataProvider()
     quotes = provider.get_current_prices_batch(symbol_list)
-    
-    # 응답 형식 정리
-    result = {}
+
+    # 한국 주식 여부 판별 (.KS 또는 .KQ suffix)
+    has_kr = any(s.endswith(".KS") or s.endswith(".KQ") for s in symbol_list)
+
+    # USD/KRW 환율 조회 (한국 주식 있을 때만)
+    usd_krw_rate = None
+    if has_kr:
+        try:
+            krw_ticker = yf.Ticker("KRW=X")
+            krw_hist = krw_ticker.history(period="2d")
+            if not krw_hist.empty:
+                usd_krw_rate = float(krw_hist["Close"].iloc[-1])
+        except Exception as e:
+            print(f"[Portfolio] 환율 조회 실패: {e}")
+            usd_krw_rate = 1400.0  # fallback
+
+    # 응답 형식 정리 (currency 필드 추가)
+    prices = {}
     for symbol in symbol_list:
         quote = quotes.get(symbol)
+        is_kr = symbol.endswith(".KS") or symbol.endswith(".KQ")
         if quote:
-            result[symbol] = {
+            prices[symbol] = {
                 "price": quote.get("price", 0),
                 "change": quote.get("change", 0),
-                "changePercent": quote.get("changePercent", 0)
+                "changePercent": quote.get("changePercent", 0),
+                "currency": "KRW" if is_kr else "USD"
             }
         else:
-            result[symbol] = {
+            prices[symbol] = {
                 "price": 0,
                 "change": 0,
-                "changePercent": 0
+                "changePercent": 0,
+                "currency": "KRW" if is_kr else "USD"
             }
-        
-    return result
+
+    return {"prices": prices, "usd_krw_rate": usd_krw_rate}
 

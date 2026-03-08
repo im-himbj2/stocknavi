@@ -38,6 +38,13 @@ class Settings(BaseSettings):
     # Google OAuth
     GOOGLE_CLIENT_ID: Optional[str] = None
     GOOGLE_CLIENT_SECRET: Optional[str] = None
+
+    # Email (Gmail SMTP)
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: Optional[str] = None       # Gmail 주소
+    SMTP_PASSWORD: Optional[str] = None   # Gmail 앱 비밀번호 (16자리)
+    FROM_EMAIL: Optional[str] = None      # 발신자 이메일 (미설정시 SMTP_USER 사용)
     
     # Frontend
     FRONTEND_URL: Optional[str] = "https://stocknavi24.com"

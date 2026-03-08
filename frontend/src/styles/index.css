@@ -125,6 +125,18 @@ code {
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
+/* Bloomberg ticker marquee */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 50s linear infinite;
+  display: inline-flex;
+  min-width: 200%;
+}
+
 /* 글래스모피즘 효과 */
 .glass {
   background: rgba(30, 41, 59, 0.7);

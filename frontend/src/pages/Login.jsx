@@ -1,11 +1,12 @@
-import { useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom'
 import { login, register } from '../services/auth'
 import { useAuth } from '../contexts/AuthContext'
 
 function Login() {
   const navigate = useNavigate()
   const location = useLocation()
+  const [searchParams] = useSearchParams()
   const { login: setAuth, isAuth } = useAuth()
 
   const [activeTab, setActiveTab] = useState('login')
@@ -16,14 +17,20 @@ function Login() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [registerSuccess, setRegisterSuccess] = useState(false)
+  const [verifiedSuccess, setVerifiedSuccess] = useState(false)
 
-  if (isAuth) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <h1 className="text-6xl font-bold text-white">wow</h1>
-      </div>
-    )
-  }
+  // ?verified=true → 이메일 인증 완료 배너
+  useEffect(() => {
+    if (searchParams.get('verified') === 'true') {
+      setVerifiedSuccess(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (isAuth) {
+      navigate('/', { replace: true })
+    }
+  }, [isAuth])
 
   const handleLogin = async (e) => {
     e.preventDefault()
@@ -68,23 +75,14 @@ function Login() {
     try {
       await register(email, password, fullName || null)
       setRegisterSuccess(true)
-
-      setTimeout(async () => {
-        try {
-          const result = await login(email, password)
-          if (result.user) {
-            setAuth(result.user)
-          }
-          const from = location.state?.from?.pathname || '/'
-          navigate(from, { replace: true })
-        } catch (loginErr) {
-          setError('회원가입은 성공했으나 자동 로그인에 실패했습니다. 직접 로그인해 주세요.')
-          setActiveTab('login')
-        }
-      }, 1500)
     } catch (err) {
       const msg = err?.response?.data?.detail || err?.message || '회원가입에 실패했습니다.'
-      setError(msg)
+      if (msg.includes('이미 등록된')) {
+        setActiveTab('login')
+        setError('이미 가입된 이메일입니다. 로그인해주세요.')
+      } else {
+        setError(msg)
+      }
     } finally {
       setLoading(false)
     }
@@ -140,14 +138,30 @@ function Login() {
           </div>
         )}
 
+        {verifiedSuccess && (
+          <div className="mb-4 px-4 py-3 rounded-lg bg-emerald-900/40 border border-emerald-500/40 text-emerald-200 text-sm flex items-center gap-2">
+            <span>✅</span>
+            <span>이메일 인증이 완료되었습니다! 로그인해주세요.</span>
+          </div>
+        )}
+
         {registerSuccess && (
-          <div className="mb-4 px-4 py-3 rounded-lg bg-green-900/40 border border-green-500/40 text-green-200 text-sm">
-            회원가입이 완료되었습니다! 잠시 후 자동으로 로그인됩니다.
+          <div className="space-y-4">
+            <div className="px-4 py-3 rounded-lg bg-blue-900/40 border border-blue-500/40 text-blue-200 text-sm">
+              <p className="font-semibold mb-1">📧 인증 이메일을 발송했습니다</p>
+              <p className="text-xs text-blue-300">가입하신 이메일 받은편지함을 확인하고 인증 링크를 클릭해주세요.<br/>인증 완료 후 로그인하실 수 있습니다.</p>
+            </div>
+            <button
+              onClick={() => { setActiveTab('login'); setRegisterSuccess(false); setError(null) }}
+              className="w-full py-3 rounded-lg bg-white text-black font-semibold hover:bg-gray-100 transition-all"
+            >
+              로그인하러 가기
+            </button>
           </div>
         )}
 
         {/* 로그인 폼 */}
-        {activeTab === 'login' ? (
+        {!registerSuccess && activeTab === 'login' ? (
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="block text-sm text-gray-300 mb-1">이메일</label>
@@ -177,7 +191,7 @@ function Login() {
               {loading ? '로그인 중...' : '로그인'}
             </button>
           </form>
-        ) : (
+        ) : !registerSuccess ? (
           /* 회원가입 폼 */
           <form onSubmit={handleRegister} className="space-y-4">
             <div>
@@ -228,7 +242,7 @@ function Login() {
               {loading ? '가입 중...' : '회원가입'}
             </button>
           </form>
-        )}
+        ) : null}
       </div>
       <style>{styles}</style>
     </div>

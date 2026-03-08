@@ -13,6 +13,7 @@ function Portfolio() {
   const [suggestions, setSuggestions] = useState([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [isPremium, setIsPremium] = useState(false)
+  const [usdKrwRate, setUsdKrwRate] = useState(1400)
   const searchRef = useRef(null)
 
   const [formData, setFormData] = useState({
@@ -37,15 +38,20 @@ function Portfolio() {
     if (!items || items.length === 0) return
     try {
       const symbols = items.map(item => item.symbol.match(/^\d+$/) ? `${item.symbol}.KS` : item.symbol)
-      const priceMapRaw = await apiService.getPortfolioPrices(symbols)
+      const response = await apiService.getPortfolioPrices(symbols)
+      // Support both new {prices, usd_krw_rate} format and legacy flat map
+      const rawPrices = response?.prices || response
+      const rate = response?.usd_krw_rate
+      if (rate) setUsdKrwRate(rate)
       const priceMap = {}
       items.forEach(item => {
         const fullSymbol = item.symbol.match(/^\d+$/) ? `${item.symbol}.KS` : item.symbol
-        const priceData = priceMapRaw[fullSymbol] || priceMapRaw[item.symbol]
+        const priceData = rawPrices[fullSymbol] || rawPrices[item.symbol]
         priceMap[item.symbol] = {
           price: priceData?.price || item.average_price,
           change: priceData?.change || 0,
-          changePercent: priceData?.changePercent || 0
+          changePercent: priceData?.changePercent || 0,
+          currency: priceData?.currency || (isKR(item.symbol) ? 'KRW' : 'USD')
         }
       })
       setStockPrices(priceMap)
@@ -126,24 +132,35 @@ function Portfolio() {
   // Computations
   const isKR = (sym) => sym?.match(/^\d+$/) !== null
 
-  const calcProfit = (item) => {
-    const price = stockPrices[item.symbol]?.price
-    const cost = item.average_price * item.quantity
-    if (!price || price <= 0) return { profit: 0, profitPercent: 0, totalValue: cost, cost, price: item.average_price }
-    const totalValue = price * item.quantity
-    const profit = totalValue - cost
-    return { profit, profitPercent: cost > 0 ? (profit / cost) * 100 : 0, totalValue, cost, price }
+  // Convert a value in item's native currency to USD
+  const toUsd = (item, value) => {
+    const currency = stockPrices[item.symbol]?.currency || (isKR(item.symbol) ? 'KRW' : 'USD')
+    return currency === 'KRW' ? value / usdKrwRate : value
   }
 
-  const totalValue = portfolioItems.reduce((s, i) => s + calcProfit(i).totalValue, 0)
-  const totalCost = portfolioItems.reduce((s, i) => s + calcProfit(i).cost, 0)
+  const calcProfit = (item) => {
+    const priceData = stockPrices[item.symbol]
+    const price = priceData?.price
+    const currency = priceData?.currency || (isKR(item.symbol) ? 'KRW' : 'USD')
+    const cost = item.average_price * item.quantity
+    if (!price || price <= 0) return { profit: 0, profitPercent: 0, totalValue: cost, cost, price: item.average_price, currency }
+    const totalValue = price * item.quantity
+    const profit = totalValue - cost
+    return { profit, profitPercent: cost > 0 ? (profit / cost) * 100 : 0, totalValue, cost, price, currency }
+  }
+
+  // All totals in USD
+  const totalValue = portfolioItems.reduce((s, i) => s + toUsd(i, calcProfit(i).totalValue), 0)
+  const totalCost = portfolioItems.reduce((s, i) => s + toUsd(i, calcProfit(i).cost), 0)
   const totalProfit = totalValue - totalCost
   const totalProfitPct = totalCost > 0 ? (totalProfit / totalCost) * 100 : 0
   const dailyPL = portfolioItems.reduce((s, item) => {
-    const price = stockPrices[item.symbol]
-    if (!price) return s
-    return s + (price.change || 0) * item.quantity
+    const priceData = stockPrices[item.symbol]
+    if (!priceData) return s
+    return s + toUsd(item, (priceData.change || 0) * item.quantity)
   }, 0)
+
+  const hasKrStocks = portfolioItems.some(i => isKR(i.symbol))
 
   // Sector allocation (simplified by first letter / known sectors)
   const SECTOR_COLORS = { Tech: '#00498C', Finance: '#10b981', Health: '#8b5cf6', Energy: '#f59e0b', Consumer: '#ef4444' }
@@ -160,6 +177,8 @@ function Portfolio() {
   const fmt = (v, sym) => isKR(sym)
     ? `₩${Math.round(v).toLocaleString()}`
     : `$${Number(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+
+  const fmtUsd = (v) => `$${Number(v).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
   // Concentration risk
   const maxWeight = stockWeights[0]?.pct || 0
@@ -249,11 +268,19 @@ function Portfolio() {
             </div>
           )}
 
+          {/* Exchange rate badge */}
+          {hasKrStocks && (
+            <div className="flex items-center gap-2 text-xs text-text-muted">
+              <span className="material-symbols-outlined text-[14px]">currency_exchange</span>
+              <span>USD/KRW: <span className="text-slate-300 font-medium">{usdKrwRate.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span> (실시간) · 총 자산은 USD로 환산 표시</span>
+            </div>
+          )}
+
           {/* Top Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="flex flex-col gap-2 rounded-xl p-5 bg-surface-dark border border-surface-dark-border shadow-sm">
               <p className="text-text-muted text-sm font-medium uppercase tracking-wider">Total Asset Value</p>
-              <p className="text-[28px] font-bold leading-tight">{fmt(totalValue, portfolioItems[0]?.symbol)}</p>
+              <p className="text-[28px] font-bold leading-tight">{fmtUsd(totalValue)}</p>
               <div className={`flex items-center gap-1 text-sm font-medium ${totalProfitPct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                 <span className="material-symbols-outlined text-[16px]">{totalProfitPct >= 0 ? 'trending_up' : 'trending_down'}</span>
                 <span>{totalProfitPct >= 0 ? '+' : ''}{totalProfitPct.toFixed(2)}%</span>
@@ -262,14 +289,14 @@ function Portfolio() {
             <div className="flex flex-col gap-2 rounded-xl p-5 bg-surface-dark border border-surface-dark-border shadow-sm">
               <p className="text-text-muted text-sm font-medium uppercase tracking-wider">Daily P/L</p>
               <p className={`text-[28px] font-bold leading-tight ${dailyPL >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                {dailyPL >= 0 ? '+' : ''}{fmt(dailyPL, portfolioItems[0]?.symbol)}
+                {dailyPL >= 0 ? '+' : ''}{fmtUsd(dailyPL)}
               </p>
               <p className="text-text-muted text-sm font-medium">Based on today's price change</p>
             </div>
             <div className="flex flex-col gap-2 rounded-xl p-5 bg-surface-dark border border-surface-dark-border shadow-sm">
               <p className="text-text-muted text-sm font-medium uppercase tracking-wider">Total Return</p>
               <p className={`text-[28px] font-bold leading-tight ${totalProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                {totalProfit >= 0 ? '+' : ''}{fmt(totalProfit, portfolioItems[0]?.symbol)}
+                {totalProfit >= 0 ? '+' : ''}{fmtUsd(totalProfit)}
               </p>
               <div className={`flex items-center gap-1 text-sm font-medium ${totalProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                 <span className="material-symbols-outlined text-[16px]">{totalProfit >= 0 ? 'arrow_upward' : 'arrow_downward'}</span>
@@ -345,8 +372,8 @@ function Portfolio() {
                     </thead>
                     <tbody className="text-sm">
                       {portfolioItems.map((item) => {
-                        const { profit, profitPercent, totalValue: tv, price } = calcProfit(item)
-                        const kr = isKR(item.symbol)
+                        const { profit, profitPercent, totalValue: tv, price, currency } = calcProfit(item)
+                        const kr = currency === 'KRW'
                         return (
                           <tr key={item.id} className="border-b border-surface-dark-border/50 hover:bg-surface-dark-border/20 transition-colors">
                             <td className="p-4">
@@ -363,7 +390,10 @@ function Portfolio() {
                             <td className="p-4 text-right font-medium">{fmt(price, item.symbol)}</td>
                             <td className="p-4 text-right">{item.quantity}</td>
                             <td className="p-4 text-right text-text-muted">{fmt(item.average_price, item.symbol)}</td>
-                            <td className="p-4 text-right font-bold">{fmt(tv, item.symbol)}</td>
+                            <td className="p-4 text-right font-bold">
+                              {fmt(tv, item.symbol)}
+                              {kr && <p className="text-[10px] text-text-muted font-normal">≈ {fmtUsd(tv / usdKrwRate)}</p>}
+                            </td>
                             <td className={`p-4 text-right font-medium ${profit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                               {profit >= 0 ? '+' : ''}{fmt(profit, item.symbol)} ({profitPercent >= 0 ? '+' : ''}{profitPercent.toFixed(1)}%)
                             </td>
@@ -414,7 +444,7 @@ function Portfolio() {
                 <p className="text-xs text-text-muted">
                   {portfolioItems.length === 0
                     ? 'Add positions to see risk analysis.'
-                    : `Your portfolio contains ${portfolioItems.length} positions with a total value of ${fmt(totalValue, portfolioItems[0]?.symbol)}.`}
+                    : `Your portfolio contains ${portfolioItems.length} positions with a total value of ${fmtUsd(totalValue)}.`}
                 </p>
               </div>
 

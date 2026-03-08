@@ -25,6 +25,7 @@ class User(Base):
     subscription_tier = Column(Enum(SubscriptionTier), default=SubscriptionTier.FREE)
     google_id = Column(String, unique=True, index=True, nullable=True)  # 구글 사용자 ID
     auth_provider = Column(String, default="email")  # "email" or "google"
+    verification_token = Column(String, nullable=True)  # 이메일 인증 토큰
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 

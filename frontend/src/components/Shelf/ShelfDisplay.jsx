@@ -5,25 +5,9 @@ import FeatureCard from './FeatureCard';
 const FEATURES = [
   {
     id: '01',
-    title: 'DIVIDEND LAB',
-    subtitle: '배당 분석 터미널',
-    description: '배당 이력과 수익률을 심층 분석하여 안정적인 수익 기회를 발견하세요.',
-    category: 'Analysis',
-    color: 'from-emerald-900 via-emerald-700 to-emerald-500',
-    iconType: 'dividend',
-    link: '/dividend',
-    details: [
-      '10년간의 배당 성장률 히트맵',
-      '배당 컷(Cut) 위험도 AI 예측',
-      '섹터별 배당 수익률 비교 차트',
-      '월별 예상 배당금 캘린더'
-    ]
-  },
-  {
-    id: '02',
     title: 'FINANCE LAB',
-    subtitle: '기업 정밀 분석',
-    description: 'AI 기반 재무 분석과 기술적 지표로 투자 가치를 정확히 평가하세요.',
+    subtitle: '기업 · 배당 종합 분석',
+    description: 'AI 기반 재무 분석부터 배당 이력까지 한 곳에서 투자 가치를 정확히 평가하세요.',
     category: 'Core',
     color: 'from-blue-900 via-blue-700 to-blue-500',
     iconType: 'company',
@@ -31,12 +15,12 @@ const FEATURES = [
     details: [
       'DCF 및 RIM 기반 적정 주가 산출',
       '재무제표 3개년 시각화 분석',
-      '경쟁사 대비 PER/PBR 밸류에이션',
-      '내부자 거래 실시간 알림'
+      '10년간의 배당 성장률 히트맵',
+      '섹터별 배당 수익률 비교 차트'
     ]
   },
   {
-    id: '03',
+    id: '02',
     title: 'MACRO PULSE',
     subtitle: '글로벌 경제 지표',
     description: '실시간 경제 데이터와 시장 동향을 한눈에 파악하세요.',
@@ -52,7 +36,7 @@ const FEATURES = [
     ]
   },
   {
-    id: '04',
+    id: '03',
     title: 'FED INTEL',
     subtitle: '중앙은행 인사이트',
     description: 'FOMC 회의록 및 경제 연설의 AI 기반 요약으로 핵심 정보를 확인하세요.',
@@ -68,7 +52,7 @@ const FEATURES = [
     ]
   },
   {
-    id: '05',
+    id: '04',
     title: 'ASSET HUB',
     subtitle: '자산 관리 포트폴리오',
     description: '개인 포트폴리오를 체계적으로 관리하고 성과를 추적하세요.',
@@ -148,7 +132,7 @@ const ShelfDisplay = () => {
       <div className={`w-full relative py-20 px-4 md:px-8 max-w-[1800px] mx-auto transition-all duration-700 ${selectedId ? 'blur-sm scale-95 opacity-50 grayscale' : ''}`}>
 
         {/* 5-Column Grid Layout */}
-        <div className="relative z-10 grid grid-cols-2 md:grid-cols-5 gap-8 md:gap-10 lg:gap-16 w-full place-items-end h-[600px] mb-8">
+        <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-10 lg:gap-16 w-full place-items-end h-[600px] mb-8">
           {FEATURES.map((feature, index) => (
             <div
               key={feature.id}

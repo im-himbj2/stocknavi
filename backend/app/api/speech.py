@@ -276,17 +276,24 @@ async def get_speech_summary(
         else:
             raise HTTPException(status_code=400, detail="잘못된 speech_id 형식입니다. fomc_ 또는 speech_로 시작해야 합니다.")
         
-        # AI 요약 생성
+        # AI 요약 생성 (FOMC/speech는 구조화 분석 우선)
+        fomc_analysis = None
         try:
             print(f"[Speech API] AI 요약 생성 중... (content length: {len(content)})")
-            summary = await ai_summarizer.summarize(content, use_openai=use_openai, max_length=500)
-            
+            # FOMC 회의록/연설은 구조화 분석 시도
+            fomc_analysis = await ai_summarizer.summarize_fomc(content)
+            if fomc_analysis and fomc_analysis.get("summary"):
+                summary = fomc_analysis["summary"]
+            else:
+                # 구조화 분석 실패 시 일반 요약
+                summary = await ai_summarizer.summarize(content, use_openai=use_openai, max_length=500)
+
             if not summary or len(summary.strip()) < 10:
                 summary = "요약을 생성할 수 없습니다. AI 서비스가 사용 불가능할 수 있습니다."
         except Exception as e:
             print(f"[Speech API] AI 요약 생성 오류: {e}")
-            summary = f"요약 생성 중 오류가 발생했습니다. 원문을 직접 확인해주세요."
-        
+            summary = "요약 생성 중 오류가 발생했습니다. 원문을 직접 확인해주세요."
+
         # 간단한 키워드 추출 (요약에서)
         keywords = []
         if summary:
@@ -301,7 +308,12 @@ async def get_speech_summary(
         hawk_dove_score = 50.0  # 0: Dove, 100: Hawk
         market_impact_score = 5
         speaker_info = None
-        
+
+        # AI 구조화 분석 결과가 있으면 우선 사용
+        if fomc_analysis:
+            hawk_dove_score = float(fomc_analysis.get("hawk_dove_score", 50))
+            market_impact_score = int(fomc_analysis.get("market_impact_score", 7))
+
         # 주요 화자 DB (간이)
         fed_speakers = {
             "Jerome Powell": {"role": "Chair", "bias": "Neutral/Flexible", "impact": 10},
@@ -316,34 +328,37 @@ async def get_speech_summary(
             "Thomas Barkin": {"role": "President (Richmond)", "bias": "Neutral/Hawk", "impact": 5},
         }
 
-        # 화자 이름 매칭 및 점수 산출
+        # 화자 이름 매칭 (AI 결과 없을 때만 기본값 적용)
         if speaker:
             for name, info in fed_speakers.items():
                 if name.lower() in speaker.lower():
                     speaker_info = info
-                    market_impact_score = info["impact"]
-                    if "Hawk" in info["bias"]: hawk_dove_score = 75.0
-                    elif "Dove" in info["bias"]: hawk_dove_score = 25.0
+                    if not fomc_analysis:
+                        market_impact_score = info["impact"]
+                        if "Hawk" in info["bias"]: hawk_dove_score = 75.0
+                        elif "Dove" in info["bias"]: hawk_dove_score = 25.0
                     break
         elif speech_type == 'minutes':
-            market_impact_score = 9  # 회의록은 중요함
             speaker_info = {"role": "Committee", "bias": "Collective"}
+            if not fomc_analysis:
+                market_impact_score = 7  # AI 실패 시 기본값 (기존 하드코딩 9 → 7로 조정)
 
-        # 감정 분석 보정
-        sentiment = 'neutral'
-        positive_words = ['긍정', '상승', '개선', '증가', '성장', '안정', '완화', '비둘기', 'dove', 'easing', 'growth']
-        negative_words = ['부정', '하락', '악화', '감소', '위험', '불안', '긴축', '매파', 'hawk', 'tightening', 'risk']
-        
-        summary_lower = summary.lower()
-        pos_count = sum(1 for word in positive_words if word.lower() in summary_lower)
-        neg_count = sum(1 for word in negative_words if word.lower() in summary_lower)
-        
-        if pos_count > neg_count:
-            sentiment = 'positive'
-            hawk_dove_score = max(0, hawk_dove_score - 10)
-        elif neg_count > pos_count:
-            sentiment = 'negative'
-            hawk_dove_score = min(100, hawk_dove_score + 10)
+        # 감정 분석: AI 결과 우선, 없으면 키워드 기반
+        if fomc_analysis and fomc_analysis.get("sentiment") in ("positive", "negative", "neutral"):
+            sentiment = fomc_analysis["sentiment"]
+        else:
+            sentiment = 'neutral'
+            positive_words = ['긍정', '상승', '개선', '증가', '성장', '안정', '완화', '비둘기', 'dove', 'easing', 'growth']
+            negative_words = ['부정', '하락', '악화', '감소', '위험', '불안', '긴축', '매파', 'hawk', 'tightening', 'risk']
+            summary_lower = summary.lower()
+            pos_count = sum(1 for word in positive_words if word.lower() in summary_lower)
+            neg_count = sum(1 for word in negative_words if word.lower() in summary_lower)
+            if pos_count > neg_count:
+                sentiment = 'positive'
+                hawk_dove_score = max(0, hawk_dove_score - 10)
+            elif neg_count > pos_count:
+                sentiment = 'negative'
+                hawk_dove_score = min(100, hawk_dove_score + 10)
 
         result = SpeechSummaryResponse(
             id=speech_id,

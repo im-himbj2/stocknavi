@@ -1,7 +1,6 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import Home from './pages/Home'
-import Dividend from './pages/Dividend'
 import CompanyAnalysis from './pages/CompanyAnalysis'
 import EconomicIndicators from './pages/EconomicIndicators'
 import SpeechSummary from './pages/SpeechSummary'
@@ -27,14 +26,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/dividend" element={
-            <div className="min-h-screen bg-[#0a0f15] text-white flex">
-              <Sidebar />
-              <main className="flex-1 overflow-auto">
-                <Dividend />
-              </main>
-            </div>
-          } />
+          <Route path="/dividend" element={<Navigate to="/company" replace />} />
           <Route path="/company" element={
             <div className="min-h-screen bg-[#0a0f15] text-white flex">
               <Sidebar />

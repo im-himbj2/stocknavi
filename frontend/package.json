@@ -17,6 +17,8 @@
     "react-chartjs-2": "^5.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.20.0",
+    "react-simple-maps": "^3.0.0",
+    "react-tooltip": "^5.30.0",
     "recharts": "^3.6.0"
   },
   "devDependencies": {

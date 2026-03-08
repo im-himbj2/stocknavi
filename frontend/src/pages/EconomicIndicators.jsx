@@ -1,309 +1,255 @@
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import apiService from '../services/api'
+import Navbar from '../components/Layout/Navbar'
+import WorldConflictMap from '../components/Economic/WorldConflictMap'
+import MarketGrid from '../components/Economic/MarketGrid'
+import MacroPanel from '../components/Economic/MacroPanel'
+import SentimentGauge from '../components/Economic/SentimentGauge'
+import YieldCurveChart from '../components/Economic/YieldCurveChart'
+import ForexPanel from '../components/Economic/ForexPanel'
+import SectorPanel from '../components/Economic/SectorPanel'
+import EconomicCalendarPanel from '../components/Economic/EconomicCalendarPanel'
+import BloombergPanelWrapper from '../components/Economic/BloombergPanelWrapper'
 
-function EconomicIndicators() {
-  const [loading, setLoading] = useState(true)
-  const [macroHighlights, setMacroHighlights] = useState(null)
-  const [fomcMeetings, setFomcMeetings] = useState(null)
+const EconomicIndicators = () => {
+  const [globalIndices, setGlobalIndices] = useState([])
+  const [commodities, setCommodities] = useState([])
+  const [crypto, setCrypto] = useState([])
+  const [forex, setForex] = useState([])
+  const [curveData, setCurveData] = useState([])
+  const [highlights, setHighlights] = useState([])
+  const [pmi, setPmi] = useState(null)
+  const [jobless, setJobless] = useState(null)
+  const [consumer, setConsumer] = useState(null)
+  const [sectors, setSectors] = useState([])
+  const [sentiment, setSentiment] = useState(null)
+  const [calendar, setCalendar] = useState([])
+  const [fomc, setFomc] = useState(null)
   const [fomcSummary, setFomcSummary] = useState(null)
-  const [activeChart, setActiveChart] = useState('GDP')
+  const [loading, setLoading] = useState(true)
+  const [lastUpdated, setLastUpdated] = useState(null)
 
   useEffect(() => {
-    const fetchAll = async () => {
+    let mounted = true
+
+    const fetchMain = async () => {
       setLoading(true)
       try {
-        const [macro, fomc] = await Promise.allSettled([
-          apiService.getEconomicHighlights(),
-          apiService.getFOMCMeetings(1)
+        const [
+          indicesRes, commoditiesRes, cryptoRes, forexRes, curveRes,
+          highlightsRes, pmiRes, joblessRes, consumerRes,
+          sectorsRes, sentimentRes, calendarRes,
+        ] = await Promise.all([
+          apiService.getGlobalIndices().catch(() => ({ data: [] })),
+          apiService.getCommodities().catch(() => ({ data: [] })),
+          apiService.getCryptoPrices().catch(() => ({ data: [] })),
+          apiService.getForexRates().catch(() => ({ data: [] })),
+          apiService.getYieldCurve().catch(() => ({ data: [] })),
+          apiService.getEconomicHighlights().catch(() => ({ data: [] })),
+          apiService.getPMI().catch(() => ({ data: [] })),
+          apiService.getJoblessClaims().catch(() => ({ data: [] })),
+          apiService.getConsumerConfidence().catch(() => ({ data: [] })),
+          apiService.getSectorRotation().catch(() => ({ data: [] })),
+          apiService.getMarketSentiment().catch(() => ({ data: [] })),
+          apiService.getEconomicCalendar().catch(() => ({ data: [] })),
         ])
-        if (macro.status === 'fulfilled') setMacroHighlights(macro.value)
-        if (fomc.status === 'fulfilled') {
-          const meetings = fomc.value
-          setFomcMeetings(meetings)
-          // Fetch summary for the most recent meeting
-          const recentId = meetings?.data?.[0]?.id || meetings?.[0]?.id
-          if (recentId) {
-            try {
-              const summary = await apiService.getSpeechSummary(recentId)
-              setFomcSummary(summary)
-            } catch {
-              // Summary unavailable
-            }
-          }
-        }
+
+        if (!mounted) return
+
+        if (indicesRes?.data) setGlobalIndices(indicesRes.data)
+        if (commoditiesRes?.data) setCommodities(commoditiesRes.data)
+        if (cryptoRes?.data) setCrypto(cryptoRes.data)
+        if (forexRes?.data) setForex(forexRes.data)
+        if (curveRes?.data) setCurveData(curveRes.data)
+        if (highlightsRes?.data) setHighlights(highlightsRes.data)
+
+        const pmiLatest = pmiRes?.data?.[0]?.value
+        if (pmiLatest) setPmi(pmiLatest)
+
+        if (joblessRes?.data) setJobless(joblessRes.data)
+        if (consumerRes?.data) setConsumer(consumerRes.data)
+        if (sectorsRes?.data) setSectors(sectorsRes.data)
+
+        const sentVal = sentimentRes?.data?.[0]?.value
+        if (sentVal != null) setSentiment(sentVal)
+
+        if (calendarRes?.data) setCalendar(calendarRes.data)
+
+        setLastUpdated(new Date())
       } catch (err) {
-        console.error('Economic data fetch error:', err)
+        console.error('[Bloomberg] Main data fetch error:', err)
       } finally {
-        setLoading(false)
+        if (mounted) setLoading(false)
       }
     }
-    fetchAll()
+
+    fetchMain()
+
+    // FOMC loaded separately (slow AI call)
+    const fetchFomc = async () => {
+      try {
+        const res = await apiService.getFOMCMeetings(1)
+        if (!mounted) return
+        if (res?.items?.[0]) {
+          setFomc(res.items[0])
+          try {
+            const sumRes = await apiService.getSpeechSummary('fomc_0')
+            if (mounted && sumRes) setFomcSummary(sumRes)
+          } catch {}
+        }
+      } catch {}
+    }
+    fetchFomc()
+
+    return () => { mounted = false }
   }, [])
 
-  // Parse macro highlights into the 4 key cards
-  const getMacroCard = (name) => {
-    const data = macroHighlights?.data
-    if (!data) return null
-    return data.find(d => d.name?.toLowerCase().includes(name.toLowerCase()))
-  }
-
-  const gdp = getMacroCard('GDP')
-  const cpi = getMacroCard('CPI')
-  const unemployment = getMacroCard('unemployment')
-  const rate = getMacroCard('interest') || getMacroCard('rate') || getMacroCard('federal')
-
-  const macroCards = [
-    {
-      label: 'GDP Growth (QoQ)',
-      value: gdp ? `${Number(gdp.value).toFixed(1)}%` : '—',
-      change: gdp?.change ?? null,
-      changeLabel: gdp?.change != null ? `${gdp.change > 0 ? '+' : ''}${Number(gdp.change).toFixed(1)}% vs prev` : 'Source: FRED',
-      positive: (gdp?.change ?? 0) > 0,
-      icon: 'show_chart'
-    },
-    {
-      label: 'CPI (Inflation YoY)',
-      value: cpi ? `${Number(cpi.value).toFixed(1)}%` : '—',
-      change: cpi?.change ?? null,
-      changeLabel: cpi?.change != null ? `${cpi.change > 0 ? '+' : ''}${Number(cpi.change).toFixed(1)}% vs prev` : 'Source: FRED',
-      positive: (cpi?.change ?? 1) < 0,
-      icon: 'price_change'
-    },
-    {
-      label: 'Unemployment Rate',
-      value: unemployment ? `${Number(unemployment.value).toFixed(1)}%` : '—',
-      change: unemployment?.change ?? null,
-      changeLabel: unemployment?.change != null ? `${unemployment.change > 0 ? '+' : ''}${Number(unemployment.change).toFixed(1)}% vs prev` : 'Source: FRED',
-      positive: (unemployment?.change ?? 1) < 0,
-      icon: 'people'
-    },
-    {
-      label: 'Federal Funds Rate',
-      value: rate ? `${Number(rate.value).toFixed(2)}%` : '—',
-      change: null,
-      changeLabel: 'Unchanged',
-      positive: null,
-      icon: 'account_balance'
-    }
-  ]
-
-  // Build FOMC AI summary bullets
-  const getFomcBullets = () => {
-    if (fomcSummary?.summary) {
-      // If we have a text summary, split into sentences
-      const text = typeof fomcSummary.summary === 'string' ? fomcSummary.summary : JSON.stringify(fomcSummary.summary)
-      const sentences = text.split(/[.。]\s+/).filter(s => s.trim().length > 20).slice(0, 4)
-      return sentences.map((s, i) => ({ primary: true, title: i === 0 ? 'Key Takeaway' : 'Detail', text: s.trim() + '.' }))
-    }
-    if (fomcMeetings?.data?.[0]) {
-      const m = fomcMeetings.data[0]
-      return [
-        { primary: true, title: 'Latest Meeting', text: `${m.title || m.name || 'FOMC Meeting'} — ${m.date || ''}` },
-        { primary: false, title: 'Status', text: m.description || m.summary || 'Meeting minutes available. Click Read Full Analysis for details.' }
-      ]
-    }
-    return [
-      { primary: true, title: 'Hawkish Tone', text: 'Powell emphasized that inflation remains elevated and the committee is data-dependent for future decisions.' },
-      { primary: false, title: 'Labor Market', text: 'Minutes indicate members observed signs of cooling in the labor market, though it remains historically tight.' },
-      { primary: false, title: 'Data Dependency', text: 'Future decisions will depend on incoming totality of data, specifically core PCE and wage growth metrics.' },
-      { primary: false, title: 'Economic Resilience', text: 'Surprising economic growth was noted, leading to upward revisions in near-term GDP forecasts.' }
-    ]
-  }
+  // Marquee: duplicate indices for seamless loop
+  const tickerItems = [...globalIndices, ...globalIndices]
 
   return (
-    <div className="min-h-screen bg-background-dark text-slate-100 font-display">
-      <div className="px-6 lg:px-10 flex flex-col w-full max-w-[1440px] mx-auto py-6 gap-6">
+    <div className="bg-[#0a0f15] text-white min-h-screen">
+      <Navbar />
 
-        {/* Page Header */}
-        <div className="flex flex-wrap justify-between items-end gap-4 pb-6 border-b border-slate-800">
-          <div className="flex flex-col gap-2">
-            <h1 className="text-3xl font-bold leading-tight">Macro Economic Intelligence Dashboard</h1>
-            <p className="text-slate-400 text-sm max-w-2xl">
-              Comprehensive analysis of key economic indicators, powered by FRED data and AI insights for informed investment decisions.
-            </p>
-          </div>
-          <div className="flex items-center gap-2 bg-slate-800 px-3 py-1.5 rounded text-xs font-medium text-slate-300 border border-slate-700">
-            <span className="w-2 h-2 rounded-full bg-green-500"></span>
-            {loading ? 'Loading...' : 'Live Data Sync: Active'}
+      {/* Page header */}
+      <div className="px-4 py-2 flex items-center justify-between border-b border-[#1a3a5c] bg-[#050d18]">
+        <div className="flex items-center gap-3">
+          <h1 className="text-[13px] font-mono font-bold text-[#5ba4d4] uppercase tracking-widest">
+            Bloomberg Intelligence Terminal
+          </h1>
+          <span className="flex items-center gap-1.5 text-[10px] font-mono text-green-400">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-400" />
+            </span>
+            LIVE
+          </span>
+        </div>
+        {lastUpdated && (
+          <span className="text-[9px] font-mono text-gray-600">
+            Updated {lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+          </span>
+        )}
+      </div>
+
+      {/* 1. World Conflict Map */}
+      <WorldConflictMap />
+
+      {/* 2. Ticker Bar */}
+      {globalIndices.length > 0 && (
+        <div className="bg-[#050d18] border-b border-[#1a3a5c] overflow-hidden py-1.5">
+          <div className="flex gap-8 animate-marquee whitespace-nowrap">
+            {tickerItems.map((idx, i) => (
+              <span key={`${idx.symbol}-${i}`} className="inline-flex items-center gap-1.5 text-[11px] font-mono">
+                <span className="text-gray-500">{idx.name}</span>
+                <span className="text-white font-bold">
+                  {idx.price >= 1000
+                    ? idx.price.toLocaleString('en-US', { maximumFractionDigits: 0 })
+                    : idx.price.toFixed(2)}
+                </span>
+                <span className={idx.change_percent >= 0 ? 'text-green-400' : 'text-red-400'}>
+                  {idx.change_percent >= 0 ? '▲' : '▼'}{Math.abs(idx.change_percent).toFixed(2)}%
+                </span>
+              </span>
+            ))}
           </div>
         </div>
+      )}
 
-        {/* Loading skeleton */}
-        {loading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[1,2,3,4].map(i => (
-              <div key={i} className="h-28 bg-slate-800 rounded-xl animate-pulse"></div>
-            ))}
+      <div className="px-4 py-3 space-y-3">
+        {/* 3. 4-Panel Market Grid */}
+        <div className="border border-[#1a3a5c] rounded-sm overflow-hidden">
+          <div className="bg-[#0a1929] border-b border-[#1a3a5c] px-3 py-1 flex items-center gap-2">
+            <span className="text-[10px] font-mono font-bold text-[#5ba4d4] uppercase tracking-widest">Markets Overview</span>
+            <span className="text-[9px] font-mono text-gray-600">Equities · Commodities · Crypto</span>
           </div>
-        )}
+          <MarketGrid
+            globalIndices={globalIndices}
+            commodities={commodities}
+            crypto={crypto}
+            loading={loading}
+          />
+        </div>
 
-        {/* 4 Key Metric Cards */}
-        {!loading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {macroCards.map((card, i) => (
-              <div key={i} className="flex flex-col gap-2 rounded-xl p-5 border border-slate-800 bg-slate-900 shadow-sm">
-                <div className="flex justify-between items-start">
-                  <p className="text-slate-400 text-sm font-medium">{card.label}</p>
-                  <span className="material-symbols-outlined text-slate-400 text-[18px]" title="Source: FRED Economic Data">info</span>
-                </div>
-                <p className="text-slate-100 text-3xl font-bold tracking-tight mt-1">{card.value}</p>
-                <div className="flex items-center gap-2 mt-1">
-                  {card.positive !== null ? (
-                    <>
-                      <span className={`material-symbols-outlined text-[16px] ${card.positive ? 'text-green-500' : 'text-red-500'}`}>
-                        {card.positive ? 'trending_up' : 'trending_down'}
-                      </span>
-                      <p className={`text-sm font-medium ${card.positive ? 'text-green-500' : 'text-red-500'}`}>{card.changeLabel}</p>
-                    </>
-                  ) : (
-                    <>
-                      <span className="material-symbols-outlined text-slate-400 text-[16px]">horizontal_rule</span>
-                      <p className="text-slate-400 text-sm font-medium">{card.changeLabel}</p>
-                    </>
-                  )}
-                </div>
-              </div>
-            ))}
+        {/* 4. Macro + Sentiment */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div className="lg:col-span-2">
+            <MacroPanel
+              highlights={highlights}
+              pmi={pmi}
+              jobless={jobless}
+              consumer={consumer}
+              loading={loading}
+            />
           </div>
-        )}
+          <SentimentGauge value={sentiment} loading={loading} />
+        </div>
 
-        {/* Charts + AI Intelligence */}
-        {!loading && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Historical Trends Chart (2/3 width) */}
-            <div className="lg:col-span-2 flex flex-col gap-4 rounded-xl border border-slate-800 bg-slate-900 p-6 shadow-sm">
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="text-slate-100 text-lg font-bold">Historical Trends (10 Years)</h3>
-                <div className="flex gap-2">
-                  {['GDP', 'CPI', 'Rates'].map(btn => (
-                    <button
-                      key={btn}
-                      onClick={() => setActiveChart(btn)}
-                      className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${activeChart === btn ? 'bg-primary text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}`}
-                    >
-                      {btn}
-                    </button>
-                  ))}
-                </div>
+        {/* 5. Yield Curve + Forex */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div className="lg:col-span-2">
+            <YieldCurveChart curveData={curveData} loading={loading} />
+          </div>
+          <ForexPanel forex={forex} loading={loading} />
+        </div>
+
+        {/* 6. Sector + Calendar */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div className="lg:col-span-2">
+            <SectorPanel sectors={sectors} loading={loading} />
+          </div>
+          <EconomicCalendarPanel events={calendar} loading={loading} />
+        </div>
+
+        {/* 7. FOMC Analysis */}
+        <BloombergPanelWrapper title="Latest FOMC Analysis" badge="AI">
+          {!fomc ? (
+            <p className="text-[10px] text-gray-600 font-mono py-2">Loading FOMC data...</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-[9px] font-mono text-gray-500 uppercase tracking-wider mb-1">Meeting</p>
+                <p className="text-[11px] font-mono text-[#5ba4d4]">{fomc.date}</p>
+                <p className="text-[12px] font-mono text-white font-bold mt-1 leading-snug">{fomc.title}</p>
               </div>
-
-              {/* Chart area with SVG line */}
-              <div className="flex-1 w-full min-h-[280px] relative rounded-lg bg-slate-800/50 p-4 border border-slate-800/50 flex flex-col justify-end">
-                <svg
-                  className="absolute bottom-10 left-0 w-full h-[calc(100%-40px)] px-4"
-                  viewBox="0 0 800 250"
-                  preserveAspectRatio="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <defs>
-                    <linearGradient id="gradient-primary" x1="0" x2="0" y1="0" y2="1">
-                      <stop offset="0%" stopColor="#00498C" stopOpacity="1" />
-                      <stop offset="100%" stopColor="#00498C" stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
-                  {/* GDP trend */}
-                  {activeChart === 'GDP' && (
-                    <>
-                      <path d="M0 200 C 50 200, 100 180, 150 150 C 200 120, 250 160, 300 140 C 350 120, 400 80, 450 90 C 500 100, 550 50, 600 60 C 650 70, 700 20, 750 30 C 800 40, 800 40, 800 40 V 250 H 0 V 200 Z"
-                        fill="url(#gradient-primary)" opacity="0.2" />
-                      <path d="M0 200 C 50 200, 100 180, 150 150 C 200 120, 250 160, 300 140 C 350 120, 400 80, 450 90 C 500 100, 550 50, 600 60 C 650 70, 700 20, 750 30 C 800 40, 800 40, 800 40"
-                        stroke="#00498C" strokeWidth="3" fill="none" strokeLinecap="round" />
-                    </>
-                  )}
-                  {/* CPI trend */}
-                  {activeChart === 'CPI' && (
-                    <>
-                      <path d="M0 220 C 60 210, 120 180, 180 160 C 240 140, 300 150, 360 120 C 420 90, 450 40, 480 30 C 510 20, 560 60, 620 80 C 680 100, 740 120, 800 130 V 250 H 0 Z"
-                        fill="url(#gradient-primary)" opacity="0.2" />
-                      <path d="M0 220 C 60 210, 120 180, 180 160 C 240 140, 300 150, 360 120 C 420 90, 450 40, 480 30 C 510 20, 560 60, 620 80 C 680 100, 740 120, 800 130"
-                        stroke="#00498C" strokeWidth="3" fill="none" strokeLinecap="round" />
-                    </>
-                  )}
-                  {/* Rates trend */}
-                  {activeChart === 'Rates' && (
-                    <>
-                      <path d="M0 230 C 80 230, 160 225, 240 220 C 300 215, 360 210, 400 200 C 440 190, 460 160, 500 100 C 540 50, 570 30, 620 30 C 680 30, 740 35, 800 40 V 250 H 0 Z"
-                        fill="url(#gradient-primary)" opacity="0.2" />
-                      <path d="M0 230 C 80 230, 160 225, 240 220 C 300 215, 360 210, 400 200 C 440 190, 460 160, 500 100 C 540 50, 570 30, 620 30 C 680 30, 740 35, 800 40"
-                        stroke="#00498C" strokeWidth="3" fill="none" strokeLinecap="round" />
-                    </>
-                  )}
-                </svg>
-                <div className="flex justify-between w-full text-xs text-slate-400 mt-auto pt-4 border-t border-slate-700 z-10">
-                  {['2014', '2016', '2018', '2020', '2022', '2024'].map(y => <span key={y}>{y}</span>)}
-                </div>
-              </div>
-
-              {/* Additional indicators row */}
-              {macroHighlights?.data && macroHighlights.data.length > 4 && (
-                <div className="grid grid-cols-3 gap-3 mt-2">
-                  {macroHighlights.data.slice(4, 7).map((item, i) => (
-                    <div key={i} className="bg-slate-800 rounded-lg p-3">
-                      <p className="text-xs text-slate-400 mb-1">{item.name}</p>
-                      <p className="text-lg font-bold">{Number(item.value).toFixed(2)}{item.unit || '%'}</p>
+              {fomcSummary ? (
+                <div>
+                  <p className="text-[10px] font-mono text-gray-400 mb-3 leading-relaxed">
+                    {fomcSummary.summary?.substring(0, 200)}...
+                  </p>
+                  {fomcSummary.hawk_dove_score != null && (
+                    <div className="mb-2">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[9px] font-mono text-gray-500 uppercase tracking-wider">Dove</span>
+                        <span className="text-[9px] font-mono text-gray-400 font-bold">
+                          Hawk/Dove: {fomcSummary.hawk_dove_score.toFixed(0)}
+                        </span>
+                        <span className="text-[9px] font-mono text-gray-500 uppercase tracking-wider">Hawk</span>
+                      </div>
+                      <div className="bg-[#1a3a5c] rounded h-1.5">
+                        <div
+                          className={`h-full rounded transition-all ${fomcSummary.hawk_dove_score > 50 ? 'bg-red-500' : 'bg-blue-500'}`}
+                          style={{ width: `${fomcSummary.hawk_dove_score}%` }}
+                        />
+                      </div>
                     </div>
-                  ))}
+                  )}
+                  {fomcSummary.keywords && (
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {fomcSummary.keywords.slice(0, 6).map((kw, i) => (
+                        <span key={i} className="text-[9px] font-mono bg-[#0070cc]/20 text-[#5ba4d4] px-2 py-0.5 rounded-sm">
+                          {kw}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
+              ) : (
+                <p className="text-[10px] text-gray-600 font-mono">Loading AI analysis...</p>
               )}
             </div>
-
-            {/* AI Intelligence Panel (1/3 width) */}
-            <div className="flex flex-col gap-4 rounded-xl border border-slate-800 bg-slate-900 p-6 shadow-sm">
-              <div className="flex justify-between items-center mb-2 border-b border-slate-800 pb-4">
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary">smart_toy</span>
-                  <h3 className="text-slate-100 text-lg font-bold">AI Intelligence</h3>
-                </div>
-                <span className="text-xs bg-primary/10 text-blue-400 px-2 py-1 rounded-full font-medium">Latest FOMC</span>
-              </div>
-
-              <div className="flex flex-col gap-4 flex-1 overflow-y-auto pr-1">
-                {getFomcBullets().map((bullet, i) => (
-                  <div key={i} className="flex gap-3 items-start">
-                    <div className={`mt-1.5 w-2 h-2 rounded-full flex-shrink-0 ${bullet.primary ? 'bg-primary' : 'bg-slate-500'}`}></div>
-                    <p className="text-sm text-slate-300 leading-relaxed">
-                      <strong className="text-slate-100">{bullet.title}:</strong> {bullet.text}
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              <button className="mt-auto w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
-                Read Full Analysis
-                <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Global Economic Health Map */}
-        {!loading && (
-          <div className="flex flex-col gap-4 rounded-xl border border-slate-800 bg-slate-900 p-6 shadow-sm min-h-[300px]">
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <h3 className="text-slate-100 text-lg font-bold">Global Economic Health</h3>
-                <p className="text-sm text-slate-400">Interactive map showing GDP growth forecasts by region</p>
-              </div>
-              <div className="flex items-center gap-4 text-xs text-slate-400">
-                <div className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-red-500/80 inline-block"></span> Contracting</div>
-                <div className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-slate-600 inline-block"></span> Stagnant</div>
-                <div className="flex items-center gap-1"><span className="w-3 h-3 rounded-sm bg-green-500/80 inline-block"></span> Growing</div>
-              </div>
-            </div>
-            <div
-              className="w-full flex-1 min-h-[200px] bg-slate-800/50 rounded-lg border border-slate-800/50 overflow-hidden relative"
-              style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)', backgroundSize: '20px 20px' }}
-            >
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center p-6 bg-slate-800/80 backdrop-blur-sm rounded-xl border border-slate-700 text-white shadow-xl max-w-md">
-                  <span className="material-symbols-outlined text-4xl mb-2 text-primary block">public</span>
-                  <h4 className="text-lg font-bold mb-2">Interactive Global Map Module</h4>
-                  <p className="text-sm text-slate-300">This area will render a WebGL interactive globe plotting real-time international economic data indicators.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+          )}
+        </BloombergPanelWrapper>
       </div>
     </div>
   )
