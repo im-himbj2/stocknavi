@@ -129,7 +129,7 @@ const EconomicIndicators = () => {
         </div>
         {lastUpdated && (
           <span className="text-[9px] font-mono text-gray-600">
-            Updated {lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+            {t('economic.updated')} {lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
           </span>
         )}
       </div>
@@ -162,8 +162,8 @@ const EconomicIndicators = () => {
         {/* 3. 4-Panel Market Grid */}
         <div className="border border-[#1a3a5c] rounded-sm overflow-hidden">
           <div className="bg-[#0a1929] border-b border-[#1a3a5c] px-3 py-1 flex items-center gap-2">
-            <span className="text-[10px] font-mono font-bold text-[#5ba4d4] uppercase tracking-widest">Markets Overview</span>
-            <span className="text-[9px] font-mono text-gray-600">Equities · Commodities · Crypto</span>
+            <span className="text-[10px] font-mono font-bold text-[#5ba4d4] uppercase tracking-widest">{t('economic.marketsOverview')}</span>
+            <span className="text-[9px] font-mono text-gray-600">{t('economic.marketsOverviewSub')}</span>
           </div>
           <MarketGrid
             globalIndices={globalIndices}
@@ -204,13 +204,13 @@ const EconomicIndicators = () => {
         </div>
 
         {/* 7. FOMC Analysis */}
-        <BloombergPanelWrapper title="Latest FOMC Analysis" badge="AI">
+        <BloombergPanelWrapper title={t('economic.fomcAnalysis')} badge="AI">
           {!fomc ? (
             <p className="text-[10px] text-gray-600 font-mono py-2">{t('economic.loading')}</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <p className="text-[9px] font-mono text-gray-500 uppercase tracking-wider mb-1">Meeting</p>
+                <p className="text-[9px] font-mono text-gray-500 uppercase tracking-wider mb-1">{t('economic.meeting')}</p>
                 <p className="text-[11px] font-mono text-[#5ba4d4]">{fomc.date}</p>
                 <p className="text-[12px] font-mono text-white font-bold mt-1 leading-snug">{fomc.title}</p>
               </div>
@@ -247,7 +247,7 @@ const EconomicIndicators = () => {
                   )}
                 </div>
               ) : (
-                <p className="text-[10px] text-gray-600 font-mono">Loading AI analysis...</p>
+                <p className="text-[10px] text-gray-600 font-mono">{t('economic.loadingAI')}</p>
               )}
             </div>
           )}

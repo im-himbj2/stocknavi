@@ -1,13 +1,6 @@
 import React from 'react'
 import BloombergPanelWrapper, { Skeleton } from './BloombergPanelWrapper'
-
-const getLabel = (v) => {
-  if (v < 25) return 'Extreme Fear'
-  if (v < 45) return 'Fear'
-  if (v < 55) return 'Neutral'
-  if (v < 75) return 'Greed'
-  return 'Extreme Greed'
-}
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const getColor = (v) => {
   if (v < 25) return '#dc2626'
@@ -18,6 +11,16 @@ const getColor = (v) => {
 }
 
 const SentimentGauge = ({ value = null, loading = false }) => {
+  const { t } = useLanguage()
+
+  const getLabel = (v) => {
+    if (v < 25) return t('economic.extremeFear')
+    if (v < 45) return t('economic.fear')
+    if (v < 55) return t('economic.neutral')
+    if (v < 75) return t('economic.greed')
+    return t('economic.extremeGreed')
+  }
+
   const score = value != null ? Math.max(0, Math.min(100, Number(value))) : null
   const color = score != null ? getColor(score) : '#4b5563'
   const label = score != null ? getLabel(score) : '—'
@@ -28,7 +31,7 @@ const SentimentGauge = ({ value = null, loading = false }) => {
   const needleAngle = score != null ? (score / 100) * 180 - 90 : -90
 
   return (
-    <BloombergPanelWrapper title="Fear & Greed" badge="CNN">
+    <BloombergPanelWrapper title={t('economic.fearGreed')} badge="CNN">
       {loading
         ? <div className="flex flex-col items-center gap-2 py-2"><Skeleton className="w-36 h-20" /><Skeleton className="w-16 h-5" /></div>
         : (

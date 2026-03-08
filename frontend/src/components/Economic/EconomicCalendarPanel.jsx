@@ -1,5 +1,6 @@
 import React from 'react'
 import BloombergPanelWrapper, { Skeleton } from './BloombergPanelWrapper'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const impactColor = (impact) => {
   if (!impact) return 'text-gray-600'
@@ -15,31 +16,32 @@ const impactDots = (impact) => {
   return '●'.repeat(count) + '○'.repeat(3 - count)
 }
 
-const fmtDate = (dateStr) => {
-  if (!dateStr) return '—'
-  try {
-    const d = new Date(dateStr)
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-  } catch { return dateStr.slice(5, 10) }
-}
-
 const EconomicCalendarPanel = ({ events = [], loading = false }) => {
+  const { t, lang } = useLanguage()
   // Filter to upcoming + recent, show max 12
   const sorted = [...events]
     .sort((a, b) => new Date(a.date) - new Date(b.date))
     .slice(0, 12)
 
+  const fmtDate = (dateStr) => {
+    if (!dateStr) return '—'
+    try {
+      const d = new Date(dateStr)
+      return d.toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US', { month: 'short', day: 'numeric' })
+    } catch { return dateStr.slice(5, 10) }
+  }
+
   return (
-    <BloombergPanelWrapper title="Economic Calendar" badge="FMP">
+    <BloombergPanelWrapper title={t('economic.economicCalendar')} badge="FMP">
       {loading
         ? Array(6).fill(0).map((_, i) => <Skeleton key={i} className="h-8 w-full mb-1" />)
         : sorted.length > 0
           ? (
             <div className="overflow-hidden">
               <div className="flex text-[8px] font-mono text-gray-600 uppercase tracking-wider pb-1 border-b border-[#1a3a5c] mb-1">
-                <span className="w-14">Date</span>
-                <span className="flex-1">Event</span>
-                <span className="w-8 text-right">Imp</span>
+                <span className="w-14">{t('economic.calDate')}</span>
+                <span className="flex-1">{t('economic.calEvent')}</span>
+                <span className="w-8 text-right">{t('economic.calImpact')}</span>
               </div>
               {sorted.map((evt, i) => (
                 <div key={i} className="flex items-start py-1 border-b border-[#1a3a5c]/30 last:border-0">
@@ -65,7 +67,7 @@ const EconomicCalendarPanel = ({ events = [], loading = false }) => {
               ))}
             </div>
           )
-          : <p className="text-[10px] text-gray-600 font-mono py-6 text-center">No events</p>
+          : <p className="text-[10px] text-gray-600 font-mono py-6 text-center">{t('economic.noEvents')}</p>
       }
     </BloombergPanelWrapper>
   )

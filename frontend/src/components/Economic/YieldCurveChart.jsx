@@ -3,6 +3,7 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts'
 import BloombergPanelWrapper, { Skeleton } from './BloombergPanelWrapper'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null
@@ -15,12 +16,13 @@ const CustomTooltip = ({ active, payload, label }) => {
 }
 
 const YieldCurveChart = ({ curveData = [], loading = false }) => {
+  const { t } = useLanguage()
   const isInverted = curveData.length >= 2 && curveData[0]?.yield > curveData[curveData.length - 1]?.yield
 
   return (
     <BloombergPanelWrapper
-      title="Treasury Yield Curve"
-      badge={isInverted ? 'INVERTED ⚠' : 'NORMAL'}
+      title={t('economic.yieldCurve')}
+      badge={isInverted ? t('economic.inverted') : t('economic.normal')}
     >
       {loading
         ? <Skeleton className="h-40 w-full" />
@@ -29,7 +31,7 @@ const YieldCurveChart = ({ curveData = [], loading = false }) => {
             <div>
               {isInverted && (
                 <p className="text-[9px] font-mono text-amber-400 mb-2 flex items-center gap-1">
-                  ⚠ Yield curve inversion — recession signal
+                  {t('economic.inversionWarning')}
                 </p>
               )}
               <ResponsiveContainer width="100%" height={140}>
@@ -77,7 +79,7 @@ const YieldCurveChart = ({ curveData = [], loading = false }) => {
               </div>
             </div>
           )
-          : <p className="text-[10px] text-gray-600 font-mono py-6 text-center">No yield data</p>
+          : <p className="text-[10px] text-gray-600 font-mono py-6 text-center">{t('economic.noYieldData')}</p>
       }
     </BloombergPanelWrapper>
   )

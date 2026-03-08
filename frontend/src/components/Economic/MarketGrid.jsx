@@ -1,7 +1,9 @@
 import React from 'react'
 import BloombergPanelWrapper, { Skeleton, MarketRow } from './BloombergPanelWrapper'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const MarketGrid = ({ globalIndices = [], commodities = [], crypto = [], loading = false }) => {
+  const { t } = useLanguage()
   const usIndices = globalIndices.filter(i => i.region === 'US')
   const globalMkts = globalIndices.filter(i => i.region !== 'US')
 
@@ -14,7 +16,7 @@ const MarketGrid = ({ globalIndices = [], commodities = [], crypto = [], loading
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-[#1a3a5c]/30">
       {/* US Equities */}
-      <BloombergPanelWrapper title="US Equities" badge="NYSE" className="rounded-none border-0">
+      <BloombergPanelWrapper title={t('economic.usEquities')} badge="NYSE" className="rounded-none border-0">
         {loading && usIndices.length === 0
           ? Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-7 w-full mb-1" />)
           : usIndices.length > 0
@@ -26,12 +28,12 @@ const MarketGrid = ({ globalIndices = [], commodities = [], crypto = [], loading
                   changePercent={idx.change_percent}
                 />
               ))
-            : <p className="text-[10px] text-gray-600 font-mono">No data</p>
+            : <p className="text-[10px] text-gray-600 font-mono">{t('economic.noData')}</p>
         }
       </BloombergPanelWrapper>
 
       {/* Global Markets */}
-      <BloombergPanelWrapper title="Global Markets" badge="INTL" className="rounded-none border-0">
+      <BloombergPanelWrapper title={t('economic.globalMarkets')} badge="INTL" className="rounded-none border-0">
         {loading && globalMkts.length === 0
           ? Array(5).fill(0).map((_, i) => <Skeleton key={i} className="h-7 w-full mb-1" />)
           : globalMkts.length > 0
@@ -43,12 +45,12 @@ const MarketGrid = ({ globalIndices = [], commodities = [], crypto = [], loading
                   changePercent={idx.change_percent}
                 />
               ))
-            : <p className="text-[10px] text-gray-600 font-mono">No data</p>
+            : <p className="text-[10px] text-gray-600 font-mono">{t('economic.noData')}</p>
         }
       </BloombergPanelWrapper>
 
       {/* Commodities */}
-      <BloombergPanelWrapper title="Commodities" badge="CME" className="rounded-none border-0">
+      <BloombergPanelWrapper title={t('economic.commodities')} badge="CME" className="rounded-none border-0">
         {loading && commodities.length === 0
           ? Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-7 w-full mb-1" />)
           : commodities.length > 0
@@ -61,12 +63,12 @@ const MarketGrid = ({ globalIndices = [], commodities = [], crypto = [], loading
                   unit={item.unit ? ` ${item.unit.split('/')[1] || ''}` : ''}
                 />
               ))
-            : <p className="text-[10px] text-gray-600 font-mono">No data</p>
+            : <p className="text-[10px] text-gray-600 font-mono">{t('economic.noData')}</p>
         }
       </BloombergPanelWrapper>
 
       {/* Crypto */}
-      <BloombergPanelWrapper title="Crypto" badge="24H" className="rounded-none border-0">
+      <BloombergPanelWrapper title={t('economic.crypto')} badge="24H" className="rounded-none border-0">
         {loading && crypto.length === 0
           ? Array(4).fill(0).map((_, i) => <Skeleton key={i} className="h-7 w-full mb-1" />)
           : crypto.length > 0
@@ -83,7 +85,7 @@ const MarketGrid = ({ globalIndices = [], commodities = [], crypto = [], loading
                   </div>
                 </div>
               ))
-            : <p className="text-[10px] text-gray-600 font-mono">No data</p>
+            : <p className="text-[10px] text-gray-600 font-mono">{t('economic.noData')}</p>
         }
       </BloombergPanelWrapper>
     </div>

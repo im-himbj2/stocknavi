@@ -3,6 +3,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell
 } from 'recharts'
 import BloombergPanelWrapper, { Skeleton } from './BloombergPanelWrapper'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const CustomTooltip = ({ active, payload }) => {
   if (!active || !payload?.length) return null
@@ -19,10 +20,11 @@ const CustomTooltip = ({ active, payload }) => {
 }
 
 const SectorPanel = ({ sectors = [], loading = false }) => {
+  const { t } = useLanguage()
   const sorted = [...sectors].sort((a, b) => b.change_percent - a.change_percent)
 
   return (
-    <BloombergPanelWrapper title="Sector Performance" badge="1M">
+    <BloombergPanelWrapper title={t('economic.sectorPerformance')} badge="1M">
       {loading
         ? <Skeleton className="h-52 w-full" />
         : sorted.length > 0
@@ -62,7 +64,7 @@ const SectorPanel = ({ sectors = [], loading = false }) => {
               </BarChart>
             </ResponsiveContainer>
           )
-          : <p className="text-[10px] text-gray-600 font-mono py-6 text-center">No sector data</p>
+          : <p className="text-[10px] text-gray-600 font-mono py-6 text-center">{t('economic.noSectorData')}</p>
       }
     </BloombergPanelWrapper>
   )

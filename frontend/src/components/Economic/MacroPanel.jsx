@@ -1,5 +1,6 @@
 import React from 'react'
 import BloombergPanelWrapper, { Skeleton } from './BloombergPanelWrapper'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const MacroItem = ({ label, value, unit = '', sublabel = '' }) => (
   <div className="flex items-center justify-between py-1.5 border-b border-[#1a3a5c]/40 last:border-0">
@@ -15,6 +16,8 @@ const MacroItem = ({ label, value, unit = '', sublabel = '' }) => (
 )
 
 const MacroPanel = ({ highlights = [], pmi = null, jobless = null, consumer = null, loading = false }) => {
+  const { t } = useLanguage()
+
   const get = (name) => {
     const item = highlights.find(h => h.name === name)
     return item?.value != null ? Number(item.value).toFixed(2) : null
@@ -29,18 +32,18 @@ const MacroPanel = ({ highlights = [], pmi = null, jobless = null, consumer = nu
   const pmiVal = pmi ? Number(pmi).toFixed(1) : null
 
   return (
-    <BloombergPanelWrapper title="Macro Indicators" badge="FRED/FMP">
+    <BloombergPanelWrapper title={t('economic.macroIndicators')} badge="FRED/FMP">
       {loading
         ? Array(7).fill(0).map((_, i) => <Skeleton key={i} className="h-8 w-full mb-1" />)
         : (
           <>
-            <MacroItem label="GDP Growth QoQ" value={get('GDP')} unit="%" sublabel="Latest quarter" />
-            <MacroItem label="CPI YoY" value={get('CPI')} unit="%" sublabel="Inflation" />
-            <MacroItem label="Unemployment" value={get('unemploymentRate')} unit="%" sublabel="Rate" />
-            <MacroItem label="Fed Funds Rate" value={get('interestRate')} unit="%" sublabel="Target rate" />
-            <MacroItem label="ISM Mfg PMI" value={pmiVal} sublabel={pmiVal ? (Number(pmiVal) >= 50 ? 'Expansion' : 'Contraction') : ''} />
-            <MacroItem label="Jobless Claims" value={latestVal(jobless)} unit="K" sublabel="Weekly initial" />
-            <MacroItem label="Consumer Sentiment" value={latestVal(consumer)} sublabel="Univ. of Michigan" />
+            <MacroItem label={t('economic.gdpGrowth')} value={get('GDP')} unit="%" sublabel={t('economic.latestQuarter')} />
+            <MacroItem label={t('economic.cpiYoY')} value={get('CPI')} unit="%" sublabel={t('economic.inflation')} />
+            <MacroItem label={t('economic.unemployment')} value={get('unemploymentRate')} unit="%" sublabel={t('economic.unemploymentRate')} />
+            <MacroItem label={t('economic.fedFundsRate')} value={get('interestRate')} unit="%" sublabel={t('economic.targetRate')} />
+            <MacroItem label={t('economic.ismPMI')} value={pmiVal} sublabel={pmiVal ? (Number(pmiVal) >= 50 ? t('economic.expansion') : t('economic.contraction')) : ''} />
+            <MacroItem label={t('economic.joblessClaims')} value={latestVal(jobless)} unit="K" sublabel={t('economic.weeklyInitial')} />
+            <MacroItem label={t('economic.consumerSentiment')} value={latestVal(consumer)} sublabel={t('economic.univMichigan')} />
           </>
         )
       }

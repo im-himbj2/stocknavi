@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { ComposableMap, Geographies, Geography, ZoomableGroup } from 'react-simple-maps'
 import { Tooltip } from 'react-tooltip'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
 
@@ -46,15 +47,16 @@ const CONFLICT_COLORS = {
   none:     '#1e3a5f',
 }
 
-const LEGEND = [
-  { level: 'war',      label: 'Active War',  color: '#dc2626' },
-  { level: 'conflict', label: 'Conflict',    color: '#ea580c' },
-  { level: 'tensions', label: 'Tensions',    color: '#ca8a04' },
+const LEGEND_LEVELS = [
+  { level: 'war',      color: '#dc2626', labelKey: 'legendWar' },
+  { level: 'conflict', color: '#ea580c', labelKey: 'legendConflict' },
+  { level: 'tensions', color: '#ca8a04', labelKey: 'legendTensions' },
 ]
 
 const conflictLookup = new Map(CONFLICT_ZONES.map(z => [z.numericCode, z]))
 
 const WorldConflictMap = () => {
+  const { t } = useLanguage()
   const [tooltip, setTooltip] = useState('')
 
   return (
@@ -62,7 +64,7 @@ const WorldConflictMap = () => {
       {/* Header */}
       <div className="absolute top-2.5 left-3 z-10">
         <span className="text-[10px] font-mono font-bold text-[#5ba4d4] uppercase tracking-widest">
-          Global Risk Monitor
+          {t('economic.globalRiskMonitor')}
         </span>
         <span className="ml-2 text-[9px] text-gray-600 font-mono">
           {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
@@ -71,17 +73,17 @@ const WorldConflictMap = () => {
 
       {/* Legend */}
       <div className="absolute top-2.5 right-3 z-10 flex gap-3">
-        {LEGEND.map(({ level, label, color }) => (
+        {LEGEND_LEVELS.map(({ level, color, labelKey }) => (
           <span key={level} className="flex items-center gap-1 text-[9px] font-mono text-gray-400">
             <span className="w-2.5 h-2.5 rounded-full inline-block flex-shrink-0" style={{ backgroundColor: color }} />
-            {label}
+            {t(`economic.${labelKey}`)}
           </span>
         ))}
       </div>
 
       {/* Count badges */}
       <div className="absolute bottom-2.5 left-3 z-10 flex gap-2">
-        {LEGEND.map(({ level, label, color }) => {
+        {LEGEND_LEVELS.map(({ level, color, labelKey }) => {
           const count = CONFLICT_ZONES.filter(z => z.level === level).length
           return (
             <span
@@ -89,7 +91,7 @@ const WorldConflictMap = () => {
               className="text-[9px] font-mono px-1.5 py-0.5 rounded-sm"
               style={{ backgroundColor: color + '30', color, border: `1px solid ${color}60` }}
             >
-              {count} {label}
+              {count} {t(`economic.${labelKey}`)}
             </span>
           )
         })}

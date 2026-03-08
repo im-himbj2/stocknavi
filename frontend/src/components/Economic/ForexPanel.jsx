@@ -1,7 +1,9 @@
 import React from 'react'
 import BloombergPanelWrapper, { Skeleton } from './BloombergPanelWrapper'
+import { useLanguage } from '../../contexts/LanguageContext'
 
 const ForexPanel = ({ forex = [], loading = false }) => {
+  const { t } = useLanguage()
   const dxy = forex.find(f => f.symbol === 'DXY')
   const pairs = forex.filter(f => f.symbol !== 'DXY')
 
@@ -13,7 +15,7 @@ const ForexPanel = ({ forex = [], loading = false }) => {
   }
 
   return (
-    <BloombergPanelWrapper title="FX Rates" badge="FOREX">
+    <BloombergPanelWrapper title={t('economic.fxRates')} badge="FOREX">
       {loading
         ? Array(6).fill(0).map((_, i) => <Skeleton key={i} className="h-7 w-full mb-1" />)
         : (
@@ -43,7 +45,7 @@ const ForexPanel = ({ forex = [], loading = false }) => {
                     </span>
                   </div>
                 ))
-              : <p className="text-[10px] text-gray-600 font-mono">No FX data</p>
+              : <p className="text-[10px] text-gray-600 font-mono">{t('economic.noFxData')}</p>
             }
           </>
         )
