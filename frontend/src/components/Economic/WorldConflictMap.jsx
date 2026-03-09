@@ -219,6 +219,7 @@ const WorldConflictMap = () => {
   const lastPos = useRef(null)
   const containerRef = useRef(null)
   const dragMoved = useRef(false)
+  const draggingRef = useRef(false)
 
   // Wheel zoom
   useEffect(() => {
@@ -234,24 +235,25 @@ const WorldConflictMap = () => {
 
   const handlePointerDown = useCallback((e) => {
     e.currentTarget.setPointerCapture(e.pointerId)
+    draggingRef.current = true
     dragMoved.current = false
     setDragging(true)
     lastPos.current = { x: e.clientX, y: e.clientY }
   }, [])
 
   const handlePointerMove = useCallback((e) => {
-    if (!lastPos.current) return
+    if (!draggingRef.current || !lastPos.current) return
     const rawDx = e.clientX - lastPos.current.x
     const rawDy = e.clientY - lastPos.current.y
-    if (Math.abs(rawDx) > 3 || Math.abs(rawDy) > 3) {
+    if (Math.abs(rawDx) > 8 || Math.abs(rawDy) > 8) {
       dragMoved.current = true
     }
-    if (!dragging) return
     setRotation(r => [r[0] + rawDx * 0.35, Math.max(-90, Math.min(90, r[1] - rawDy * 0.35)), 0])
     lastPos.current = { x: e.clientX, y: e.clientY }
-  }, [dragging])
+  }, [])
 
   const handlePointerUp = useCallback(() => {
+    draggingRef.current = false
     setDragging(false)
     lastPos.current = null
   }, [])
