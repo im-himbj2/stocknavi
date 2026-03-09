@@ -218,6 +218,7 @@ const WorldConflictMap = () => {
   const [selectedZone, setSelectedZone] = useState(null)
   const lastPos = useRef(null)
   const containerRef = useRef(null)
+  const dragMoved = useRef(false)
 
   // Wheel zoom
   useEffect(() => {
@@ -233,15 +234,20 @@ const WorldConflictMap = () => {
 
   const handlePointerDown = useCallback((e) => {
     e.currentTarget.setPointerCapture(e.pointerId)
+    dragMoved.current = false
     setDragging(true)
     lastPos.current = { x: e.clientX, y: e.clientY }
   }, [])
 
   const handlePointerMove = useCallback((e) => {
-    if (!dragging || !lastPos.current) return
-    const dx = (e.clientX - lastPos.current.x) * 0.35
-    const dy = (e.clientY - lastPos.current.y) * 0.35
-    setRotation(r => [r[0] + dx, Math.max(-90, Math.min(90, r[1] - dy)), 0])
+    if (!lastPos.current) return
+    const rawDx = e.clientX - lastPos.current.x
+    const rawDy = e.clientY - lastPos.current.y
+    if (Math.abs(rawDx) > 3 || Math.abs(rawDy) > 3) {
+      dragMoved.current = true
+    }
+    if (!dragging) return
+    setRotation(r => [r[0] + rawDx * 0.35, Math.max(-90, Math.min(90, r[1] - rawDy * 0.35)), 0])
     lastPos.current = { x: e.clientX, y: e.clientY }
   }, [dragging])
 
@@ -366,9 +372,8 @@ const WorldConflictMap = () => {
                     hover:   { outline: 'none', fill: zone ? fill : '#263d5a', filter: 'brightness(1.4)', cursor: zone ? 'pointer' : 'default' },
                     pressed: { outline: 'none' },
                   }}
-                  onMouseDown={(e) => {
-                    if (zone && !dragging) {
-                      e.preventDefault()
+                  onClick={(e) => {
+                    if (zone && !dragMoved.current) {
                       e.stopPropagation()
                       setSelectedZone(zone)
                     }
