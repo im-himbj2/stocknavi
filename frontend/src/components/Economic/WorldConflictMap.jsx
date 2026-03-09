@@ -12,6 +12,33 @@ const LEVEL_COLORS = {
   none:     '#1a3356',
 }
 
+// 출처 기관 웹사이트
+const SOURCE_URLS = {
+  'ACLED': 'https://acleddata.com',
+  'UN OCHA': 'https://www.unocha.org',
+  'SIPRI': 'https://www.sipri.org',
+  'ICG': 'https://www.crisisgroup.org',
+  'CFR': 'https://www.cfr.org',
+  'UNHCR': 'https://www.unhcr.org',
+  'IAEA': 'https://www.iaea.org',
+  '38 North': 'https://www.38north.org',
+  'CSIS': 'https://www.csis.org',
+  'InSight Crime': 'https://insightcrime.org',
+  'Reuters': 'https://www.reuters.com/world',
+  'SOHR': 'https://www.syriahr.org',
+  'UNAMI': 'https://www.uniraq.org',
+  'UN UNIFIL': 'https://unifil.unmissions.org',
+  'UN MINUSMA': 'https://minusma.unmissions.org',
+  'ECOWAS': 'https://www.ecowas.int',
+  'UN BINUH': 'https://minujah.unmissions.org',
+  'AMISOM': 'https://amisom-au.org',
+  'MINUSCA': 'https://minusca.unmissions.org',
+  'UNAMA': 'https://unama.unmissions.org',
+  'OSCE': 'https://www.osce.org',
+  'UN Panel of Experts': 'https://www.un.org/securitycouncil',
+  'UN Security Council': 'https://www.un.org/securitycouncil',
+}
+
 const CONFLICT_ZONES = [
   // ======== 전쟁 (Active War) ========
   {
@@ -188,10 +215,11 @@ const WorldConflictMap = () => {
   const [rotation, setRotation] = useState([0, -20, 0])
   const [scale, setScale] = useState(170)
   const [dragging, setDragging] = useState(false)
+  const [selectedZone, setSelectedZone] = useState(null)
   const lastPos = useRef(null)
   const containerRef = useRef(null)
 
-  // Wheel zoom (non-passive to allow preventDefault)
+  // Wheel zoom
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
@@ -222,7 +250,7 @@ const WorldConflictMap = () => {
     lastPos.current = null
   }, [])
 
-  // Build rich HTML tooltip for conflict zones
+  // Build rich HTML tooltip for hover
   const buildTooltip = useCallback((zone) => {
     const name     = lang === 'ko' ? zone.nameKo : zone.name
     const nameAlt  = lang === 'ko' ? zone.name   : ''
@@ -234,18 +262,22 @@ const WorldConflictMap = () => {
       tensions: lang === 'ko' ? '긴장'  : 'TENSIONS',
     }[zone.level]
     const srcLabel = lang === 'ko' ? '출처' : 'Sources'
+    const clickLabel = lang === 'ko' ? '클릭하여 상세보기' : 'Click for details'
     const srcs     = zone.sources.join(' · ')
 
-    return `<div style="min-width:210px;max-width:290px;font-family:monospace">
-      <div style="font-size:12px;font-weight:700;color:#e2e8f0;margin-bottom:3px">
-        ${name}${nameAlt ? `&nbsp;<span style="color:#6b7280;font-size:10px;font-weight:400">${nameAlt}</span>` : ''}
+    return `<div style="min-width:240px;max-width:380px;font-family:monospace">
+      <div style="font-size:13px;font-weight:700;color:#e2e8f0;margin-bottom:4px">
+        ${name}${nameAlt ? `&nbsp;<span style="color:#6b7280;font-size:11px;font-weight:400">${nameAlt}</span>` : ''}
       </div>
-      <div style="display:inline-block;padding:1px 6px;border-radius:2px;background:${c}25;border:1px solid ${c}55;color:${c};font-size:9px;margin-bottom:7px;letter-spacing:.05em">
+      <div style="display:inline-block;padding:2px 7px;border-radius:2px;background:${c}25;border:1px solid ${c}55;color:${c};font-size:10px;margin-bottom:8px;letter-spacing:.05em">
         ● ${lvlLabel}
       </div>
-      <div style="font-size:10px;color:#d1d5db;line-height:1.45;margin-bottom:7px">${note}</div>
-      <div style="font-size:8.5px;color:#4b6280;border-top:1px solid #1a3a5c;padding-top:5px">
+      <div style="font-size:11px;color:#d1d5db;line-height:1.5;margin-bottom:8px">${note}</div>
+      <div style="font-size:9px;color:#4b6280;border-top:1px solid #1a3a5c;padding-top:5px;margin-bottom:6px">
         📋 ${srcLabel}: <span style="color:#5ba4d4">${srcs}</span>
+      </div>
+      <div style="font-size:8px;color:#5ba4d4;font-style:italic;padding-top:4px;border-top:1px solid #0a1929">
+        👆 ${clickLabel}
       </div>
     </div>`
   }, [lang])
@@ -307,11 +339,11 @@ const WorldConflictMap = () => {
         >⌂</button>
       </div>
 
-      {/* Globe */}
+      {/* Globe (larger) */}
       <ComposableMap
         projection="geoOrthographic"
         projectionConfig={{ scale, rotate: rotation }}
-        style={{ width: '100%', height: '320px' }}
+        style={{ width: '100%', height: '380px' }}
       >
         <Sphere fill="#0d2137" stroke="#1a3a5c" strokeWidth={0.8} />
         <Graticule stroke="#1a3a5c" strokeWidth={0.25} />
@@ -331,8 +363,15 @@ const WorldConflictMap = () => {
                   strokeWidth={0.4}
                   style={{
                     default: { outline: 'none' },
-                    hover:   { outline: 'none', fill: zone ? fill : '#263d5a', filter: 'brightness(1.4)', cursor: zone ? 'help' : 'default' },
+                    hover:   { outline: 'none', fill: zone ? fill : '#263d5a', filter: 'brightness(1.4)', cursor: zone ? 'pointer' : 'default' },
                     pressed: { outline: 'none' },
+                  }}
+                  onMouseDown={(e) => {
+                    if (zone && !dragging) {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      setSelectedZone(zone)
+                    }
                   }}
                   data-tooltip-id="conflict-tooltip"
                   data-tooltip-html={zone ? buildTooltip(zone) : undefined}
@@ -364,6 +403,98 @@ const WorldConflictMap = () => {
         </span>
       </div>
 
+      {/* Detail Panel on Click */}
+      {selectedZone && (
+        <div
+          className="fixed inset-0 z-30 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) setSelectedZone(null)
+          }}
+        >
+          <div className="bg-[#050d18] border-2 border-[#1a3a5c] rounded-lg p-6 max-w-lg w-full mx-4 max-h-[80vh] overflow-y-auto shadow-2xl">
+            {/* Header with close button */}
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h2 className="text-xl font-mono font-bold text-white mb-1">
+                  {lang === 'ko' ? selectedZone.nameKo : selectedZone.name}
+                </h2>
+                {lang === 'ko' && (
+                  <p className="text-sm font-mono text-gray-400">{selectedZone.name}</p>
+                )}
+              </div>
+              <button
+                onClick={() => setSelectedZone(null)}
+                className="text-gray-400 hover:text-white text-2xl leading-none"
+              >×</button>
+            </div>
+
+            {/* Level Badge */}
+            <div className="mb-4">
+              <span
+                className="inline-block px-3 py-1.5 rounded font-mono text-sm font-bold"
+                style={{
+                  backgroundColor: LEVEL_COLORS[selectedZone.level] + '25',
+                  border: `1px solid ${LEVEL_COLORS[selectedZone.level]}60`,
+                  color: LEVEL_COLORS[selectedZone.level],
+                }}
+              >
+                ● {lang === 'ko' ? (
+                  { war: '전쟁', conflict: '분쟁', tensions: '긴장' }[selectedZone.level]
+                ) : (
+                  { war: 'ACTIVE WAR', conflict: 'CONFLICT', tensions: 'TENSIONS' }[selectedZone.level]
+                )}
+              </span>
+            </div>
+
+            {/* Description */}
+            <div className="mb-6 space-y-2">
+              <p className="text-sm font-mono text-gray-300 leading-relaxed">
+                {selectedZone.note}
+              </p>
+              {lang === 'ko' && (
+                <p className="text-sm font-mono text-gray-400 leading-relaxed">
+                  {selectedZone.noteKo}
+                </p>
+              )}
+            </div>
+
+            {/* Sources Section */}
+            <div className="border-t border-[#1a3a5c] pt-4">
+              <p className="text-xs font-mono text-gray-500 uppercase tracking-widest mb-3">
+                {lang === 'ko' ? '📋 출처 정보' : '📋 Source Information'}
+              </p>
+              <div className="space-y-2">
+                {selectedZone.sources.map((source) => {
+                  const url = SOURCE_URLS[source] || '#'
+                  return (
+                    <a
+                      key={source}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-3 py-2 rounded bg-[#1a3a5c]/40 hover:bg-[#2a4a6c]/60 transition-colors text-sm font-mono text-[#5ba4d4] hover:text-white"
+                    >
+                      <span>→</span>
+                      <span>{source}</span>
+                    </a>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="mt-6 pt-4 border-t border-[#1a3a5c]/50">
+              <button
+                onClick={() => setSelectedZone(null)}
+                className="w-full px-4 py-2 bg-[#1a3a5c] hover:bg-[#2a4a6c] text-[#5ba4d4] font-mono text-sm rounded transition-colors"
+              >
+                {lang === 'ko' ? '닫기' : 'Close'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Tooltip
         id="conflict-tooltip"
         style={{
@@ -371,10 +502,10 @@ const WorldConflictMap = () => {
           border: '1px solid #1a3a5c',
           color: '#e2e8f0',
           fontFamily: 'monospace',
-          padding: '8px 12px',
+          padding: '10px 14px',
           zIndex: 9999,
           pointerEvents: 'none',
-          maxWidth: '300px',
+          maxWidth: '380px',
           boxShadow: '0 4px 20px rgba(0,0,0,0.6)',
         }}
       />
