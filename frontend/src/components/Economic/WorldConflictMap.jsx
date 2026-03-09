@@ -407,6 +407,9 @@ const WorldConflictMap = () => {
       {selectedZone && (
         <div
           className="fixed inset-0 z-30 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          onPointerDown={e => e.stopPropagation()}
+          onPointerMove={e => e.stopPropagation()}
+          onPointerUp={e => e.stopPropagation()}
         >
           <div className="bg-[#050d18] border-2 border-[#1a3a5c] rounded-lg p-6 max-w-lg w-full mx-4 max-h-[80vh] overflow-y-auto shadow-2xl">
             {/* Header with close button */}
