@@ -213,7 +213,7 @@ const conflictLookup = new Map(CONFLICT_ZONES.map(z => [z.numericCode, z]))
 const WorldConflictMap = () => {
   const { t, lang } = useLanguage()
   const [rotation, setRotation] = useState([0, -20, 0])
-  const [scale, setScale] = useState(170)
+  const [scale, setScale] = useState(280)
   const [dragging, setDragging] = useState(false)
   const [selectedZone, setSelectedZone] = useState(null)
   const lastPos = useRef(null)
@@ -333,7 +333,7 @@ const WorldConflictMap = () => {
           className="w-5 h-5 bg-[#1a3a5c] hover:bg-[#2a4a6c] text-[#5ba4d4] text-[14px] font-bold rounded-sm flex items-center justify-center leading-none"
         >−</button>
         <button
-          onClick={() => { setScale(170); setRotation([0, -20, 0]) }}
+          onClick={() => { setScale(280); setRotation([0, -20, 0]) }}
           className="w-5 h-5 bg-[#1a3a5c] hover:bg-[#2a4a6c] text-[#5ba4d4] text-[9px] font-bold rounded-sm flex items-center justify-center"
           title="Reset"
         >⌂</button>
@@ -407,9 +407,6 @@ const WorldConflictMap = () => {
       {selectedZone && (
         <div
           className="fixed inset-0 z-30 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-          onMouseDown={(e) => {
-            if (e.target === e.currentTarget) setSelectedZone(null)
-          }}
         >
           <div className="bg-[#050d18] border-2 border-[#1a3a5c] rounded-lg p-6 max-w-lg w-full mx-4 max-h-[80vh] overflow-y-auto shadow-2xl">
             {/* Header with close button */}
