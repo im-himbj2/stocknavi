@@ -240,7 +240,8 @@ const WorldConflictMap = () => {
 
   const handlePointerDown = useCallback((e) => {
     if (selectedZoneRef.current) return  // modal open → block drag
-    e.currentTarget.setPointerCapture(e.pointerId)
+    // NOTE: intentionally no setPointerCapture — it would also capture mouse events
+    // (click/mouseup), preventing Geography onClick from firing on child SVG paths
     draggingRef.current = true
     dragMoved.current = false
     setDragging(true)
