@@ -1,4 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { ComposableMap, Geographies, Geography, Sphere, Graticule } from 'react-simple-maps'
 import { Tooltip } from 'react-tooltip'
 import { useLanguage } from '../../contexts/LanguageContext'
@@ -220,6 +221,10 @@ const WorldConflictMap = () => {
   const containerRef = useRef(null)
   const dragMoved = useRef(false)
   const draggingRef = useRef(false)
+  const selectedZoneRef = useRef(null)
+
+  const openZone  = useCallback((zone) => { selectedZoneRef.current = zone; setSelectedZone(zone)  }, [])
+  const closeZone = useCallback(()     => { selectedZoneRef.current = null; setSelectedZone(null) }, [])
 
   // Wheel zoom
   useEffect(() => {
@@ -234,6 +239,7 @@ const WorldConflictMap = () => {
   }, [])
 
   const handlePointerDown = useCallback((e) => {
+    if (selectedZoneRef.current) return  // modal open → block drag
     e.currentTarget.setPointerCapture(e.pointerId)
     draggingRef.current = true
     dragMoved.current = false
@@ -377,7 +383,7 @@ const WorldConflictMap = () => {
                   onClick={(e) => {
                     if (zone && !dragMoved.current) {
                       e.stopPropagation()
-                      setSelectedZone(zone)
+                      openZone(zone)
                     }
                   }}
                   data-tooltip-id="conflict-tooltip"
@@ -410,14 +416,9 @@ const WorldConflictMap = () => {
         </span>
       </div>
 
-      {/* Detail Panel on Click */}
-      {selectedZone && (
-        <div
-          className="fixed inset-0 z-30 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-          onPointerDown={e => e.stopPropagation()}
-          onPointerMove={e => e.stopPropagation()}
-          onPointerUp={e => e.stopPropagation()}
-        >
+      {/* Detail Panel — rendered via portal so pointer events never reach the globe container */}
+      {selectedZone && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="bg-[#050d18] border-2 border-[#1a3a5c] rounded-lg p-6 max-w-lg w-full mx-4 max-h-[80vh] overflow-y-auto shadow-2xl">
             {/* Header with close button */}
             <div className="flex items-start justify-between mb-4">
@@ -430,7 +431,7 @@ const WorldConflictMap = () => {
                 )}
               </div>
               <button
-                onClick={() => setSelectedZone(null)}
+                onClick={closeZone}
                 className="text-gray-400 hover:text-white text-2xl leading-none"
               >×</button>
             </div>
@@ -492,14 +493,15 @@ const WorldConflictMap = () => {
             {/* Footer */}
             <div className="mt-6 pt-4 border-t border-[#1a3a5c]/50">
               <button
-                onClick={() => setSelectedZone(null)}
+                onClick={closeZone}
                 className="w-full px-4 py-2 bg-[#1a3a5c] hover:bg-[#2a4a6c] text-[#5ba4d4] font-mono text-sm rounded transition-colors"
               >
                 {lang === 'ko' ? '닫기' : 'Close'}
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       <Tooltip
