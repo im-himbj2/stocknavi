@@ -118,8 +118,8 @@ const CONFLICT_ZONES = [
   },
   {
     numericCode: '364', name: 'Iran', nameKo: '이란', level: 'war',
-    note: 'US-Israel Joint War on Iran (Feb 28, 2026–). ~900 strikes in 12 hrs on Day 1 targeting missiles, air defenses & leadership. Supreme Leader Khamenei killed. 1,300+ dead incl. civilians. Iran retaliated with 500+ ballistic missiles & 2,000 drones vs US/Israeli targets.',
-    noteKo: '미국·이스라엘 이란 전쟁 (2026.2.28~). 1일차 12시간 내 ~900회 공습(미사일 기지·방공망·지도부 타격). 최고지도자 하메네이 사망. 민간인 포함 1,300명+ 사망. 이란은 탄도미사일 500발+·드론 2,000여대로 미국·이스라엘 목표물 보복 공격.',
+    note: 'US-Israel Joint War (Feb 28, 2026–). Khamenei killed. 1,300+ dead. Iran retaliated with 500+ missiles & 2,000 drones.',
+    noteKo: '미·이스라엘 이란 전쟁 (2026.2.28~). 하메네이 사망. 사망 1,300명+. 이란 미사일 500발+·드론 2,000대로 보복.',
     sources: ['Al Jazeera', 'Reuters', 'BBC', 'AP', 'IAEA', 'UN Security Council', 'Britannica', 'Wikipedia'],
   },
 
@@ -481,15 +481,10 @@ const WorldConflictMap = () => {
             </div>
 
             {/* Description */}
-            <div className="mb-6 space-y-2">
+            <div className="mb-6">
               <p className="text-sm font-mono text-gray-300 leading-relaxed">
-                {selectedZone.note}
+                {lang === 'ko' ? selectedZone.noteKo : selectedZone.note}
               </p>
-              {lang === 'ko' && (
-                <p className="text-sm font-mono text-gray-400 leading-relaxed">
-                  {selectedZone.noteKo}
-                </p>
-              )}
             </div>
 
             {/* Sources Section */}
