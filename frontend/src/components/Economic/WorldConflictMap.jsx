@@ -6,6 +6,9 @@ import { useLanguage } from '../../contexts/LanguageContext'
 
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
 
+// ─── 데이터 최종 업데이트 날짜 (매일 갱신) ───────────────────────────────────
+const DATA_LAST_UPDATED = '2026-03-10'
+
 const LEVEL_COLORS = {
   war:      '#dc2626',
   conflict: '#ea580c',
@@ -341,8 +344,11 @@ const WorldConflictMap = () => {
         <span className="text-[10px] font-mono font-bold text-[#5ba4d4] uppercase tracking-widest">
           {t('economic.globalRiskMonitor')}
         </span>
-        <span className="text-[9px] text-gray-600 font-mono">
-          {new Date().toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+        <span className="flex items-center gap-1 text-[9px] font-mono text-gray-500">
+          <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse flex-shrink-0" />
+          {lang === 'ko' ? '업데이트' : 'Updated'}
+          {' '}
+          {new Date(DATA_LAST_UPDATED).toLocaleDateString(lang === 'ko' ? 'ko-KR' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
         </span>
         <span className="text-[8px] font-mono text-gray-700 italic">
           {lang === 'ko' ? '드래그·스크롤 줌' : 'drag · scroll to zoom'}
