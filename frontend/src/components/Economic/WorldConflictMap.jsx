@@ -13,6 +13,25 @@ const LEVEL_COLORS = {
   none:     '#1a3356',
 }
 
+// ─── 레벨 분류 기준 (Level Classification Criteria) ───────────────────────────
+//
+//  WAR  (red)      — 국가 간 직접 무력충돌 / State-vs-state direct armed hostilities
+//    • 주권국 군대 간 조직적·지속적 교전, 대규모 사상자 발생
+//    • 영토 점령·포위·체계적 군사작전 진행 중
+//    • 예: 러시아→우크라이나 침공, 미국·이스라엘→이란 공습 (2026.2)
+//
+//  CONFLICT (orange) — 비국가 무력행위·대리전·반군 전쟁 / Sub-state or proxy armed conflict
+//    • 반군·테러조직·민병대·카르텔 등과 정부군 간 지속 교전
+//    • 간헐적 국가간 군사 타격(지속 캠페인 수준 미만)
+//    • 예: 시리아(IS 재건), 이라크(이란계 민병대), 콜롬비아(FARC 잔당)
+//
+//  TENSIONS (yellow) — 군사 위협·충돌 위험 / Military posturing without active combat
+//    • 군비 증강·위협·영토 분쟁(실제 교전 없음)
+//    • 외교 위기·제재·역사적 적대 관계 유지
+//    • 예: 북한(ICBM), 대만해협, 인도-파키스탄 카슈미르
+//
+// ────────────────────────────────────────────────────────────────────────────────
+
 // 출처 기관 웹사이트
 const SOURCE_URLS = {
   'ACLED': 'https://acleddata.com',
@@ -26,6 +45,9 @@ const SOURCE_URLS = {
   'CSIS': 'https://www.csis.org',
   'InSight Crime': 'https://insightcrime.org',
   'Reuters': 'https://www.reuters.com/world',
+  'Al Jazeera': 'https://www.aljazeera.com',
+  'BBC': 'https://www.bbc.com/news/world',
+  'AP': 'https://apnews.com',
   'SOHR': 'https://www.syriahr.org',
   'UNAMI': 'https://www.uniraq.org',
   'UN UNIFIL': 'https://unifil.unmissions.org',
@@ -38,6 +60,8 @@ const SOURCE_URLS = {
   'OSCE': 'https://www.osce.org',
   'UN Panel of Experts': 'https://www.un.org/securitycouncil',
   'UN Security Council': 'https://www.un.org/securitycouncil',
+  'Britannica': 'https://www.britannica.com/event/2026-Iran-Conflict',
+  'Wikipedia': 'https://en.wikipedia.org/wiki/2026_Iran_war',
 }
 
 const CONFLICT_ZONES = [
@@ -91,6 +115,12 @@ const CONFLICT_ZONES = [
     numericCode: '706', name: 'Somalia', nameKo: '소말리아', level: 'war',
     note: 'Al-Shabaab Ongoing Insurgency', noteKo: '알샤바브 반군 지속 활동',
     sources: ['ACLED', 'UN OCHA', 'ICG', 'AMISOM'],
+  },
+  {
+    numericCode: '364', name: 'Iran', nameKo: '이란', level: 'war',
+    note: 'US-Israel Joint War on Iran (Feb 28, 2026–). ~900 strikes in 12 hrs on Day 1 targeting missiles, air defenses & leadership. Supreme Leader Khamenei killed. 1,300+ dead incl. civilians. Iran retaliated with 500+ ballistic missiles & 2,000 drones vs US/Israeli targets.',
+    noteKo: '미국·이스라엘 이란 전쟁 (2026.2.28~). 1일차 12시간 내 ~900회 공습(미사일 기지·방공망·지도부 타격). 최고지도자 하메네이 사망. 민간인 포함 1,300명+ 사망. 이란은 탄도미사일 500발+·드론 2,000여대로 미국·이스라엘 목표물 보복 공격.',
+    sources: ['Al Jazeera', 'Reuters', 'BBC', 'AP', 'IAEA', 'UN Security Council', 'Britannica', 'Wikipedia'],
   },
 
   // ======== 분쟁 (Active Conflict) ========
@@ -180,11 +210,6 @@ const CONFLICT_ZONES = [
     numericCode: '408', name: 'North Korea', nameKo: '북한', level: 'tensions',
     note: 'ICBM Tests / Russia Military Alliance', noteKo: 'ICBM 발사·러시아 군사동맹',
     sources: ['SIPRI', '38 North', 'IAEA', 'UN Panel of Experts'],
-  },
-  {
-    numericCode: '364', name: 'Iran', nameKo: '이란', level: 'tensions',
-    note: 'Nuclear Ambitions / Proxy War Network', noteKo: '핵개발 야망·중동 대리전 네트워크',
-    sources: ['IAEA', 'SIPRI', 'ICG', 'CFR'],
   },
   {
     numericCode: '356', name: 'India', nameKo: '인도', level: 'tensions',
