@@ -4,6 +4,7 @@ import {
 } from 'recharts'
 import BloombergPanelWrapper, { Skeleton } from './BloombergPanelWrapper'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { useBullMode } from '../../contexts/BullModeContext'
 
 const CustomTooltip = ({ active, payload }) => {
   if (!active || !payload?.length) return null
@@ -21,7 +22,9 @@ const CustomTooltip = ({ active, payload }) => {
 
 const SectorPanel = ({ sectors = [], loading = false }) => {
   const { t } = useLanguage()
-  const sorted = [...sectors].sort((a, b) => b.change_percent - a.change_percent)
+  const { bullMode } = useBullMode()
+  const base   = [...sectors].sort((a, b) => b.change_percent - a.change_percent)
+  const sorted = bullMode ? base.filter(s => s.change_percent > 0) : base
 
   return (
     <BloombergPanelWrapper title={t('economic.sectorPerformance')} badge="1M">

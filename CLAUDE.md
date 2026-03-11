@@ -1,8 +1,14 @@
 # StockNavi Project - Development Notes
 
-**Last Updated:** March 9, 2026
+**Last Updated:** March 10, 2026
 **Current Branch:** main
 **Deployment Status:** All recent changes deployed to EC2
+
+---
+
+## Language / 언어 설정
+
+**IMPORTANT:** Always respond in Korean (한국어), regardless of the language used in the question. Even if the user writes in English, all responses must be in Korean.
 
 ---
 
@@ -304,10 +310,10 @@ pm2 restart servicename
 
 ## Useful Links
 
-- **Live Site:** https://stocknavi.shop/economic
+- **Live Site:** https://stocknavi24.com/economic
 - **GitHub:** (Add your repo URL)
 - **EC2 Dashboard:** AWS Console
-- **API Docs:** https://stocknavi.shop/api/docs (FastAPI Swagger UI)
+- **API Docs:** https://stocknavi24.com/api/docs (FastAPI Swagger UI)
 
 ---
 

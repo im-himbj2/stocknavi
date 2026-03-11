@@ -1,8 +1,9 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { ComposableMap, Geographies, Geography, Sphere, Graticule } from 'react-simple-maps'
+import { ComposableMap, Geographies, Geography, Sphere, Graticule, Marker } from 'react-simple-maps'
 import { Tooltip } from 'react-tooltip'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { SUPPLY_CHAIN_NODES } from '../../data/supplyChainNodes'
 
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
 
@@ -65,6 +66,8 @@ const SOURCE_URLS = {
   'UN Security Council': 'https://www.un.org/securitycouncil',
   'Britannica': 'https://www.britannica.com/event/2026-Iran-Conflict',
   'Wikipedia': 'https://en.wikipedia.org/wiki/2026_Iran_war',
+  'EIA': 'https://www.eia.gov',
+  'Bloomberg': 'https://www.bloomberg.com',
 }
 
 const CONFLICT_ZONES = [
@@ -239,20 +242,56 @@ const LEGEND_LEVELS = [
 
 const conflictLookup = new Map(CONFLICT_ZONES.map(z => [z.numericCode, z]))
 
+// ─── 공급망 레이어 색상/설정 ──────────────────────────────────────────────────
+const NODE_TYPE_COLORS = { foundry: '#3b82f6', battery: '#8b5cf6', port: '#6b7280' }
+const RISK_OPACITY = { high: 0.9, med: 0.7, low: 0.5 }
+const RISK_COLORS  = { high: '#dc2626', med: '#ea580c', low: '#22c55e' }
+
 const WorldConflictMap = () => {
   const { t, lang } = useLanguage()
   const [rotation, setRotation] = useState([0, -20, 0])
   const [scale, setScale] = useState(280)
   const [dragging, setDragging] = useState(false)
   const [selectedZone, setSelectedZone] = useState(null)
+  const [selectedNode, setSelectedNode] = useState(null)
+  const [layers, setLayers] = useState({ conflicts: true, foundry: true, battery: true, ports: false })
   const lastPos = useRef(null)
   const containerRef = useRef(null)
   const dragMoved = useRef(false)
   const draggingRef = useRef(false)
   const selectedZoneRef = useRef(null)
+  const selectedNodeRef = useRef(null)
 
-  const openZone  = useCallback((zone) => { selectedZoneRef.current = zone; setSelectedZone(zone)  }, [])
-  const closeZone = useCallback(()     => { selectedZoneRef.current = null; setSelectedZone(null) }, [])
+  const openZone = useCallback((zone) => {
+    selectedNodeRef.current = null; setSelectedNode(null)
+    selectedZoneRef.current = zone; setSelectedZone(zone)
+  }, [])
+  const closeZone = useCallback(() => {
+    selectedZoneRef.current = null; setSelectedZone(null)
+  }, [])
+  const openNode = useCallback((node) => {
+    selectedZoneRef.current = null; setSelectedZone(null)
+    selectedNodeRef.current = node; setSelectedNode(node)
+  }, [])
+  const closeNode = useCallback(() => {
+    selectedNodeRef.current = null; setSelectedNode(null)
+  }, [])
+  const toggleLayer = useCallback((key) => {
+    setLayers(prev => ({ ...prev, [key]: !prev[key] }))
+  }, [])
+
+  // 글로브 가시성 체크 (직교투영에서 뒷면 숨김)
+  const isVisible = useCallback((lon, lat) => {
+    const [rx, ry] = rotation
+    const cx = -rx * Math.PI / 180
+    const cy = -ry * Math.PI / 180
+    const px = lon * Math.PI / 180
+    const py = lat * Math.PI / 180
+    const d = Math.acos(Math.max(-1, Math.min(1,
+      Math.sin(cy) * Math.sin(py) + Math.cos(cy) * Math.cos(py) * Math.cos(cx - px)
+    )))
+    return d < Math.PI / 2
+  }, [rotation])
 
   // Wheel zoom
   useEffect(() => {
@@ -267,9 +306,7 @@ const WorldConflictMap = () => {
   }, [])
 
   const handlePointerDown = useCallback((e) => {
-    if (selectedZoneRef.current) return  // modal open → block drag
-    // NOTE: intentionally no setPointerCapture — it would also capture mouse events
-    // (click/mouseup), preventing Geography onClick from firing on child SVG paths
+    if (selectedZoneRef.current || selectedNodeRef.current) return
     draggingRef.current = true
     dragMoved.current = false
     setDragging(true)
@@ -329,6 +366,14 @@ const WorldConflictMap = () => {
   const conflictCount = CONFLICT_ZONES.filter(z => z.level === 'conflict').length
   const tensionCount  = CONFLICT_ZONES.filter(z => z.level === 'tensions').length
 
+  // 레이어 설정 (이름/색상)
+  const LAYER_DEFS = [
+    { key: 'conflicts', color: '#dc2626', labelKo: '분쟁 지역',    labelEn: 'Conflicts',    dotShape: 'circle' },
+    { key: 'foundry',   color: '#3b82f6', labelKo: '반도체',        labelEn: 'Semiconductors', dotShape: 'circle' },
+    { key: 'battery',   color: '#8b5cf6', labelKo: '배터리 소재',   labelEn: 'Battery Mtrls', dotShape: 'circle' },
+    { key: 'ports',     color: '#6b7280', labelKo: '항구·해협',     labelEn: 'Ports/Straits', dotShape: 'triangle' },
+  ]
+
   return (
     <div
       ref={containerRef}
@@ -355,7 +400,7 @@ const WorldConflictMap = () => {
         </span>
       </div>
 
-      {/* Legend */}
+      {/* Legend (분쟁 레벨) */}
       <div className="absolute top-2.5 right-3 z-10 flex gap-3">
         {LEGEND_LEVELS.map(({ level, color, labelKey }) => (
           <span key={level} className="flex items-center gap-1 text-[9px] font-mono text-gray-400">
@@ -385,7 +430,7 @@ const WorldConflictMap = () => {
         >⌂</button>
       </div>
 
-      {/* Globe (larger) */}
+      {/* Globe */}
       <ComposableMap
         projection="geoOrthographic"
         projectionConfig={{ scale, rotate: rotation }}
@@ -398,7 +443,7 @@ const WorldConflictMap = () => {
           {({ geographies }) =>
             geographies.map((geo) => {
               const zone = conflictLookup.get(String(geo.id))
-              const fill = zone ? LEVEL_COLORS[zone.level] : LEVEL_COLORS.none
+              const fill = (layers.conflicts && zone) ? LEVEL_COLORS[zone.level] : LEVEL_COLORS.none
 
               return (
                 <Geography
@@ -409,26 +454,74 @@ const WorldConflictMap = () => {
                   strokeWidth={0.4}
                   style={{
                     default: { outline: 'none' },
-                    hover:   { outline: 'none', fill: zone ? fill : '#263d5a', filter: 'brightness(1.4)', cursor: zone ? 'pointer' : 'default' },
+                    hover:   { outline: 'none', fill: zone && layers.conflicts ? fill : '#263d5a', filter: 'brightness(1.4)', cursor: zone && layers.conflicts ? 'pointer' : 'default' },
                     pressed: { outline: 'none' },
                   }}
                   onClick={(e) => {
-                    if (zone && !dragMoved.current) {
+                    if (zone && layers.conflicts && !dragMoved.current) {
                       e.stopPropagation()
                       openZone(zone)
                     }
                   }}
                   data-tooltip-id="conflict-tooltip"
-                  data-tooltip-html={zone ? buildTooltip(zone) : undefined}
-                  data-tooltip-content={!zone ? (geo.properties?.name || '') : undefined}
+                  data-tooltip-html={zone && layers.conflicts ? buildTooltip(zone) : undefined}
+                  data-tooltip-content={!(zone && layers.conflicts) ? (geo.properties?.name || '') : undefined}
                 />
               )
             })
           }
         </Geographies>
+
+        {/* 공급망 노드 마커 */}
+        {SUPPLY_CHAIN_NODES
+          .filter(n => {
+            if (!isVisible(n.lon, n.lat)) return false
+            if (n.type === 'foundry') return layers.foundry
+            if (n.type === 'battery') return layers.battery
+            if (n.type === 'port')    return layers.ports
+            return false
+          })
+          .map(node => {
+            const color   = NODE_TYPE_COLORS[node.type]
+            const opacity = RISK_OPACITY[node.risk] || 0.7
+            const r = node.type === 'port' ? 5 : (5 + (node.concentration || 0) / 15)
+
+            return (
+              <Marker key={node.id} coordinates={[node.lon, node.lat]}>
+                {node.type === 'port' ? (
+                  // 삼각형 (항구)
+                  <polygon
+                    points={`0,${-r} ${r * 0.9},${r * 0.5} ${-r * 0.9},${r * 0.5}`}
+                    fill={color}
+                    fillOpacity={opacity}
+                    stroke="#0a1929"
+                    strokeWidth={0.8}
+                    style={{ cursor: 'pointer' }}
+                    onClick={(e) => { e.stopPropagation(); if (!dragMoved.current) openNode(node) }}
+                  />
+                ) : (
+                  <>
+                    {/* 글로우 효과 */}
+                    <circle r={r + 5} fill={color} fillOpacity={0.12} stroke="none" />
+                    {/* 메인 원 */}
+                    <circle
+                      r={r}
+                      fill={color}
+                      fillOpacity={opacity}
+                      stroke="#0a1929"
+                      strokeWidth={0.8}
+                      style={{ cursor: 'pointer' }}
+                      onClick={(e) => { e.stopPropagation(); if (!dragMoved.current) openNode(node) }}
+                    />
+                  </>
+                )}
+              </Marker>
+            )
+          })
+        }
       </ComposableMap>
 
-      {/* Count badges */}
+      {/* 하단 왼쪽: 분쟁 카운트 배지 */}
       <div className="absolute bottom-2.5 left-3 z-10 flex gap-2 flex-wrap">
         {[
           { count: warCount,      color: '#dc2626', labelKey: 'legendWar' },
@@ -448,11 +541,38 @@ const WorldConflictMap = () => {
         </span>
       </div>
 
-      {/* Detail Panel — rendered via portal so pointer events never reach the globe container */}
+      {/* 하단 오른쪽: 레이어 토글 패널 */}
+      <div
+        className="absolute bottom-2.5 right-3 z-10 flex flex-col items-end gap-0.5"
+        onPointerDown={e => e.stopPropagation()}
+      >
+        <span className="text-[7px] font-mono text-gray-600 uppercase tracking-widest mb-0.5 mr-1">
+          {lang === 'ko' ? 'LAYERS' : 'LAYERS'}
+        </span>
+        {LAYER_DEFS.map(({ key, color, labelKo, labelEn, dotShape }) => (
+          <button
+            key={key}
+            onClick={() => toggleLayer(key)}
+            className={`flex items-center gap-1.5 px-2 py-0.5 rounded text-[8px] font-mono transition-all ${
+              layers[key] ? 'text-white bg-[#1a3a5c]/60' : 'text-gray-600 bg-transparent'
+            }`}
+          >
+            {dotShape === 'triangle' ? (
+              <svg width="8" height="8" viewBox="0 0 8 8" className="flex-shrink-0">
+                <polygon points="4,1 7,7 1,7" fill={layers[key] ? color : '#374151'} />
+              </svg>
+            ) : (
+              <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: layers[key] ? color : '#374151' }} />
+            )}
+            {lang === 'ko' ? labelKo : labelEn}
+          </button>
+        ))}
+      </div>
+
+      {/* 분쟁 지역 상세 모달 */}
       {selectedZone && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="bg-[#050d18] border-2 border-[#1a3a5c] rounded-lg p-6 max-w-lg w-full mx-4 max-h-[80vh] overflow-y-auto shadow-2xl">
-            {/* Header with close button */}
             <div className="flex items-start justify-between mb-4">
               <div>
                 <h2 className="text-xl font-mono font-bold text-white mb-1">
@@ -462,13 +582,9 @@ const WorldConflictMap = () => {
                   <p className="text-sm font-mono text-gray-400">{selectedZone.name}</p>
                 )}
               </div>
-              <button
-                onClick={closeZone}
-                className="text-gray-400 hover:text-white text-2xl leading-none"
-              >×</button>
+              <button onClick={closeZone} className="text-gray-400 hover:text-white text-2xl leading-none">×</button>
             </div>
 
-            {/* Level Badge */}
             <div className="mb-4">
               <span
                 className="inline-block px-3 py-1.5 rounded font-mono text-sm font-bold"
@@ -486,14 +602,12 @@ const WorldConflictMap = () => {
               </span>
             </div>
 
-            {/* Description */}
             <div className="mb-6">
               <p className="text-sm font-mono text-gray-300 leading-relaxed">
                 {lang === 'ko' ? selectedZone.noteKo : selectedZone.note}
               </p>
             </div>
 
-            {/* Sources Section */}
             <div className="border-t border-[#1a3a5c] pt-4">
               <p className="text-xs font-mono text-gray-500 uppercase tracking-widest mb-3">
                 {lang === 'ko' ? '📋 출처 정보' : '📋 Source Information'}
@@ -517,7 +631,6 @@ const WorldConflictMap = () => {
               </div>
             </div>
 
-            {/* Footer */}
             <div className="mt-6 pt-4 border-t border-[#1a3a5c]/50">
               <button
                 onClick={closeZone}
@@ -526,6 +639,121 @@ const WorldConflictMap = () => {
                 {lang === 'ko' ? '닫기' : 'Close'}
               </button>
             </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* 공급망 노드 상세 모달 */}
+      {selectedNode && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-[#050d18] border-2 border-[#1a3a5c] rounded-lg p-6 max-w-lg w-full mx-4 max-h-[80vh] overflow-y-auto shadow-2xl">
+            {/* 헤더 */}
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: NODE_TYPE_COLORS[selectedNode.type] }} />
+                  <span className="text-[9px] font-mono uppercase tracking-widest" style={{ color: NODE_TYPE_COLORS[selectedNode.type] }}>
+                    {{ foundry: lang === 'ko' ? '반도체 파운드리' : 'Semiconductor', battery: lang === 'ko' ? '배터리 원자재' : 'Battery Materials', port: lang === 'ko' ? '핵심 항구·해협' : 'Key Port / Strait' }[selectedNode.type]}
+                  </span>
+                </div>
+                <h2 className="text-xl font-mono font-bold text-white">
+                  {lang === 'ko' ? selectedNode.nameKo : selectedNode.nameEn}
+                </h2>
+              </div>
+              <button onClick={closeNode} className="text-gray-400 hover:text-white text-2xl leading-none">×</button>
+            </div>
+
+            {/* 리스크 레벨 + 집중도 */}
+            <div className="flex items-center gap-3 mb-4 flex-wrap">
+              <span
+                className="px-2 py-1 rounded font-mono text-xs font-bold"
+                style={{
+                  backgroundColor: RISK_COLORS[selectedNode.risk] + '20',
+                  border: `1px solid ${RISK_COLORS[selectedNode.risk]}60`,
+                  color: RISK_COLORS[selectedNode.risk],
+                }}
+              >
+                ● {{ high: lang === 'ko' ? '고위험' : 'HIGH RISK', med: lang === 'ko' ? '중위험' : 'MED RISK', low: lang === 'ko' ? '저위험' : 'LOW RISK' }[selectedNode.risk]}
+              </span>
+              {selectedNode.concentration && (
+                <span className="text-xs font-mono text-gray-400">
+                  {lang === 'ko' ? '공급 의존도' : 'Supply Dependency'}:
+                  <span className="font-bold text-white ml-1">{selectedNode.concentration}%</span>
+                </span>
+              )}
+            </div>
+
+            {/* 설명 */}
+            <p className="text-sm font-mono text-gray-300 leading-relaxed mb-4">
+              {lang === 'ko' ? selectedNode.noteKo : selectedNode.noteEn}
+            </p>
+
+            {/* 영향 종목 */}
+            {selectedNode.relatedStocks?.length > 0 && (
+              <div className="mb-4">
+                <p className="text-[9px] font-mono text-gray-500 uppercase tracking-widest mb-2">
+                  {lang === 'ko' ? '📊 영향 종목' : '📊 Affected Stocks'}
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedNode.relatedStocks.map(s => (
+                    <span key={s} className="px-2 py-0.5 rounded text-[10px] font-mono text-blue-300 bg-blue-900/30 border border-blue-800/40">
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 관련 분쟁 지역 */}
+            {selectedNode.conflictRef && (() => {
+              const zone = CONFLICT_ZONES.find(z => z.numericCode === selectedNode.conflictRef)
+              return zone ? (
+                <div className="mb-4 p-2.5 rounded border" style={{ backgroundColor: LEVEL_COLORS[zone.level] + '10', borderColor: LEVEL_COLORS[zone.level] + '40' }}>
+                  <p className="text-[9px] font-mono text-gray-500 uppercase tracking-widest mb-1.5">
+                    {lang === 'ko' ? '⚠ 관련 분쟁 지역' : '⚠ Linked Conflict Zone'}
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: LEVEL_COLORS[zone.level] }} />
+                    <span className="text-[11px] font-mono font-bold" style={{ color: LEVEL_COLORS[zone.level] }}>
+                      {lang === 'ko' ? zone.nameKo : zone.name}
+                    </span>
+                    <span className="text-[9px] font-mono text-gray-500">
+                      — {{ war: lang === 'ko' ? '전쟁' : 'Active War', conflict: lang === 'ko' ? '분쟁' : 'Conflict', tensions: lang === 'ko' ? '긴장' : 'Tensions' }[zone.level]}
+                    </span>
+                  </div>
+                </div>
+              ) : null
+            })()}
+
+            {/* 출처 */}
+            {selectedNode.sources?.length > 0 && (
+              <div className="border-t border-[#1a3a5c] pt-4 mb-4">
+                <p className="text-[9px] font-mono text-gray-500 uppercase tracking-widest mb-2">
+                  {lang === 'ko' ? '📋 출처' : '📋 Sources'}
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedNode.sources.map(s => {
+                    const url = SOURCE_URLS[s]
+                    return url ? (
+                      <a key={s} href={url} target="_blank" rel="noopener noreferrer"
+                        className="text-[10px] font-mono text-[#5ba4d4] hover:text-white px-2 py-0.5 rounded bg-[#1a3a5c]/40 hover:bg-[#2a4a6c]/60 transition-colors">
+                        → {s}
+                      </a>
+                    ) : (
+                      <span key={s} className="text-[10px] font-mono text-gray-500 px-2 py-0.5 rounded bg-[#1a3a5c]/30">{s}</span>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={closeNode}
+              className="w-full px-4 py-2 bg-[#1a3a5c] hover:bg-[#2a4a6c] text-[#5ba4d4] font-mono text-sm rounded transition-colors"
+            >
+              {lang === 'ko' ? '닫기' : 'Close'}
+            </button>
           </div>
         </div>,
         document.body

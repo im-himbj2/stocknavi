@@ -26,7 +26,7 @@ const en = {
   },
   sidebar: {
     home: 'Home', company: 'Company & Dividend', economic: 'Economic Indicators',
-    korea: 'Korea Intel',
+    intelligence: 'Intelligence', korea: 'Korea Intel',
     speech: 'AI Intelligence', portfolio: 'Portfolio', langToggle: 'KR',
   },
   login: {

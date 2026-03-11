@@ -26,7 +26,7 @@ const ko = {
   },
   sidebar: {
     home: '홈', company: 'Company & Dividend', economic: '경제 지표',
-    korea: '한국 인텔리전스',
+    intelligence: 'Intelligence', korea: '한국 인텔리전스',
     speech: 'AI 인텔리전스', portfolio: '포트폴리오', langToggle: 'EN',
   },
   login: {

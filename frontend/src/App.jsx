@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthContext'
 import { LanguageProvider } from './contexts/LanguageContext'
+import { BullModeProvider } from './contexts/BullModeContext'
 import Home from './pages/Home'
 import CompanyAnalysis from './pages/CompanyAnalysis'
 import EconomicIndicators from './pages/EconomicIndicators'
@@ -11,6 +12,7 @@ import Subscription from './pages/Subscription'
 import Login from './pages/Login'
 import Sidebar from './components/Layout/Sidebar'
 import KoreaIntelligence from './pages/KoreaIntelligence'
+import MarketIntelligence from './pages/MarketIntelligence'
 
 function App() {
   // 에러 바운더리 추가 (개발 환경에서 에러 확인)
@@ -25,6 +27,7 @@ function App() {
 
   return (
     <LanguageProvider>
+    <BullModeProvider>
     <AuthProvider>
       <Router>
         <Routes>
@@ -43,6 +46,14 @@ function App() {
               <Sidebar />
               <main className="flex-1 overflow-auto">
                 <EconomicIndicators />
+              </main>
+            </div>
+          } />
+          <Route path="/intelligence" element={
+            <div className="min-h-screen bg-[#0a0f15] text-white flex">
+              <Sidebar />
+              <main className="flex-1 overflow-auto">
+                <MarketIntelligence />
               </main>
             </div>
           } />
@@ -122,6 +133,7 @@ function App() {
         </Routes>
       </Router>
     </AuthProvider>
+    </BullModeProvider>
     </LanguageProvider>
   )
 }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import apiService from '../services/api'
 import Navbar from '../components/Layout/Navbar'
 import { useLanguage } from '../contexts/LanguageContext'
+import { useBullMode } from '../contexts/BullModeContext'
 import WorldConflictMap from '../components/Economic/WorldConflictMap'
 import MarketGrid from '../components/Economic/MarketGrid'
 import MacroPanel from '../components/Economic/MacroPanel'
@@ -13,7 +14,8 @@ import EconomicCalendarPanel from '../components/Economic/EconomicCalendarPanel'
 import BloombergPanelWrapper from '../components/Economic/BloombergPanelWrapper'
 
 const EconomicIndicators = () => {
-  const { t } = useLanguage()
+  const { t, lang } = useLanguage()
+  const { bullMode, toggleBullMode } = useBullMode()
   const [globalIndices, setGlobalIndices] = useState([])
   const [commodities, setCommodities] = useState([])
   const [crypto, setCrypto] = useState([])
@@ -114,9 +116,15 @@ const EconomicIndicators = () => {
       <Navbar />
 
       {/* Page header */}
-      <div className="px-4 py-2 flex items-center justify-between border-b border-[#1a3a5c] bg-[#050d18]">
+      <div
+        className={`px-4 py-2 flex items-center justify-between border-b transition-colors duration-500 ${
+          bullMode
+            ? 'border-green-800 bg-[#031a0a]'
+            : 'border-[#1a3a5c] bg-[#050d18]'
+        }`}
+      >
         <div className="flex items-center gap-3">
-          <h1 className="text-[13px] font-mono font-bold text-[#5ba4d4] uppercase tracking-widest">
+          <h1 className={`text-[13px] font-mono font-bold uppercase tracking-widest transition-colors duration-300 ${bullMode ? 'text-green-400' : 'text-[#5ba4d4]'}`}>
             Bloomberg Intelligence Terminal
           </h1>
           <span className="flex items-center gap-1.5 text-[10px] font-mono text-green-400">
@@ -126,12 +134,32 @@ const EconomicIndicators = () => {
             </span>
             LIVE
           </span>
+          {bullMode && (
+            <span className="text-[9px] font-mono font-bold text-green-400 border border-green-700 px-1.5 py-0.5 rounded-sm tracking-widest animate-pulse">
+              🐂 BULL MODE
+            </span>
+          )}
         </div>
-        {lastUpdated && (
-          <span className="text-[9px] font-mono text-gray-600">
-            {t('economic.updated')} {lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-          </span>
-        )}
+        <div className="flex items-center gap-3">
+          {lastUpdated && (
+            <span className="text-[9px] font-mono text-gray-600">
+              {t('economic.updated')} {lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          )}
+          {/* Bull Mode 토글 */}
+          <button
+            onClick={toggleBullMode}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-[10px] font-mono font-bold transition-all ${
+              bullMode
+                ? 'bg-green-900/60 text-green-300 border border-green-700'
+                : 'bg-[#1a3a5c]/60 text-gray-400 hover:text-white border border-[#1a3a5c] hover:border-[#3a5a8c]'
+            }`}
+            title={bullMode ? (lang === 'ko' ? '전체 보기로 전환' : 'Switch to All View') : (lang === 'ko' ? '긍정 신호만 보기' : 'Show Bull Signals Only')}
+          >
+            {bullMode ? '🐂' : '🐻'}
+            <span>{bullMode ? (lang === 'ko' ? 'BULL' : 'BULL') : (lang === 'ko' ? 'ALL' : 'ALL')}</span>
+          </button>
+        </div>
       </div>
 
       {/* 1. World Conflict Map */}
