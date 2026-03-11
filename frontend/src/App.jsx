@@ -10,6 +10,7 @@ import News from './pages/News'
 import Subscription from './pages/Subscription'
 import Login from './pages/Login'
 import Sidebar from './components/Layout/Sidebar'
+import KoreaIntelligence from './pages/KoreaIntelligence'
 
 function App() {
   // 에러 바운더리 추가 (개발 환경에서 에러 확인)
@@ -42,6 +43,14 @@ function App() {
               <Sidebar />
               <main className="flex-1 overflow-auto">
                 <EconomicIndicators />
+              </main>
+            </div>
+          } />
+          <Route path="/korea" element={
+            <div className="min-h-screen bg-[#0a0f15] text-white flex">
+              <Sidebar />
+              <main className="flex-1 overflow-auto">
+                <KoreaIntelligence />
               </main>
             </div>
           } />
