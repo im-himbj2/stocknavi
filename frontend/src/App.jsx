@@ -11,7 +11,6 @@ import News from './pages/News'
 import Subscription from './pages/Subscription'
 import Login from './pages/Login'
 import Sidebar from './components/Layout/Sidebar'
-import KoreaIntelligence from './pages/KoreaIntelligence'
 import MarketIntelligence from './pages/MarketIntelligence'
 
 function App() {
@@ -54,14 +53,6 @@ function App() {
               <Sidebar />
               <main className="flex-1 overflow-auto">
                 <MarketIntelligence />
-              </main>
-            </div>
-          } />
-          <Route path="/korea" element={
-            <div className="min-h-screen bg-[#0a0f15] text-white flex">
-              <Sidebar />
-              <main className="flex-1 overflow-auto">
-                <KoreaIntelligence />
               </main>
             </div>
           } />

@@ -5,7 +5,7 @@ import EventImpactPanel from '../components/Intelligence/EventImpactPanel'
 import SectorCascadePanel from '../components/Intelligence/SectorCascadePanel'
 
 export default function MarketIntelligence() {
-  const { t, lang } = useLanguage()
+  const { lang } = useLanguage()
 
   return (
     <div className="min-h-screen bg-[#0a0f15] text-white">

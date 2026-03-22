@@ -16,7 +16,6 @@ function Sidebar() {
     { path: '/company',       key: 'sidebar.company',       icon: 'monitoring' },
     { path: '/economic',      key: 'sidebar.economic',      icon: 'show_chart' },
     { path: '/intelligence',  key: 'sidebar.intelligence',  icon: 'psychology' },
-    { path: '/korea',         key: 'sidebar.korea',         icon: 'flag' },
     { path: '/speech',        key: 'sidebar.speech',        icon: 'smart_toy' },
     { path: '/portfolio',     key: 'sidebar.portfolio',     icon: 'account_balance_wallet' },
   ]
