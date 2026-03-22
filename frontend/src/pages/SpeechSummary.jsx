@@ -19,7 +19,15 @@ function SpeechSummary() {
     setError(null)
     try {
       const data = await apiService.getFOMCMeetings(10, forceRefresh)
-      setFomcMeetings(data.items || [])
+      const items = data.items || []
+      const seen = new Set()
+      const unique = items.filter(item => {
+        const key = item.id || item.title || JSON.stringify(item)
+        if (seen.has(key)) return false
+        seen.add(key)
+        return true
+      })
+      setFomcMeetings(unique)
       if (data.updated_at) {
         setLastUpdated(new Date(data.updated_at))
       }
@@ -389,6 +397,13 @@ function SpeechSummary() {
             )}
           </div>
         </div>
+      </div>
+
+      {/* 면책 고지 */}
+      <div className="px-6 py-3 mt-2 border-t border-white/5">
+        <p className="text-[10px] text-gray-600 text-center leading-relaxed">
+          본 정보는 투자 권고가 아닙니다. AI 분석은 참고용이며, 투자 결정의 책임은 투자자 본인에게 있습니다. | This information does not constitute investment advice.
+        </p>
       </div>
     </div>
   )

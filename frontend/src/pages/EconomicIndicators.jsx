@@ -81,7 +81,7 @@ const EconomicIndicators = () => {
 
         setLastUpdated(new Date())
       } catch (err) {
-        console.error('[Bloomberg] Main data fetch error:', err)
+        console.error('[StockNavi] Main data fetch error:', err)
       } finally {
         if (mounted) setLoading(false)
       }
@@ -125,7 +125,7 @@ const EconomicIndicators = () => {
       >
         <div className="flex items-center gap-3">
           <h1 className={`text-[13px] font-mono font-bold uppercase tracking-widest transition-colors duration-300 ${bullMode ? 'text-green-400' : 'text-[#5ba4d4]'}`}>
-            Bloomberg Intelligence Terminal
+            StockNavi Market Terminal
           </h1>
           <span className="flex items-center gap-1.5 text-[10px] font-mono text-green-400">
             <span className="relative flex h-1.5 w-1.5">
@@ -280,6 +280,13 @@ const EconomicIndicators = () => {
             </div>
           )}
         </BloombergPanelWrapper>
+      </div>
+
+      {/* 면책 고지 */}
+      <div className="px-4 py-3 mt-2 border-t border-[#1a3a5c]">
+        <p className="text-[10px] font-mono text-gray-600 text-center leading-relaxed">
+          본 정보는 투자 권고가 아닙니다. 투자 결정의 책임은 투자자 본인에게 있습니다. | This information does not constitute investment advice. All investment decisions are the sole responsibility of the investor.
+        </p>
       </div>
     </div>
   )

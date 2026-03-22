@@ -379,42 +379,52 @@ function CompanyAnalysis() {
                 {/* AI Investment Opinion */}
                 {opinion && (
                   <div className="bg-surface-dark rounded-xl border border-surface-dark-border overflow-hidden shadow-sm">
-                    <div className="bg-gradient-to-br from-primary/80 to-[#003366] p-6 text-white relative overflow-hidden">
-                      <div className="absolute -right-4 -top-4 opacity-20">
-                        <span className="material-symbols-outlined text-[80px]">smart_toy</span>
-                      </div>
-                      <div className="relative z-10 flex flex-col gap-2">
-                        <p className="text-white/80 text-sm uppercase tracking-wider font-semibold">{t('company.aiOpinion')}</p>
-                        <div className="flex items-end gap-3 mt-2">
-                          <h3 className="text-3xl font-black">{getRatingLabel(opinion.rating)}</h3>
-                          <span className="bg-white/20 px-2 py-1 rounded text-xs font-bold mb-1">{opinion.score?.toFixed(0)}{t('company.confidence')}</span>
+                    {opinion.score >= 60 ? (
+                      <>
+                        <div className="bg-gradient-to-br from-primary/80 to-[#003366] p-6 text-white relative overflow-hidden">
+                          <div className="absolute -right-4 -top-4 opacity-20">
+                            <span className="material-symbols-outlined text-[80px]">smart_toy</span>
+                          </div>
+                          <div className="relative z-10 flex flex-col gap-2">
+                            <p className="text-white/80 text-sm uppercase tracking-wider font-semibold">{t('company.aiOpinion')}</p>
+                            <div className="flex items-end gap-3 mt-2">
+                              <h3 className="text-3xl font-black">{getRatingLabel(opinion.rating)}</h3>
+                              <span className="bg-white/20 px-2 py-1 rounded text-xs font-bold mb-1">{opinion.score?.toFixed(0)}{t('company.confidence')}</span>
+                            </div>
+                          </div>
                         </div>
+                        <div className="p-5 flex flex-col gap-5">
+                          {/* Rating scale */}
+                          <div className="flex justify-between items-center text-xs font-medium text-slate-400 px-1">
+                            <span>Strong Sell</span>
+                            <span>Sell</span>
+                            <span>Hold</span>
+                            <span>Buy</span>
+                            <span className={getRatingColor(opinion.rating) + ' font-bold'}>Strong Buy</span>
+                          </div>
+                          <div className="relative w-full h-3 bg-slate-700 rounded-full">
+                            <div className="absolute top-0 left-0 h-full rounded-full bg-gradient-to-r from-red-500 via-yellow-500 to-emerald-500 w-full opacity-30"></div>
+                            <div className="absolute top-1/2 -translate-y-1/2 w-5 h-5 bg-white border-2 border-emerald-500 rounded-full shadow-md z-10"
+                              style={{ left: `${Math.min(Math.max(opinion.score || 50, 5), 95)}%`, transform: 'translate(-50%, -50%)' }}></div>
+                          </div>
+                          {/* Reasoning */}
+                          <div className="mt-2 text-sm text-slate-300 leading-relaxed border-t border-slate-800 pt-4">
+                            <p className="mb-3"><strong className="text-white">{t('company.reasoning')}</strong> {opinion.thesis}</p>
+                            {opinion.key_points?.length > 0 && (
+                              <ul className="list-disc pl-4 space-y-1 text-xs">
+                                {opinion.key_points.slice(0, 3).map((p, i) => <li key={i}>{p}</li>)}
+                              </ul>
+                            )}
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="p-6 flex flex-col items-center gap-3 text-center">
+                        <span className="material-symbols-outlined text-4xl text-amber-400">pending</span>
+                        <p className="text-sm font-bold text-amber-400 uppercase tracking-widest">{t('company.aiOpinion')} — 판단 보류</p>
+                        <p className="text-xs text-slate-500 leading-relaxed">AI 신뢰도가 {opinion.score?.toFixed(0)}%로 낮아 투자 의견을 제공하지 않습니다.<br />데이터가 충분히 확보되면 분석이 업데이트됩니다.</p>
                       </div>
-                    </div>
-                    <div className="p-5 flex flex-col gap-5">
-                      {/* Rating scale */}
-                      <div className="flex justify-between items-center text-xs font-medium text-slate-400 px-1">
-                        <span>Strong Sell</span>
-                        <span>Sell</span>
-                        <span>Hold</span>
-                        <span>Buy</span>
-                        <span className={getRatingColor(opinion.rating) + ' font-bold'}>Strong Buy</span>
-                      </div>
-                      <div className="relative w-full h-3 bg-slate-700 rounded-full">
-                        <div className="absolute top-0 left-0 h-full rounded-full bg-gradient-to-r from-red-500 via-yellow-500 to-emerald-500 w-full opacity-30"></div>
-                        <div className="absolute top-1/2 -translate-y-1/2 w-5 h-5 bg-white border-2 border-emerald-500 rounded-full shadow-md z-10"
-                          style={{ left: `${Math.min(Math.max(opinion.score || 50, 5), 95)}%`, transform: 'translate(-50%, -50%)' }}></div>
-                      </div>
-                      {/* Reasoning */}
-                      <div className="mt-2 text-sm text-slate-300 leading-relaxed border-t border-slate-800 pt-4">
-                        <p className="mb-3"><strong className="text-white">{t('company.reasoning')}</strong> {opinion.thesis}</p>
-                        {opinion.key_points?.length > 0 && (
-                          <ul className="list-disc pl-4 space-y-1 text-xs">
-                            {opinion.key_points.slice(0, 3).map((p, i) => <li key={i}>{p}</li>)}
-                          </ul>
-                        )}
-                      </div>
-                    </div>
+                    )}
                   </div>
                 )}
 
@@ -847,6 +857,14 @@ function CompanyAnalysis() {
             )}
           </div>
         )}
+
+        {/* 면책 고지 */}
+        <div className="mt-4 pt-4 border-t border-slate-800">
+          <p className="text-[11px] text-slate-600 text-center leading-relaxed">
+            본 정보는 투자 권고가 아닙니다. AI 분석은 참고용이며, 투자 결정의 책임은 투자자 본인에게 있습니다.<br />
+            This information does not constitute investment advice. All investment decisions are the sole responsibility of the investor.
+          </p>
+        </div>
       </main>
     </div>
   )
