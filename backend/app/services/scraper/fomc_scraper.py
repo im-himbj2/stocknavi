@@ -59,6 +59,7 @@ class FOMCScraper:
                 print(f"[FOMC Scraper] Found {len(minutes_links)} minutes links")
                 
                 seen_urls = set()
+                seen_dates = set()
                 for link, href, text in minutes_links:
                     if len(meetings) >= limit:
                         break
@@ -78,6 +79,10 @@ class FOMCScraper:
                         date_str = self._extract_date(link, href)
 
                         if date_str and date_str.lower() not in ['html', 'pdf', 'minutes', '']:
+                            # 날짜 중복 제거 (HTML·PDF 등 동일 회의록 다른 URL 방지)
+                            if date_str in seen_dates:
+                                continue
+                            seen_dates.add(date_str)
                             meetings.append({
                                 'date': date_str,
                                 'url': meeting_url,
