@@ -363,9 +363,21 @@ function SpeechSummary() {
                     </div>
                     <div className="md:col-span-1 border-l border-white/10 pl-8 hidden md:block">
                       <h3 className="text-xs font-black text-gray-600 uppercase tracking-[0.2em] mb-4">Analysis Context</h3>
-                      <div className="space-y-6">
+                      <div className="space-y-5">
+                        {selectedSpeech.policy_decision && (
+                          <div>
+                            <div className="text-[10px] font-bold text-gray-500 uppercase mb-1">금리 결정</div>
+                            <div className="text-xs text-cyan-300 font-semibold leading-relaxed">{selectedSpeech.policy_decision}</div>
+                          </div>
+                        )}
+                        {selectedSpeech.forward_guidance && (
+                          <div>
+                            <div className="text-[10px] font-bold text-gray-500 uppercase mb-1">향후 전망</div>
+                            <div className="text-xs text-gray-300 font-medium leading-relaxed">{selectedSpeech.forward_guidance}</div>
+                          </div>
+                        )}
                         <div>
-                          <div className="text-[10px] font-bold text-gray-500 uppercase mb-1">Bias Info</div>
+                          <div className="text-[10px] font-bold text-gray-500 uppercase mb-1">Bias</div>
                           <div className="text-xs text-gray-300 font-medium">{selectedSpeech.speaker_info?.bias || 'N/A'}</div>
                         </div>
                         <div>

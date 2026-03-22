@@ -22,19 +22,27 @@ class AISummarizer:
             return None
 
         try:
-            prompt = f"""다음 경제/금융 영문 문서를 전문 애널리스트 관점에서 한국어로 분석해주세요.
-다음 항목을 중심으로 {max_length}자 이내로 작성하세요:
-- 핵심 결정/발표 내용
-- 경제 지표 평가 (인플레이션, 고용, 성장률)
-- 시장에 미치는 영향
-- 향후 전망
+            prompt = f"""아래는 미국 연방준비제도(Fed) 관계자의 연설문입니다.
+한국 기관투자자 수준의 전문 분석을 한국어로 작성하세요.
 
-텍스트:
-{text[:6000]}
+[필수 포함 항목]
+■ 핵심 메시지: 연설의 가장 중요한 1~2가지 발언 (가능하면 원문 발언 인용)
+■ 경제 인식: 인플레이션·고용·성장에 대한 연사의 현재 시각 (수치 포함)
+■ 정책 방향 신호: 금리 향방에 대한 매파/비둘기 성향 판단 및 근거
+■ 시장 영향: 미국채·S&P500·달러인덱스에 미치는 단기 방향
+■ 투자자 주목 포인트: 다음 FOMC까지 체크해야 할 리스크/기회
 
-한국어 분석:"""
+[작성 기준]
+- 반드시 한국어로 작성
+- 각 항목 2~4문장, 전체 700~900자
+- 모호한 표현 금지, 근거 기반 판단 명시
 
-            async with httpx.AsyncClient(timeout=30.0) as client:
+연설문:
+{text[:7000]}
+
+분석:"""
+
+            async with httpx.AsyncClient(timeout=45.0) as client:
                 response = await client.post(
                     "https://api.groq.com/openai/v1/chat/completions",
                     headers={
@@ -42,19 +50,19 @@ class AISummarizer:
                         "Content-Type": "application/json"
                     },
                     json={
-                        "model": "llama-3.1-8b-instant",
+                        "model": "llama-3.3-70b-versatile",
                         "messages": [
                             {
                                 "role": "system",
-                                "content": "당신은 월스트리트 출신 연준 전문 애널리스트입니다. 경제/금융 문서를 정밀하게 분석하고 투자자에게 유용한 인사이트를 한국어로 제공합니다."
+                                "content": "당신은 골드만삭스 출신 연준 전문 매크로 애널리스트입니다. Fed 연설·회의록을 분석해 기관투자자에게 실질적 인사이트를 제공합니다. 추상적 표현 대신 수치와 근거를 기반으로 명확하게 분석합니다."
                             },
                             {
                                 "role": "user",
                                 "content": prompt
                             }
                         ],
-                        "max_tokens": 1024,
-                        "temperature": 0.2
+                        "max_tokens": 2048,
+                        "temperature": 0.15
                     }
                 )
 
@@ -79,24 +87,23 @@ class AISummarizer:
         """
         import json as _json
 
-        fomc_prompt = f"""당신은 연준(Federal Reserve) 전문 애널리스트입니다.
-아래 FOMC 문서를 분석하여 반드시 아래 JSON 형식으로만 답변하세요. JSON 외의 텍스트는 절대 포함하지 마세요.
+        fomc_prompt = f"""You are a senior Fed analyst at Goldman Sachs. Analyze the following Federal Reserve document and return ONLY valid JSON with no other text.
 
-문서:
-{text[:8000]}
+Document:
+{text[:9000]}
 
-답변 형식 (JSON만):
+Return this exact JSON (no markdown, no explanation, just JSON):
 {{
-  "summary": "핵심 요약 (300자 이내 한국어)",
-  "policy_decision": "금리 결정 내용 (예: 기준금리 동결 5.25-5.50%)",
-  "economic_assessment": "인플레이션, 고용, GDP 등 경제 평가 (한국어 2-3문장)",
-  "forward_guidance": "다음 회의 전망 및 정책 방향 (한국어 1-2문장)",
-  "market_impact_score": 시장 충격도 1-10 정수 (1=미미, 10=매우 중요),
-  "hawk_dove_score": 매파/비둘기 지수 0-100 정수 (0=완전 비둘기, 100=완전 매파),
-  "sentiment": "positive 또는 negative 또는 neutral"
+  "summary": "한국 기관투자자를 위한 전문 분석 (한국어, 800~1000자). 반드시 포함: (1) ■ 핵심 결정: 금리 수준·변동·표결 결과 명시 (2) ■ 경제 평가: CPI·실업률·GDP 실제 수치 기반 현황 (3) ■ 매파/비둘기 신호: 주요 위원 발언·이견 포함 (4) ■ 시장 영향: 미국채·달러·주식시장 방향 판단 (5) ■ 다음 스텝: 조건부 금리 경로 및 체크 포인트",
+  "policy_decision": "구체적 금리 결정 한 문장 (예: 기준금리 4.25-4.50% 만장일치 동결)",
+  "economic_assessment": "실제 수치 포함 경제 평가 2문장 한국어",
+  "forward_guidance": "다음 회의 조건부 전망 1-2문장 한국어",
+  "market_impact_score": 1~10 정수,
+  "hawk_dove_score": 0~100 정수 (0=완전비둘기 100=완전매파),
+  "sentiment": "positive or negative or neutral"
 }}"""
 
-        system_content = "당신은 FOMC 문서 전문 분석가입니다. 반드시 유효한 JSON만 반환하세요. 다른 텍스트는 포함하지 마세요."
+        system_content = "You are a Federal Reserve expert analyst. Return ONLY valid JSON. No markdown, no explanation, no text outside the JSON object."
 
         async def _call_groq():
             if not self.groq_api_key:
@@ -112,7 +119,7 @@ class AISummarizer:
                                 {"role": "system", "content": system_content},
                                 {"role": "user", "content": fomc_prompt}
                             ],
-                            "max_tokens": 1024,
+                            "max_tokens": 2048,
                             "temperature": 0.1
                         }
                     )
@@ -186,15 +193,22 @@ class AISummarizer:
             return None
         
         try:
-            prompt = f"""다음 경제/금융 관련 영문 텍스트를 한국어로 번역하고 요약해주세요.
-핵심 내용과 시장에 미치는 영향을 중심으로 {max_length}자 이내로 요약해주세요.
-반드시 한국어로 작성해주세요.
+            prompt = f"""아래는 미국 연방준비제도(Fed) 관련 문서입니다.
+한국 기관투자자 수준의 전문 분석을 한국어로 작성하세요.
 
-텍스트:
+■ 핵심 메시지: 가장 중요한 발언/결정 (원문 인용 포함)
+■ 경제 인식: 인플레이션·고용·성장 시각 (수치 포함)
+■ 정책 방향 신호: 매파/비둘기 판단 및 근거
+■ 시장 영향: 미국채·S&P500·달러 방향
+■ 투자자 주목 포인트: 다음 FOMC까지 체크포인트
+
+전체 700~900자, 각 항목 2~4문장, 한국어로 작성.
+
+문서:
 {text[:8000]}
 
-한국어 요약:"""
-            
+분석:"""
+
             async with httpx.AsyncClient(timeout=60.0) as client:
                 response = await client.post(
                     "https://api.openai.com/v1/chat/completions",
@@ -207,15 +221,15 @@ class AISummarizer:
                         "messages": [
                             {
                                 "role": "system",
-                                "content": "당신은 경제/금융 전문 번역가이자 분석가입니다. 영문 텍스트를 한국어로 번역하고 핵심 내용을 명확하게 요약합니다. 반드시 한국어로만 답변하세요."
+                                "content": "당신은 골드만삭스 출신 연준 전문 매크로 애널리스트입니다. Fed 문서를 분석해 기관투자자에게 실질적 인사이트를 제공합니다. 수치와 근거를 기반으로 명확하게 분석합니다."
                             },
                             {
                                 "role": "user",
                                 "content": prompt
                             }
                         ],
-                        "max_tokens": 1024,
-                        "temperature": 0.3
+                        "max_tokens": 2048,
+                        "temperature": 0.2
                     }
                 )
                 

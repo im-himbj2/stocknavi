@@ -60,10 +60,12 @@ class SpeechSummaryResponse(BaseModel):
     summary: str
     keywords: List[str] = []
     sentiment: Optional[str] = None  # positive, negative, neutral
-    # 신규 필드
     hawk_dove_score: float = 50.0  # 0(Dove) ~ 100(Hawk)
     market_impact_score: int = 5    # 1 ~ 10
     speaker_info: Optional[Dict[str, Any]] = None
+    policy_decision: Optional[str] = None      # 금리 결정 한 문장
+    economic_assessment: Optional[str] = None  # 경제 평가
+    forward_guidance: Optional[str] = None     # 향후 전망
     cached: bool = False
     updated_at: str
 
@@ -373,6 +375,9 @@ async def get_speech_summary(
             hawk_dove_score=hawk_dove_score,
             market_impact_score=market_impact_score,
             speaker_info=speaker_info,
+            policy_decision=fomc_analysis.get("policy_decision") if fomc_analysis else None,
+            economic_assessment=fomc_analysis.get("economic_assessment") if fomc_analysis else None,
+            forward_guidance=fomc_analysis.get("forward_guidance") if fomc_analysis else None,
             cached=False,
             updated_at=datetime.now().isoformat()
         )
