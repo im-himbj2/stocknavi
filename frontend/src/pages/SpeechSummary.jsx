@@ -22,7 +22,7 @@ function SpeechSummary() {
       const items = data.items || []
       const seen = new Set()
       const unique = items.filter(item => {
-        const key = item.id || item.title || JSON.stringify(item)
+        const key = item.url || item.date || item.id
         if (seen.has(key)) return false
         seen.add(key)
         return true

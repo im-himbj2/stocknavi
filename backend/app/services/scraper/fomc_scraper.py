@@ -58,17 +58,25 @@ class FOMCScraper:
                 
                 print(f"[FOMC Scraper] Found {len(minutes_links)} minutes links")
                 
-                for link, href, text in minutes_links[:limit]:
+                seen_urls = set()
+                for link, href, text in minutes_links:
+                    if len(meetings) >= limit:
+                        break
                     try:
                         # URL 구성
                         if href.startswith('http'):
                             meeting_url = href
                         else:
                             meeting_url = f"{self.base_url}{href}"
-                        
+
+                        # URL 중복 제거
+                        if meeting_url in seen_urls:
+                            continue
+                        seen_urls.add(meeting_url)
+
                         # 날짜 추출 시도
                         date_str = self._extract_date(link, href)
-                        
+
                         if date_str and date_str.lower() not in ['html', 'pdf', 'minutes', '']:
                             meetings.append({
                                 'date': date_str,
