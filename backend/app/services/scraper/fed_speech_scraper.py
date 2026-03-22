@@ -124,8 +124,9 @@ class FedSpeechScraper:
         return 'N/A'
 
     def _extract_date_from_href(self, href: str) -> str:
-        """URL에서 날짜 추출: speech20260321a.htm → '2026-03-21'"""
-        m = re.search(r'speech(\d{8})', href)
+        """URL에서 날짜 추출: powell20260321a.htm → '2026-03-21'"""
+        # 파일명에서 8자리 숫자 추출 (예: powell20260321a.htm → 20260321)
+        m = re.search(r'(\d{8})[a-z]*\.htm', href)
         if m:
             try:
                 return datetime.strptime(m.group(1), '%Y%m%d').strftime('%Y-%m-%d')
