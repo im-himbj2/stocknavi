@@ -10,157 +10,157 @@ import re
 
 class FedSpeechScraper:
     """Fed 연설문 스크래퍼"""
-    
+
     def __init__(self):
         self.base_url = "https://www.federalreserve.gov"
-        self.speeches_url = f"{self.base_url}/newsevents/speeches.htm"
-    
+
     async def get_recent_speeches(self, limit: int = 10) -> List[Dict]:
         """
         최근 Fed 연설문 목록 조회
-        
-        Args:
-            limit: 조회할 연설문 수
-        
-        Returns:
-            연설문 정보 리스트
+        speeches.htm은 JS 렌더링이라 연도별 정적 페이지를 직접 파싱
         """
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+        }
+
+        speeches = []
+        current_year = datetime.now().year
+
         try:
-            headers = {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.5',
-            }
-            
             async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
-                response = await client.get(self.speeches_url, headers=headers)
-                
-                if response.status_code != 200:
-                    print(f"[Fed Speech Scraper] HTTP {response.status_code} error")
-                    return self._get_sample_speeches(limit)
-                
-                soup = BeautifulSoup(response.text, 'html.parser')
-                speeches = []
-                
-                # 연설문 링크 찾기
-                all_links = soup.find_all('a', href=True)
-                speech_links = []
-                
-                for link in all_links:
-                    href = link.get('href', '')
-                    text = link.get_text(strip=True)
-                    
-                    # 연설문 링크 패턴 확인
-                    if '/newsevents/speech/' in href and '.htm' in href:
-                        if text and len(text) > 5:  # 최소 길이 확인
-                            speech_links.append((link, href, text))
-                
-                print(f"[Fed Speech Scraper] Found {len(speech_links)} speech links")
-                
-                for link, href, text in speech_links[:limit]:
+                # 현재 연도, 전년도 순서로 시도
+                for year in [current_year, current_year - 1]:
+                    if len(speeches) >= limit:
+                        break
+                    url = f"{self.base_url}/newsevents/{year}-speeches.htm"
                     try:
-                        # URL 구성
-                        if href.startswith('http'):
-                            speech_url = href
-                        else:
-                            speech_url = f"{self.base_url}{href}"
-                        
-                        # 날짜 및 연사 추출
-                        date_str = self._extract_date(link, href)
-                        speaker = self._extract_speaker(link)
-                        
-                        # 제목이 너무 짧거나 없으면 스킵
-                        if text.lower() in ['html', 'pdf', ''] or len(text) < 5:
+                        response = await client.get(url, headers=headers)
+                        if response.status_code != 200:
+                            print(f"[Fed Speech Scraper] HTTP {response.status_code} for {url}")
                             continue
-                        
-                        speeches.append({
-                            'title': text,
-                            'date': date_str,
-                            'url': speech_url,
-                            'speaker': speaker
-                        })
+
+                        soup = BeautifulSoup(response.text, 'html.parser')
+                        parsed = self._parse_speeches_page(soup)
+                        speeches.extend(parsed)
+                        print(f"[Fed Speech Scraper] {year}: {len(parsed)} speeches parsed")
                     except Exception as e:
-                        print(f"[Fed Speech Scraper] Error processing link: {e}")
+                        print(f"[Fed Speech Scraper] Error fetching {year}: {e}")
                         continue
-                
-                if len(speeches) < 3:
-                    print(f"[Fed Speech Scraper] Too few speeches found ({len(speeches)}), using sample data")
-                    return self._get_sample_speeches(limit)
-                
-                print(f"[Fed Speech Scraper] Retrieved {len(speeches)} speeches")
-                return speeches[:limit]
-                
-        except httpx.TimeoutException:
-            print(f"[Fed Speech Scraper] Timeout error")
-            return self._get_sample_speeches(limit)
+
         except Exception as e:
-            error_msg = str(e).encode('ascii', errors='ignore').decode('ascii')
-            print(f"[Fed Speech Scraper] Error fetching speeches: {error_msg}")
+            print(f"[Fed Speech Scraper] Client error: {e}")
+
+        if len(speeches) < 3:
+            print(f"[Fed Speech Scraper] Too few speeches ({len(speeches)}), using sample data")
             return self._get_sample_speeches(limit)
-    
-    def _extract_date(self, link, href: str) -> str:
-        """링크에서 날짜 추출"""
-        # href에서 날짜 추출 시도 (speech20250115a.htm 형태)
-        date_match = re.search(r'speech(\d{8})', href)
-        if date_match:
-            date_str = date_match.group(1)
+
+        # 날짜 내림차순 정렬
+        def sort_key(s):
             try:
-                date_obj = datetime.strptime(date_str, '%Y%m%d')
-                return date_obj.strftime('%Y-%m-%d')
-            except ValueError:
+                return datetime.strptime(s['date'], '%Y-%m-%d')
+            except:
+                return datetime.min
+
+        speeches.sort(key=sort_key, reverse=True)
+        print(f"[Fed Speech Scraper] Total {len(speeches)} speeches retrieved")
+        return speeches[:limit]
+
+    def _parse_speeches_page(self, soup) -> List[Dict]:
+        """연도별 연설 페이지 파싱 (dt/dd 구조)"""
+        speeches = []
+        # <dl> 안의 <dt>(날짜) + <dd>(제목/연사) 쌍
+        dl = soup.find('dl')
+        if not dl:
+            # fallback: 모든 /newsevents/speech/ 링크 수집
+            for link in soup.find_all('a', href=re.compile(r'/newsevents/speech/.*\.htm')):
+                href = link.get('href', '')
+                title = link.get_text(strip=True)
+                if not title or len(title) < 5:
+                    continue
+                speech_url = href if href.startswith('http') else f"{self.base_url}{href}"
+                date_str = self._extract_date_from_href(href)
+                speaker = self._extract_speaker(link)
+                speeches.append({'title': title, 'date': date_str, 'url': speech_url, 'speaker': speaker})
+            return speeches
+
+        items = dl.find_all(['dt', 'dd'])
+        current_date = 'N/A'
+        for item in items:
+            if item.name == 'dt':
+                current_date = self._parse_date_text(item.get_text(strip=True))
+            elif item.name == 'dd':
+                link = item.find('a', href=re.compile(r'/newsevents/speech/'))
+                if not link:
+                    continue
+                href = link.get('href', '')
+                title = link.get_text(strip=True)
+                if not title or len(title) < 5:
+                    continue
+                speech_url = href if href.startswith('http') else f"{self.base_url}{href}"
+                # dt 날짜 우선, 없으면 URL에서 추출
+                date_str = current_date if current_date != 'N/A' else self._extract_date_from_href(href)
+                speaker = self._extract_speaker_from_text(item.get_text())
+                speeches.append({'title': title, 'date': date_str, 'url': speech_url, 'speaker': speaker})
+        return speeches
+
+    def _parse_date_text(self, text: str) -> str:
+        """'3/21/2026' 또는 'March 21, 2026' 형태 → 'YYYY-MM-DD'"""
+        # M/D/YYYY 형태
+        m = re.match(r'(\d{1,2})/(\d{1,2})/(\d{4})', text.strip())
+        if m:
+            try:
+                return datetime(int(m.group(3)), int(m.group(1)), int(m.group(2))).strftime('%Y-%m-%d')
+            except:
                 pass
-        
-        # 부모 요소에서 날짜 찾기
-        parent = link.find_parent('div')
-        if not parent:
-            parent = link.find_parent('li')
-        if not parent:
-            parent = link.find_parent('tr')
-        
-        if parent:
-            # 날짜 패턴 검색
-            text = parent.get_text()
-            
-            # "January 15, 2025" 형태
-            month_pattern = r'(January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{1,2},?\s+\d{4}'
-            match = re.search(month_pattern, text)
-            if match:
-                return match.group(0)
-        
-        return "N/A"
+        # Month D, YYYY 형태
+        m = re.search(r'(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(\d{4})', text)
+        if m:
+            try:
+                return datetime.strptime(f"{m.group(1)} {m.group(2)} {m.group(3)}", '%B %d %Y').strftime('%Y-%m-%d')
+            except:
+                pass
+        return 'N/A'
+
+    def _extract_date_from_href(self, href: str) -> str:
+        """URL에서 날짜 추출: speech20260321a.htm → '2026-03-21'"""
+        m = re.search(r'speech(\d{8})', href)
+        if m:
+            try:
+                return datetime.strptime(m.group(1), '%Y%m%d').strftime('%Y-%m-%d')
+            except:
+                pass
+        return 'N/A'
+
+    def _extract_speaker_from_text(self, text: str) -> Optional[str]:
+        """dd 텍스트에서 연사 이름 추출"""
+        patterns = [
+            r'(Jerome H\. Powell|Chair Powell)',
+            r'(Michelle W\. Bowman)',
+            r'(Christopher J\. Waller)',
+            r'(Lisa D\. Cook)',
+            r'(Philip N\. Jefferson)',
+            r'(Adriana D\. Kugler)',
+            r'(Michael S\. Barr)',
+            r'(Stephen I\. Miran)',
+            r'(Governor|Vice Chair|Chair)\s+\w+',
+        ]
+        for pattern in patterns:
+            m = re.search(pattern, text)
+            if m:
+                return m.group(0)
+        return None
     
+    # _extract_date / _extract_speaker는 _extract_date_from_href / _extract_speaker_from_text 로 대체됨
     def _extract_speaker(self, link) -> Optional[str]:
-        """연설자 추출"""
-        try:
-            parent = link.find_parent('div')
-            if not parent:
-                parent = link.find_parent('li')
-            
-            if parent:
-                # 연설자 패턴 검색
-                text = parent.get_text()
-                
-                # Fed 관계자 이름 패턴
-                speaker_patterns = [
-                    r'(Jerome H\. Powell|Chair Powell)',
-                    r'(Michelle W\. Bowman|Governor Bowman)',
-                    r'(Christopher J\. Waller|Governor Waller)',
-                    r'(Lisa D\. Cook|Governor Cook)',
-                    r'(Philip N\. Jefferson|Vice Chair Jefferson)',
-                    r'(Adriana D\. Kugler|Governor Kugler)',
-                    r'(Michael S\. Barr|Vice Chair Barr)',
-                    r'(Governor|Vice Chair|Chair)\s+\w+',
-                ]
-                
-                for pattern in speaker_patterns:
-                    match = re.search(pattern, text)
-                    if match:
-                        return match.group(0)
-            
-            return None
-        except:
-            return None
-    
+        """fallback용 연설자 추출 (링크 기반)"""
+        parent = link.find_parent('dd') or link.find_parent('div') or link.find_parent('li')
+        if parent:
+            return self._extract_speaker_from_text(parent.get_text())
+        return None
+
+
     def _get_sample_speeches(self, limit: int) -> List[Dict]:
         """샘플 연설문 데이터"""
         sample_speeches = [
