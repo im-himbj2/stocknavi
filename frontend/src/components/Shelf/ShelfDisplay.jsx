@@ -4,10 +4,10 @@ import FeatureCard from './FeatureCard';
 import { useLanguage } from '../../contexts/LanguageContext';
 
 const FEATURE_BASES = [
-  { id: '01', category: 'Core',     color: 'from-blue-900 via-blue-700 to-blue-500',   iconType: 'company',   link: '/company'    },
-  { id: '02', category: 'Macro',    color: 'from-purple-900 via-purple-700 to-purple-500', iconType: 'market', link: '/economic'   },
-  { id: '03', category: 'AI',       color: 'from-cyan-900 via-cyan-700 to-cyan-500',    iconType: 'speech',    link: '/speech'     },
-  { id: '04', category: 'Personal', color: 'from-amber-900 via-amber-700 to-amber-500', iconType: 'portfolio', link: '/portfolio'  },
+  { id: '01', color: 'from-blue-900 via-blue-700 to-blue-500',      iconType: 'company',   link: '/company'    },
+  { id: '02', color: 'from-purple-900 via-purple-700 to-purple-500', iconType: 'market',   link: '/economic'   },
+  { id: '03', color: 'from-cyan-900 via-cyan-700 to-cyan-500',       iconType: 'speech',   link: '/speech'     },
+  { id: '04', color: 'from-amber-900 via-amber-700 to-amber-500',    iconType: 'portfolio', link: '/portfolio'  },
 ];
 
 const ShelfDisplay = () => {
@@ -18,6 +18,7 @@ const ShelfDisplay = () => {
 
   const features = FEATURE_BASES.map((base, i) => ({
     ...base,
+    category: t(`shelf.categories.${i}`),
     title: t(`shelf.features.${i}.title`),
     subtitle: t(`shelf.features.${i}.subtitle`),
     description: t(`shelf.features.${i}.description`),

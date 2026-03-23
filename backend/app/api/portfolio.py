@@ -149,6 +149,16 @@ async def get_portfolio_prices(
     provider = YahooFinanceDataProvider()
     quotes = provider.get_current_prices_batch(symbol_list)
 
+    # .KS 조회 실패한 한국 종목 → .KQ 재시도
+    ks_failed = [s for s in symbol_list if s.endswith(".KS") and s not in quotes]
+    if ks_failed:
+        kq_symbols = [s.replace(".KS", ".KQ") for s in ks_failed]
+        kq_quotes = provider.get_current_prices_batch(kq_symbols)
+        for ks_sym, kq_sym in zip(ks_failed, kq_symbols):
+            if kq_sym in kq_quotes:
+                quotes[ks_sym] = kq_quotes[kq_sym]
+                print(f"[Portfolio] .KS 실패 → .KQ 성공: {ks_sym} → {kq_sym}")
+
     # 한국 주식 여부 판별 (.KS 또는 .KQ suffix)
     has_kr = any(s.endswith(".KS") or s.endswith(".KQ") for s in symbol_list)
 

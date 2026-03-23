@@ -723,34 +723,38 @@ async def get_company_analysis(
         
         # 한국 종목 처리
         symbol_clean = symbol.replace('.KS', '').replace('.KQ', '')
-        if symbol_clean.isdigit() or symbol.endswith('.KS') or symbol.endswith('.KQ'):
-            # 한국 종목
+        is_korean = symbol_clean.isdigit() or symbol.endswith('.KS') or symbol.endswith('.KQ')
+        if is_korean:
             if not symbol.endswith('.KS') and not symbol.endswith('.KQ'):
                 ticker_symbol = f"{symbol_clean}.KS"
             else:
                 ticker_symbol = symbol
         else:
             ticker_symbol = symbol_clean
-        
-        # yfinance로 데이터 조회
-        ticker = yf.Ticker(ticker_symbol)
-        
-        # 기본 정보 조회 (재시도 로직 포함)
-        max_retries = 3
-        info = None
-        for attempt in range(max_retries):
-            try:
-                info = ticker.info
-                if info and isinstance(info, dict) and len(info) > 0:
-                    break
-            except Exception as e:
-                if attempt < max_retries - 1:
-                    print(f"[Company Analysis] 정보 조회 재시도 ({symbol}): {e}")
-                    import time
-                    time.sleep(1)
-                else:
-                    raise HTTPException(status_code=404, detail=f"기업 정보를 찾을 수 없습니다: {symbol}")
-        
+
+        # yfinance로 데이터 조회 (한국 종목: .KS 실패 시 .KQ 자동 재시도)
+        def _fetch_info(sym):
+            t = yf.Ticker(sym)
+            for attempt in range(3):
+                try:
+                    i = t.info
+                    if i and isinstance(i, dict) and len(i) > 5 and i.get('regularMarketPrice') is not None:
+                        return t, i
+                except Exception as e:
+                    if attempt < 2:
+                        import time; time.sleep(1)
+            return t, None
+
+        ticker, info = _fetch_info(ticker_symbol)
+
+        # 코스닥(.KQ) fallback: .KS로 조회 실패 시 자동 시도
+        if info is None and is_korean and ticker_symbol.endswith('.KS'):
+            alt_symbol = f"{symbol_clean}.KQ"
+            print(f"[Company Analysis] .KS 실패 → .KQ 재시도: {alt_symbol}")
+            ticker, info = _fetch_info(alt_symbol)
+            if info is not None:
+                ticker_symbol = alt_symbol
+
         if not info:
             raise HTTPException(status_code=404, detail=f"기업 정보를 찾을 수 없습니다: {symbol}")
         

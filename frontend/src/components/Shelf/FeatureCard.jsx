@@ -1,7 +1,9 @@
 import { Link } from 'react-router-dom';
 import { DividendIcon, CompanyIcon, MarketIcon, SpeechIcon, PortfolioIcon, ArrowRight } from './Icons';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 const FeatureCard = ({ item, variant, isFlipped = false, onClick, link }) => {
+    const { t } = useLanguage();
     const getIcon = (sizeClass) => {
         switch (item.iconType) {
             case 'dividend': return <DividendIcon className={`${sizeClass} text-white/90 drop-shadow-md`} />;
@@ -73,7 +75,7 @@ const FeatureCard = ({ item, variant, isFlipped = false, onClick, link }) => {
                                 {item.category}
                             </span>
                             {variant === 'overlay' && !isFlipped && (
-                                <span className="text-[10px] text-white/70 animate-pulse">Click to flip</span>
+                                <span className="text-[10px] text-white/70 animate-pulse">{t('shelf.clickToFlip')}</span>
                             )}
                         </div>
 
@@ -87,7 +89,7 @@ const FeatureCard = ({ item, variant, isFlipped = false, onClick, link }) => {
                         </div>
 
                         <div className="w-full flex justify-between items-end">
-                            <span className="text-[10px] uppercase tracking-widest text-white/50">Vol. {item.id}</span>
+                            <span className="text-[10px] uppercase tracking-widest text-white/50">{item.category}</span>
                             {variant === 'shelf' && (
                                 <div className="bg-white/10 p-2 rounded-full backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
                                     <ArrowRight className="w-4 h-4 text-white" />
@@ -139,14 +141,14 @@ const FeatureCard = ({ item, variant, isFlipped = false, onClick, link }) => {
                                     onClick={(e) => e.stopPropagation()}
                                     className="block w-full py-3 bg-white text-black font-bold rounded-lg hover:bg-gray-200 transition-colors uppercase tracking-widest text-xs text-center"
                                 >
-                                    Launch Application
+                                    {t('shelf.launchApp')}
                                 </Link>
                             ) : (
                                 <button
                                     onClick={(e) => e.stopPropagation()}
                                     className="w-full py-3 bg-white text-black font-bold rounded-lg hover:bg-gray-200 transition-colors uppercase tracking-widest text-xs"
                                 >
-                                    Launch Application
+                                    {t('shelf.launchApp')}
                                 </button>
                             )}
                         </div>
@@ -175,7 +177,7 @@ const FeatureCard = ({ item, variant, isFlipped = false, onClick, link }) => {
             {/* Text Info Below Shelf (Only show in Shelf mode) */}
             {variant === 'shelf' && (
                 <div className="mt-16 text-center transition-all duration-500 opacity-40 group-hover:opacity-100 group-hover:translate-y-0 translate-y-2">
-                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-gray-500">{item.id} — Edition</p>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-gray-500">{item.category}</p>
                     <p className="text-base font-medium text-white mt-1 tracking-tight">{item.subtitle}</p>
                 </div>
             )}

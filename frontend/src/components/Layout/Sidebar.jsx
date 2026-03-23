@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
+import React from 'react'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { useAuth } from '../../contexts/AuthContext'
 import { logout as authLogout } from '../../services/auth'
@@ -7,7 +8,16 @@ import { logout as authLogout } from '../../services/auth'
 function Sidebar() {
   const location = useLocation()
   const navigate = useNavigate()
-  const [isOpen, setIsOpen] = useState(true)
+  const [isOpen, setIsOpen] = useState(() => window.innerWidth >= 768)
+
+  // 모바일 리사이즈 대응: 작은 화면에서 자동 접힘
+  React.useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) setIsOpen(false)
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
   const { lang, toggleLang, t } = useLanguage()
   const { isAuth, logout } = useAuth()
 

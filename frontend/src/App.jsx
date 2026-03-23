@@ -33,7 +33,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/dividend" element={<Navigate to="/company" replace />} />
           <Route path="/company" element={
-            <div className="min-h-screen bg-[#0a0f15] text-white flex">
+            <div className="min-h-screen bg-[#0a0f15] text-white flex overflow-x-hidden">
               <Sidebar />
               <main className="flex-1 overflow-auto">
                 <CompanyAnalysis />
@@ -41,7 +41,7 @@ function App() {
             </div>
           } />
           <Route path="/economic" element={
-            <div className="min-h-screen bg-[#0a0f15] text-white flex">
+            <div className="min-h-screen bg-[#0a0f15] text-white flex overflow-x-hidden">
               <Sidebar />
               <main className="flex-1 overflow-auto">
                 <EconomicIndicators />
@@ -49,7 +49,7 @@ function App() {
             </div>
           } />
           <Route path="/intelligence" element={
-            <div className="min-h-screen bg-[#0a0f15] text-white flex">
+            <div className="min-h-screen bg-[#0a0f15] text-white flex overflow-x-hidden">
               <Sidebar />
               <main className="flex-1 overflow-auto">
                 <MarketIntelligence />
@@ -57,7 +57,7 @@ function App() {
             </div>
           } />
           <Route path="/speech" element={
-            <div className="min-h-screen bg-[#0a0f15] text-white flex">
+            <div className="min-h-screen bg-[#0a0f15] text-white flex overflow-x-hidden">
               <Sidebar />
               <main className="flex-1 overflow-auto">
                 <SpeechSummary />
@@ -65,7 +65,7 @@ function App() {
             </div>
           } />
           <Route path="/portfolio" element={
-            <div className="min-h-screen bg-[#0a0f15] text-white flex">
+            <div className="min-h-screen bg-[#0a0f15] text-white flex overflow-x-hidden">
               <Sidebar />
               <main className="flex-1 overflow-auto">
                 <Portfolio />
@@ -73,7 +73,7 @@ function App() {
             </div>
           } />
           <Route path="/news" element={
-            <div className="min-h-screen bg-[#0a0f15] text-white flex">
+            <div className="min-h-screen bg-[#0a0f15] text-white flex overflow-x-hidden">
               <Sidebar />
               <main className="flex-1 overflow-auto">
                 <News />
@@ -81,7 +81,7 @@ function App() {
             </div>
           } />
           <Route path="/subscription" element={
-            <div className="min-h-screen bg-[#0a0f15] text-white flex">
+            <div className="min-h-screen bg-[#0a0f15] text-white flex overflow-x-hidden">
               <Sidebar />
               <main className="flex-1 overflow-auto">
                 <Subscription />

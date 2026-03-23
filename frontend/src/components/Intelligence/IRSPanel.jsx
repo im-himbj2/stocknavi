@@ -198,6 +198,17 @@ const RadarChart = ({ scores, lang, size = 160 }) => {
   )
 }
 
+// ─── 인라인 툴팁 컴포넌트 ────────────────────────────────────────────────────
+const Tooltip = ({ content, children }) => (
+  <div className="relative group/tip inline-block">
+    {children}
+    <div className="invisible group-hover/tip:visible opacity-0 group-hover/tip:opacity-100 transition-opacity duration-150 absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 z-50 min-w-[130px] bg-[#060d18] border border-[#1a3a5c] rounded p-2 text-[8px] font-mono text-gray-300 whitespace-pre-line pointer-events-none shadow-2xl">
+      {content}
+      <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-[#1a3a5c]"></div>
+    </div>
+  </div>
+)
+
 // ─── 메인 패널 ────────────────────────────────────────────────────────────────
 const DEFAULT_SYMBOLS = ['NVDA', 'TSM', 'AAPL', '005930', 'TSLA']
 
@@ -326,7 +337,14 @@ export default function IRSPanel() {
               <thead>
                 <tr className="border-b border-[#1a3a5c]/50">
                   <th className="text-left text-gray-600 pb-1 font-normal">{lang === 'ko' ? '종목' : 'Symbol'}</th>
-                  <th className="text-center text-gray-600 pb-1 font-normal">IRS</th>
+                  <th className="text-center text-gray-600 pb-1 font-normal">
+                    <Tooltip content={lang === 'ko'
+                      ? '투자 리스크 스코어\n지정학   ×30%\n공급망   ×25%\n거시경제 ×25%\n뉴스     ×20%'
+                      : 'Investment Risk Score\nGeopolitics ×30%\nSupply Chain ×25%\nMacro Economy ×25%\nNews Sentiment ×20%'
+                    }>
+                      <span className="cursor-help border-b border-dotted border-gray-600">IRS ⓘ</span>
+                    </Tooltip>
+                  </th>
                   <th className="text-right text-gray-600 pb-1 font-normal">{lang === 'ko' ? '지정학' : 'Geo'}</th>
                   <th className="text-right text-gray-600 pb-1 font-normal">{lang === 'ko' ? '공급망' : 'Supply'}</th>
                   <th className="text-right text-gray-600 pb-1 font-normal">{lang === 'ko' ? '거시' : 'Macro'}</th>
@@ -344,7 +362,15 @@ export default function IRSPanel() {
                     onClick={() => setSelected(sym)}
                   >
                     <td className="py-1 text-[#5ba4d4] font-bold">{sym}</td>
-                    <td className="py-1 text-center font-bold" style={{ color: risk.color }}>{irs}</td>
+                    <td className="py-1 text-center font-bold" style={{ color: risk.color }}>
+                      <Tooltip content={
+                        lang === 'ko'
+                          ? `${sym} IRS: ${irs}\n지정학:   ${scores.geo} → ${Math.round(scores.geo*0.30)}\n공급망:   ${scores.supply} → ${Math.round(scores.supply*0.25)}\n거시경제: ${scores.macro} → ${Math.round(scores.macro*0.25)}\n뉴스:     ${scores.news} → ${Math.round(scores.news*0.20)}`
+                          : `${sym} IRS: ${irs}\nGeo:    ${scores.geo} → ${Math.round(scores.geo*0.30)}\nSupply: ${scores.supply} → ${Math.round(scores.supply*0.25)}\nMacro:  ${scores.macro} → ${Math.round(scores.macro*0.25)}\nNews:   ${scores.news} → ${Math.round(scores.news*0.20)}`
+                      }>
+                        <span className="cursor-help">{irs}</span>
+                      </Tooltip>
+                    </td>
                     <td className="py-1 text-right text-gray-400">{scores.geo}</td>
                     <td className="py-1 text-right text-gray-400">{scores.supply}</td>
                     <td className="py-1 text-right text-gray-400">{scores.macro}</td>
