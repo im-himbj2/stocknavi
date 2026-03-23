@@ -30,7 +30,8 @@ const ko = {
   sidebar: {
     home: '홈', company: '기업·배당', economic: '경제 지표',
     intelligence: '투자 인텔리전스',
-    speech: 'Fed 연설·회의록', portfolio: '포트폴리오', langToggle: 'EN',
+    speech: 'Fed 연설·회의록', portfolio: '포트폴리오',
+    tax: '양도세 계산기', langToggle: 'EN',
   },
   login: {
     loginTab: '로그인', registerTab: '회원가입', loginTitle: '로그인', registerTitle: '회원가입',

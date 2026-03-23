@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import apiService from '../services/api'
+import apiService, { getDartDisclosures } from '../services/api'
 import { getSubscriptionStatus } from '../utils/subscription'
 import { majorStocks } from '../data/stockList'
 import PopularStockCard from '../components/Stock/PopularStockCard'
@@ -27,6 +27,9 @@ function CompanyAnalysis() {
   const [showOlderData, setShowOlderData] = useState(false)
   const [dividendPrices, setDividendPrices] = useState({})
   const searchRef = useRef(null)
+  // DART 공시 상태
+  const [dartData, setDartData] = useState(null)
+  const [dartLoading, setDartLoading] = useState(false)
 
   const highDividendStocks = [
     { symbol: 'T', name: 'AT&T', yield: '6.5%' },
@@ -169,6 +172,19 @@ function CompanyAnalysis() {
       fetchDividendData(symbol)
     }
   }, [activeTab, symbol])
+
+  // DART 공시 fetch (한국 종목일 때만)
+  useEffect(() => {
+    if (!symbol || !isKoreanStock) { setDartData(null); return }
+    const fetchDart = async () => {
+      setDartLoading(true)
+      const companyName = analysis?.company_name || ''
+      const data = await getDartDisclosures(symbol, companyName, 5)
+      setDartData(data)
+      setDartLoading(false)
+    }
+    fetchDart()
+  }, [symbol, isKoreanStock])
 
   // Helper functions
   const getRatingLabel = (rating) => {
@@ -854,6 +870,49 @@ function CompanyAnalysis() {
                   ))}
                 </div>
               </div>
+            )}
+          </div>
+        )}
+
+        {/* DART 공시 (한국 종목 전용) */}
+        {isKoreanStock && symbol && (
+          <div className="mt-6 p-4 bg-[#0d1829] border border-slate-700/50 rounded-xl">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-sm font-bold text-white">📋 DART 공시</span>
+              <span className="text-xs text-slate-500">최근 5건 · AI 호재/악재 분석</span>
+              {dartData?.has_api_key === false && (
+                <span className="text-[10px] bg-amber-900/30 border border-amber-700/40 text-amber-400 px-2 py-0.5 rounded">API키 없음 (웹스크래핑)</span>
+              )}
+            </div>
+            {dartLoading && (
+              <div className="flex items-center gap-2 text-xs text-slate-500 py-3">
+                <div className="w-3 h-3 border border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+                공시 불러오는 중...
+              </div>
+            )}
+            {!dartLoading && dartData?.disclosures?.length > 0 && (
+              <div className="space-y-2">
+                {dartData.disclosures.map((d, i) => (
+                  <div key={i} className="flex items-start gap-2 py-2 border-b border-slate-800 last:border-0">
+                    <span className={`shrink-0 mt-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                      d.impact === '호재' ? 'bg-emerald-900/40 text-emerald-400 border border-emerald-700/40' :
+                      d.impact === '악재' ? 'bg-red-900/40 text-red-400 border border-red-700/40' :
+                      'bg-slate-800 text-slate-400 border border-slate-700'
+                    }`}>{d.impact || '중립'}</span>
+                    <div className="flex-1 min-w-0">
+                      <a href={d.url} target="_blank" rel="noopener noreferrer"
+                        className="text-xs text-slate-200 hover:text-blue-400 transition-colors line-clamp-1">
+                        {d.title}
+                      </a>
+                      {d.summary && <p className="text-[11px] text-slate-500 mt-0.5">{d.summary}</p>}
+                    </div>
+                    <span className="shrink-0 text-[10px] text-slate-600">{d.date}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {!dartLoading && (!dartData || dartData?.disclosures?.length === 0) && (
+              <p className="text-xs text-slate-600 py-2">공시 데이터를 불러올 수 없습니다.</p>
             )}
           </div>
         )}

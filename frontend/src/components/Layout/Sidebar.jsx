@@ -28,6 +28,7 @@ function Sidebar() {
     { path: '/intelligence',  key: 'sidebar.intelligence',  icon: 'psychology' },
     { path: '/speech',        key: 'sidebar.speech',        icon: 'smart_toy' },
     { path: '/portfolio',     key: 'sidebar.portfolio',     icon: 'account_balance_wallet' },
+    { path: '/tax',           key: 'sidebar.tax',           icon: 'calculate' },
   ]
 
   const isActive = (path) => location.pathname === path

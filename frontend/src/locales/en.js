@@ -30,7 +30,8 @@ const en = {
   sidebar: {
     home: 'Home', company: 'Company & Dividend', economic: 'Economic Indicators',
     intelligence: 'Intelligence',
-    speech: 'AI Intelligence', portfolio: 'Portfolio', langToggle: 'KR',
+    speech: 'AI Intelligence', portfolio: 'Portfolio',
+    tax: 'Tax Calculator', langToggle: 'KR',
   },
   login: {
     loginTab: 'Login', registerTab: 'Register', loginTitle: 'Sign In', registerTitle: 'Register',

@@ -12,6 +12,7 @@ import Subscription from './pages/Subscription'
 import Login from './pages/Login'
 import Sidebar from './components/Layout/Sidebar'
 import MarketIntelligence from './pages/MarketIntelligence'
+import TaxSimulator from './pages/TaxSimulator'
 
 function App() {
   // 에러 바운더리 추가 (개발 환경에서 에러 확인)
@@ -111,6 +112,14 @@ function App() {
                     구독 페이지로 돌아가기
                   </a>
                 </div>
+              </main>
+            </div>
+          } />
+          <Route path="/tax" element={
+            <div className="min-h-screen bg-[#0a0f15] text-white flex overflow-x-hidden">
+              <Sidebar />
+              <main className="flex-1 overflow-auto">
+                <TaxSimulator />
               </main>
             </div>
           } />

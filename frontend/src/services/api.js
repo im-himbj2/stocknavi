@@ -493,6 +493,18 @@ export const cancelSubscription = async () => {
   }
 }
 
+export const getDartDisclosures = async (symbol, companyName = '', limit = 5) => {
+  try {
+    const params = new URLSearchParams({ limit })
+    if (companyName) params.append('company_name', companyName)
+    const response = await api.get(`/dart/${symbol}?${params.toString()}`, { timeout: 30000 })
+    return response.data
+  } catch (error) {
+    console.error('[API] DART 공시 오류:', error)
+    return null
+  }
+}
+
 // API 서비스 객체로 export (더 편리한 사용을 위해)
 const apiService = {
   getCompanyAnalysis,
