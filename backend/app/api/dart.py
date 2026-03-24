@@ -106,16 +106,9 @@ async def get_dart_disclosures(
     if not (clean.isdigit() or symbol.endswith(".KS") or symbol.endswith(".KQ")):
         raise HTTPException(status_code=400, detail="한국 종목(.KS/.KQ)만 지원합니다")
 
-    # 회사명이 없으면 심볼에서 추출 시도
+    # 회사명이 없으면 종목코드 사용 (yfinance 영문명은 DART 한국어 검색 불가)
     if not company_name:
-        try:
-            import yfinance as yf
-            info = yf.Ticker(symbol).info
-            company_name = info.get("longName") or info.get("shortName") or clean
-            # 괄호 제거 (예: "Samsung Electronics Co., Ltd." → "삼성전자")
-            company_name = company_name.split("(")[0].strip()
-        except Exception:
-            company_name = clean
+        company_name = clean
 
     scraper = DARTScraper()
     disclosures = await scraper.get_recent_disclosures(symbol, company_name, limit)
