@@ -178,8 +178,7 @@ function CompanyAnalysis() {
     if (!symbol || !isKoreanStock) { setDartData(null); return }
     const fetchDart = async () => {
       setDartLoading(true)
-      const companyName = analysis?.company_name || ''
-      const data = await getDartDisclosures(symbol, companyName, 5)
+      const data = await getDartDisclosures(symbol, '', 5)
       setDartData(data)
       setDartLoading(false)
     }
@@ -879,6 +878,7 @@ function CompanyAnalysis() {
           <div className="mt-6 p-4 bg-[#0d1829] border border-slate-700/50 rounded-xl">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-sm font-bold text-white">📋 DART 공시</span>
+              {dartData?.company_name && <span className="text-xs text-blue-400">{dartData.company_name}</span>}
               <span className="text-xs text-slate-500">최근 5건 · AI 호재/악재 분석</span>
               {dartData?.has_api_key === false && (
                 <span className="text-[10px] bg-amber-900/30 border border-amber-700/40 text-amber-400 px-2 py-0.5 rounded">API키 없음 (웹스크래핑)</span>

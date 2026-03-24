@@ -97,7 +97,7 @@ JSON 배열로만 응답하세요. 예시:
 @router.get("/{symbol}", response_model=DARTResponse)
 async def get_dart_disclosures(
     symbol: str,
-    company_name: str = Query("", description="회사명 (yfinance에서 가져온 이름)"),
+    company_name: str = Query("", description="회사명 힌트 (없으면 DART corpCode.xml에서 자동 조회)"),
     limit: int = Query(5, ge=1, le=20),
 ):
     """한국 종목의 최근 DART 공시 조회 + AI 호재/악재 판단"""
@@ -106,19 +106,18 @@ async def get_dart_disclosures(
     if not (clean.isdigit() or symbol.endswith(".KS") or symbol.endswith(".KQ")):
         raise HTTPException(status_code=400, detail="한국 종목(.KS/.KQ)만 지원합니다")
 
-    # 회사명이 없으면 종목코드 사용 (yfinance 영문명은 DART 한국어 검색 불가)
-    if not company_name:
-        company_name = clean
-
     scraper = DARTScraper()
-    disclosures = await scraper.get_recent_disclosures(symbol, company_name, limit)
+    disclosures, resolved_name = await scraper.get_recent_disclosures(symbol, limit)
+
+    # company_name 파라미터가 있으면 우선 사용, 없으면 scraper가 해결한 이름 사용
+    final_name = company_name.strip() or resolved_name
 
     # AI 호재/악재 분류
     disclosures = await _ai_summarize_disclosures(disclosures)
 
     return DARTResponse(
         symbol=symbol,
-        company_name=company_name,
+        company_name=final_name,
         disclosures=[DisclosureItem(**d) for d in disclosures],
         has_api_key=bool(os.getenv("DART_API_KEY")),
     )
