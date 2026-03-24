@@ -210,6 +210,31 @@ function Portfolio() {
   const maxWeight = stockWeights[0]?.pct || 0
   const hasConcenRisk = maxWeight > 30
 
+  // 국장·미장 분리 수익률 비교
+  const krItems = portfolioItems.filter(i => isKR(i.symbol))
+  const usItems = portfolioItems.filter(i => !isKR(i.symbol))
+
+  const calcGroupStats = (items) => {
+    if (items.length === 0) return null
+    const totalVal = items.reduce((s, i) => {
+      const { totalValue: tv } = calcProfit(i)
+      const currency = stockPrices[i.symbol]?.currency || 'USD'
+      return s + (currency === 'KRW' ? tv / usdKrwRate : tv)
+    }, 0)
+    const totalCostVal = items.reduce((s, i) => {
+      const { cost } = calcProfit(i)
+      const currency = stockPrices[i.symbol]?.currency || 'USD'
+      return s + (currency === 'KRW' ? cost / usdKrwRate : cost)
+    }, 0)
+    const profit = totalVal - totalCostVal
+    const pct = totalCostVal > 0 ? (profit / totalCostVal) * 100 : 0
+    return { totalVal, totalCostVal, profit, pct, count: items.length }
+  }
+
+  const krStats = calcGroupStats(krItems)
+  const usStats = calcGroupStats(usItems)
+  const hasBothMarkets = krStats && usStats
+
   return (
     <div className="min-h-screen bg-background-dark text-slate-100 font-display">
       <main className="flex-1 px-6 py-8 max-w-[1440px] mx-auto w-full flex gap-6">
@@ -371,6 +396,87 @@ function Portfolio() {
                     ))}
                   </div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* 국장·미장 통합 수익률 비교 */}
+          {hasBothMarkets && (
+            <div className="flex flex-col gap-4">
+              <h2 className="text-xl font-bold">국장 · 미장 수익률 비교</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* 국내주식 */}
+                <div className="rounded-xl border border-surface-dark-border bg-surface-dark p-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">🇰🇷</span>
+                      <span className="text-sm font-bold">국내 주식 (KRX)</span>
+                    </div>
+                    <span className="text-xs text-text-muted">{krStats.count}종목</span>
+                  </div>
+                  <p className="text-2xl font-bold mb-1">{fmtUsd(krStats.totalVal)}</p>
+                  <p className="text-xs text-text-muted mb-2">원화 환산 ₩{Math.round(krStats.totalVal * usdKrwRate).toLocaleString()}</p>
+                  <div className={`flex items-center gap-1 text-sm font-bold ${krStats.pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    <span className="material-symbols-outlined text-[16px]">{krStats.pct >= 0 ? 'trending_up' : 'trending_down'}</span>
+                    <span>{krStats.pct >= 0 ? '+' : ''}{krStats.pct.toFixed(2)}%</span>
+                    <span className="font-normal text-xs ml-1">({krStats.profit >= 0 ? '+' : ''}{fmtUsd(krStats.profit)})</span>
+                  </div>
+                  {/* 비율 바 */}
+                  <div className="mt-3">
+                    <div className="flex justify-between text-[10px] text-text-muted mb-1">
+                      <span>포트폴리오 내 비중</span>
+                      <span>{totalValue > 0 ? ((krStats.totalVal / totalValue) * 100).toFixed(0) : 0}%</span>
+                    </div>
+                    <div className="h-1.5 bg-background-dark rounded-full overflow-hidden">
+                      <div className="h-full bg-rose-500 rounded-full"
+                        style={{ width: `${totalValue > 0 ? (krStats.totalVal / totalValue) * 100 : 0}%` }}></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 미국주식 */}
+                <div className="rounded-xl border border-surface-dark-border bg-surface-dark p-5">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">🇺🇸</span>
+                      <span className="text-sm font-bold">미국 주식 (NYSE/NASDAQ)</span>
+                    </div>
+                    <span className="text-xs text-text-muted">{usStats.count}종목</span>
+                  </div>
+                  <p className="text-2xl font-bold mb-1">{fmtUsd(usStats.totalVal)}</p>
+                  <p className="text-xs text-text-muted mb-2">환율 적용: ₩{Math.round(usStats.totalVal * usdKrwRate).toLocaleString()}</p>
+                  <div className={`flex items-center gap-1 text-sm font-bold ${usStats.pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                    <span className="material-symbols-outlined text-[16px]">{usStats.pct >= 0 ? 'trending_up' : 'trending_down'}</span>
+                    <span>{usStats.pct >= 0 ? '+' : ''}{usStats.pct.toFixed(2)}%</span>
+                    <span className="font-normal text-xs ml-1">({usStats.profit >= 0 ? '+' : ''}{fmtUsd(usStats.profit)})</span>
+                  </div>
+                  {/* 비율 바 */}
+                  <div className="mt-3">
+                    <div className="flex justify-between text-[10px] text-text-muted mb-1">
+                      <span>포트폴리오 내 비중</span>
+                      <span>{totalValue > 0 ? ((usStats.totalVal / totalValue) * 100).toFixed(0) : 0}%</span>
+                    </div>
+                    <div className="h-1.5 bg-background-dark rounded-full overflow-hidden">
+                      <div className="h-full bg-blue-500 rounded-full"
+                        style={{ width: `${totalValue > 0 ? (usStats.totalVal / totalValue) * 100 : 0}%` }}></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 비교 요약 배너 */}
+              <div className="rounded-xl border border-surface-dark-border bg-surface-dark p-4 flex flex-wrap items-center gap-4 text-sm">
+                <span className="text-text-muted">성과 비교</span>
+                <span className={`font-bold ${krStats.pct >= usStats.pct ? 'text-emerald-400' : 'text-text-muted'}`}>
+                  🇰🇷 국내 {krStats.pct >= 0 ? '+' : ''}{krStats.pct.toFixed(2)}%
+                  {krStats.pct >= usStats.pct && <span className="ml-1 text-[10px] bg-emerald-500/20 px-1 py-0.5 rounded">앞섬</span>}
+                </span>
+                <span className="text-text-muted">vs</span>
+                <span className={`font-bold ${usStats.pct > krStats.pct ? 'text-emerald-400' : 'text-text-muted'}`}>
+                  🇺🇸 미국 {usStats.pct >= 0 ? '+' : ''}{usStats.pct.toFixed(2)}%
+                  {usStats.pct > krStats.pct && <span className="ml-1 text-[10px] bg-emerald-500/20 px-1 py-0.5 rounded">앞섬</span>}
+                </span>
+                <span className="text-[10px] text-text-muted ml-auto">※ USD 환산 기준 · 환율 ₩{usdKrwRate.toLocaleString()}</span>
               </div>
             </div>
           )}
