@@ -98,7 +98,13 @@ function CompanyAnalysis() {
   }
 
   useEffect(() => {
-    if (symbol && symbol.trim()) fetchAnalysis()
+    if (symbol && symbol.trim()) {
+      // 한국 종목 여부 즉시 판단 (배당 탭 방문 전에도 DART 섹션 표시)
+      const clean = symbol.replace('.KS', '').replace('.KQ', '')
+      const isKR = clean.match(/^\d+$/) !== null || symbol.endsWith('.KS') || symbol.endsWith('.KQ')
+      setIsKoreanStock(isKR)
+      fetchAnalysis()
+    }
   }, [symbol])
 
   const handleSubmit = (e) => {
