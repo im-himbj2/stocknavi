@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
-import apiService, { getDartDisclosures } from '../services/api'
+import apiService, { getDartDisclosures, getInvestorFlow } from '../services/api'
 import { getSubscriptionStatus } from '../utils/subscription'
 import { majorStocks } from '../data/stockList'
 import PopularStockCard from '../components/Stock/PopularStockCard'
@@ -30,6 +30,9 @@ function CompanyAnalysis() {
   // DART 공시 상태
   const [dartData, setDartData] = useState(null)
   const [dartLoading, setDartLoading] = useState(false)
+  // 외국인·기관 수급 상태
+  const [flowData, setFlowData] = useState(null)
+  const [flowLoading, setFlowLoading] = useState(false)
 
   const highDividendStocks = [
     { symbol: 'T', name: 'AT&T', yield: '6.5%' },
@@ -189,6 +192,18 @@ function CompanyAnalysis() {
       setDartLoading(false)
     }
     fetchDart()
+  }, [symbol, isKoreanStock])
+
+  // 외국인·기관 수급 fetch (한국 종목일 때만)
+  useEffect(() => {
+    if (!symbol || !isKoreanStock) { setFlowData(null); return }
+    const fetchFlow = async () => {
+      setFlowLoading(true)
+      const data = await getInvestorFlow(symbol, 10)
+      setFlowData(data)
+      setFlowLoading(false)
+    }
+    fetchFlow()
   }, [symbol, isKoreanStock])
 
   // Helper functions
@@ -919,6 +934,103 @@ function CompanyAnalysis() {
             )}
             {!dartLoading && (!dartData || dartData?.disclosures?.length === 0) && (
               <p className="text-xs text-slate-600 py-2">공시 데이터를 불러올 수 없습니다.</p>
+            )}
+          </div>
+        )}
+
+        {/* 외국인·기관 수급 패턴 (한국 종목 전용) */}
+        {isKoreanStock && symbol && (
+          <div className="mt-6 p-4 bg-[#0d1829] border border-slate-700/50 rounded-xl">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-sm font-bold text-white">📊 외국인·기관 수급</span>
+              {flowData?.company_name && <span className="text-xs text-blue-400">{flowData.company_name}</span>}
+              <span className="text-xs text-slate-500">최근 10 거래일</span>
+            </div>
+
+            {flowLoading && (
+              <div className="flex items-center gap-2 text-xs text-slate-500 py-3">
+                <div className="w-3 h-3 border border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+                수급 데이터 불러오는 중...
+              </div>
+            )}
+
+            {!flowLoading && flowData?.error && (
+              <p className="text-xs text-slate-600 py-2">{flowData.error}</p>
+            )}
+
+            {!flowLoading && flowData && !flowData.error && (
+              <>
+                {/* 요약 배지 */}
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {(() => {
+                    const fc = flowData.foreign_consecutive
+                    const ic = flowData.institution_consecutive
+                    const fNet = flowData.foreign_10d_net
+                    const iNet = flowData.institution_10d_net
+                    return (
+                      <>
+                        <span className={`text-[11px] font-bold px-2 py-1 rounded border ${
+                          fc > 0 ? 'bg-emerald-900/30 text-emerald-400 border-emerald-700/40'
+                                 : fc < 0 ? 'bg-red-900/30 text-red-400 border-red-700/40'
+                                 : 'bg-slate-800 text-slate-400 border-slate-700'
+                        }`}>
+                          외국인 {fc > 0 ? `${fc}일 연속 순매수` : fc < 0 ? `${Math.abs(fc)}일 연속 순매도` : '중립'}
+                        </span>
+                        <span className={`text-[11px] font-bold px-2 py-1 rounded border ${
+                          ic > 0 ? 'bg-blue-900/30 text-blue-400 border-blue-700/40'
+                                 : ic < 0 ? 'bg-red-900/30 text-red-400 border-red-700/40'
+                                 : 'bg-slate-800 text-slate-400 border-slate-700'
+                        }`}>
+                          기관 {ic > 0 ? `${ic}일 연속 순매수` : ic < 0 ? `${Math.abs(ic)}일 연속 순매도` : '중립'}
+                        </span>
+                        {flowData.foreign_ownership_pct != null && (
+                          <span className="text-[11px] px-2 py-1 rounded border bg-slate-800 text-slate-400 border-slate-700">
+                            외국인 지분율 {flowData.foreign_ownership_pct.toFixed(1)}%
+                          </span>
+                        )}
+                        <span className={`text-[11px] px-2 py-1 rounded border ${fNet >= 0 ? 'text-emerald-400 bg-emerald-900/20 border-emerald-700/30' : 'text-red-400 bg-red-900/20 border-red-700/30'}`}>
+                          외국인 10일 누적: {fNet >= 0 ? '+' : ''}{(fNet / 1e8).toFixed(0)}억원
+                        </span>
+                        <span className={`text-[11px] px-2 py-1 rounded border ${iNet >= 0 ? 'text-blue-400 bg-blue-900/20 border-blue-700/30' : 'text-red-400 bg-red-900/20 border-red-700/30'}`}>
+                          기관 10일 누적: {iNet >= 0 ? '+' : ''}{(iNet / 1e8).toFixed(0)}억원
+                        </span>
+                      </>
+                    )
+                  })()}
+                </div>
+
+                {/* 일별 데이터 테이블 */}
+                {flowData.days?.length > 0 && (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-[11px] text-left">
+                      <thead>
+                        <tr className="text-slate-500 border-b border-slate-800">
+                          <th className="py-1 pr-3">날짜</th>
+                          <th className="py-1 pr-3 text-right">외국인 순매수</th>
+                          <th className="py-1 pr-3 text-right">기관 순매수</th>
+                          <th className="py-1 text-right">개인 순매수</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {flowData.days.map((d, i) => (
+                          <tr key={i} className="border-b border-slate-800/50 last:border-0">
+                            <td className="py-1 pr-3 text-slate-500">{d.date?.slice(0, 10)}</td>
+                            <td className={`py-1 pr-3 text-right font-medium ${d.foreign_net >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                              {d.foreign_net >= 0 ? '+' : ''}{(d.foreign_net / 1e8).toFixed(1)}억
+                            </td>
+                            <td className={`py-1 pr-3 text-right font-medium ${d.institution_net >= 0 ? 'text-blue-400' : 'text-red-400'}`}>
+                              {d.institution_net >= 0 ? '+' : ''}{(d.institution_net / 1e8).toFixed(1)}억
+                            </td>
+                            <td className={`py-1 text-right ${d.individual_net >= 0 ? 'text-slate-400' : 'text-orange-400'}`}>
+                              {d.individual_net >= 0 ? '+' : ''}{(d.individual_net / 1e8).toFixed(1)}억
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </>
             )}
           </div>
         )}

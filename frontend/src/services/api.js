@@ -505,6 +505,16 @@ export const getDartDisclosures = async (symbol, companyName = '', limit = 5) =>
   }
 }
 
+export const getInvestorFlow = async (symbol, days = 10) => {
+  try {
+    const response = await api.get(`/investor-flow/${symbol}?days=${days}`, { timeout: 30000 })
+    return response.data
+  } catch (error) {
+    console.error('[API] 수급 데이터 오류:', error)
+    return null
+  }
+}
+
 // API 서비스 객체로 export (더 편리한 사용을 위해)
 const apiService = {
   getCompanyAnalysis,
