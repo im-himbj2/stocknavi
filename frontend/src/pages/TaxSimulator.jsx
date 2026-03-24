@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useLanguage } from '../contexts/LanguageContext'
 
 // ─── 한국 세금 계산 로직 ───────────────────────────────────────────────────────
@@ -53,18 +54,22 @@ const fmtPct = (v) => v == null ? '—' : `${(v * 100).toFixed(1)}%`
 export default function TaxSimulator() {
   const { lang } = useLanguage()
   const ko = lang === 'ko'
+  const [searchParams] = useSearchParams()
 
+  // URL 파라미터로 포트폴리오에서 프리필 지원
+  // 예: /tax?symbol=005930&qty=100&buyPrice=65000&currentPrice=70000&stockType=domestic_major
   const [form, setForm] = useState({
-    stockType: 'overseas',
-    buyPrice: '',
-    sellPrice: '',
-    qty: '',
-    holdingMonths: '',
-    isMajorHolder: false,
+    stockType: searchParams.get('stockType') || 'overseas',
+    buyPrice: searchParams.get('buyPrice') || '',
+    sellPrice: searchParams.get('currentPrice') || '',
+    qty: searchParams.get('qty') || '',
+    holdingMonths: searchParams.get('holdingMonths') || '',
+    isMajorHolder: searchParams.get('stockType') === 'domestic_major',
     otherGains: '',
     currency: 'KRW',
     usdKrwRate: '1380',
   })
+  const prefillSymbol = searchParams.get('symbol') || ''
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
@@ -139,6 +144,14 @@ export default function TaxSimulator() {
           </div>
         </div>
       </div>
+
+      {/* 포트폴리오 프리필 배너 */}
+      {prefillSymbol && (
+        <div className="mx-4 mt-4 px-4 py-2.5 bg-blue-900/30 border border-blue-700/40 rounded-lg flex items-center gap-2 text-sm">
+          <span className="text-blue-400 font-mono font-bold">{prefillSymbol}</span>
+          <span className="text-slate-400">{ko ? '포트폴리오에서 자동 입력됨 · 현재가를 매도가로 설정했습니다' : 'Pre-filled from portfolio · current price set as sell price'}</span>
+        </div>
+      )}
 
       <div className="p-4 max-w-4xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

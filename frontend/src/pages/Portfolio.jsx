@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import apiService from '../services/api'
 import { getSubscriptionStatus } from '../utils/subscription'
 import { majorStocks } from '../data/stockList'
@@ -7,6 +7,7 @@ import { useLanguage } from '../contexts/LanguageContext'
 
 function Portfolio() {
   const { t } = useLanguage()
+  const navigate = useNavigate()
   const [portfolioItems, setPortfolioItems] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -149,6 +150,29 @@ function Portfolio() {
     const totalValue = price * item.quantity
     const profit = totalValue - cost
     return { profit, profitPercent: cost > 0 ? (profit / cost) * 100 : 0, totalValue, cost, price, currency }
+  }
+
+  // 대주주 요건 체크 (2025 기준: 보유금액 10억원 이상)
+  const MAJOR_HOLDER_THRESHOLD_KRW = 1_000_000_000  // 10억원
+  const checkMajorHolder = (item) => {
+    if (!isKR(item.symbol)) return false
+    const { totalValue: tv } = calcProfit(item)
+    return tv >= MAJOR_HOLDER_THRESHOLD_KRW
+  }
+  const majorHolderItems = portfolioItems.filter(checkMajorHolder)
+
+  // 양도세 계산기로 이동 (포트폴리오 항목 데이터 프리필)
+  const goToTaxSim = (item) => {
+    const { price } = calcProfit(item)
+    const isMajor = checkMajorHolder(item)
+    const params = new URLSearchParams({
+      symbol: item.symbol,
+      qty: item.quantity,
+      buyPrice: item.average_price,
+      currentPrice: price || item.average_price,
+      stockType: isMajor ? 'domestic_major' : 'domestic_small',
+    })
+    navigate(`/tax?${params.toString()}`)
   }
 
   // All totals in USD
@@ -384,7 +408,12 @@ function Portfolio() {
                                   {item.symbol.slice(0, 3)}
                                 </div>
                                 <div>
-                                  <p className="font-bold">{item.symbol}</p>
+                                  <div className="flex items-center gap-2">
+                                    <p className="font-bold">{item.symbol}</p>
+                                    {checkMajorHolder(item) && (
+                                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">대주주</span>
+                                    )}
+                                  </div>
                                   {item.notes && <p className="text-text-muted text-xs">{item.notes}</p>}
                                 </div>
                               </div>
@@ -400,10 +429,18 @@ function Portfolio() {
                               {profit >= 0 ? '+' : ''}{fmt(profit, item.symbol)} ({profitPercent >= 0 ? '+' : ''}{profitPercent.toFixed(1)}%)
                             </td>
                             <td className="p-4 text-right">
-                              <button onClick={() => handleDeleteItem(item.id)}
-                                className="text-text-muted hover:text-rose-400 transition-colors">
-                                <span className="material-symbols-outlined text-[18px]">delete</span>
-                              </button>
+                              <div className="flex items-center justify-end gap-2">
+                                {isKR(item.symbol) && (
+                                  <button onClick={() => goToTaxSim(item)}
+                                    className="text-xs px-2 py-1 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 transition-colors font-medium whitespace-nowrap">
+                                    양도세
+                                  </button>
+                                )}
+                                <button onClick={() => handleDeleteItem(item.id)}
+                                  className="text-text-muted hover:text-rose-400 transition-colors">
+                                  <span className="material-symbols-outlined text-[18px]">delete</span>
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         )
@@ -460,6 +497,25 @@ function Portfolio() {
                       <p className="text-xs text-rose-400/80">
                         High exposure to {stockWeights[0]?.symbol} ({stockWeights[0]?.pct.toFixed(0)}%). Consider diversifying to reduce concentration risk.
                       </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Major Holder Warning */}
+              {majorHolderItems.length > 0 && (
+                <div className="p-3 bg-amber-500/10 rounded-lg border border-amber-500/20">
+                  <div className="flex items-start gap-3">
+                    <span className="material-symbols-outlined text-amber-400 text-[20px] mt-0.5">gavel</span>
+                    <div className="flex-1">
+                      <h3 className="text-sm font-bold text-amber-400 mb-1">대주주 요건 해당</h3>
+                      <p className="text-xs text-amber-400/80 mb-2">
+                        {majorHolderItems.map(i => i.symbol).join(', ')} 보유금액 10억원 초과. 연말 매도 시 양도세 20~25% 부과됩니다.
+                      </p>
+                      <button onClick={() => goToTaxSim(majorHolderItems[0])}
+                        className="text-xs px-2 py-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 transition-colors font-medium">
+                        양도세 시뮬레이터 →
+                      </button>
                     </div>
                   </div>
                 </div>
