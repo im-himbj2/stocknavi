@@ -223,7 +223,7 @@ function CompanyAnalysis() {
     const s = signal?.toLowerCase()
     if (s?.includes('buy') || s?.includes('bullish')) return 'bg-primary/10 text-blue-400'
     if (s?.includes('sell') || s?.includes('bearish')) return 'bg-rose-500/10 text-rose-400'
-    return 'bg-slate-700 text-slate-300'
+    return 'bg-surface-variant text-on-surface'
   }
 
   // Derive scores from category_analyses
@@ -287,18 +287,15 @@ function CompanyAnalysis() {
   const ma = tech ? getIndicator(tech.indicators, 'moving') || getIndicator(tech.indicators, 'ma') : null
 
   return (
-    <div className="min-h-screen bg-background-dark text-slate-100 font-display">
-      <main className="flex-1 p-6 lg:px-10 max-w-[1600px] mx-auto w-full flex flex-col gap-6">
-        {/* Search Header */}
-        <div className="flex flex-wrap items-end justify-between gap-4 pb-4 border-b border-slate-800">
-          <div className="flex flex-col gap-2">
-            <h1 className="text-3xl font-bold leading-tight">Deep Company Analysis</h1>
-            <p className="text-slate-400 text-sm">AI-powered comprehensive stock analysis with technical indicators</p>
-          </div>
+    <div className="min-h-screen bg-surface-container-lowest text-on-surface">
+      <main className="p-6 lg:px-8 max-w-[1600px] mx-auto w-full flex flex-col gap-6">
+        {/* Search Header — Stitch style */}
+        <div className="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-outline-variant/20">
+          <h1 className="text-2xl font-bold font-headline text-on-surface tracking-tight">{t('sidebar.company')}</h1>
           <form onSubmit={handleSubmit} className="flex items-center gap-3" ref={searchRef}>
             <div className="relative">
-              <div className="flex items-stretch rounded-lg h-10 bg-slate-800 border border-slate-700">
-                <div className="text-slate-400 flex items-center justify-center pl-4">
+              <div className="flex items-stretch rounded-xl h-11 bg-surface-container border border-outline-variant/30 focus-within:border-primary/60 transition-colors">
+                <div className="text-on-surface-variant flex items-center justify-center pl-4">
                   <span className="material-symbols-outlined text-xl">search</span>
                 </div>
                 <input
@@ -306,45 +303,45 @@ function CompanyAnalysis() {
                   value={searchSymbol}
                   onChange={(e) => setSearchSymbol(e.target.value.toUpperCase())}
                   onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
-                  placeholder="Search AAPL, MSFT, 삼성전자..."
-                  className="w-64 bg-transparent px-4 text-sm text-slate-100 placeholder:text-slate-400 focus:outline-none border-none"
+                  placeholder="AAPL, MSFT, 005930..."
+                  className="w-64 bg-transparent px-4 text-sm text-on-surface placeholder:text-on-surface-variant focus:outline-none"
                 />
               </div>
               {showSuggestions && suggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-slate-900 border border-slate-700 rounded-lg shadow-2xl max-h-60 overflow-y-auto z-50">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-surface-container border border-outline-variant/30 rounded-xl shadow-2xl max-h-60 overflow-y-auto z-50">
                   {suggestions.map((s, i) => (
                     <button key={i} type="button" onClick={() => handleStockSelect(s.symbol)}
-                      className="w-full text-left px-4 py-3 hover:bg-slate-800 transition-colors border-b border-slate-800 last:border-0 flex justify-between">
-                      <span className="font-bold text-white">{s.symbol}</span>
-                      <span className="text-slate-400 text-sm">{s.name}</span>
+                      className="w-full text-left px-4 py-3 hover:bg-surface-container-high transition-colors border-b border-outline-variant/10 last:border-0 flex justify-between">
+                      <span className="font-bold text-on-surface">{s.symbol}</span>
+                      <span className="text-on-surface-variant text-sm">{s.name}</span>
                     </button>
                   ))}
                 </div>
               )}
             </div>
-            <label className="flex items-center gap-2 text-sm text-slate-400">
+            <label className="flex items-center gap-2 text-sm text-on-surface-variant">
               <input type="checkbox" checked={includeTechnical} onChange={(e) => setIncludeTechnical(e.target.checked)}
-                className="rounded border-slate-600 bg-slate-800 text-primary focus:ring-primary" />
+                className="rounded border-outline-variant bg-surface-container text-primary focus:ring-primary" />
               Technical
             </label>
             <button type="submit" disabled={loading}
-              className="px-6 h-10 bg-primary hover:bg-primary/90 text-white font-bold rounded-lg text-sm transition-colors disabled:opacity-50">
+              className="px-5 h-11 bg-primary-container hover:opacity-90 text-on-primary-container font-bold rounded-xl text-sm transition-colors disabled:opacity-50">
               {loading ? t('company.analyzing') : t('home.searchBtn')}
             </button>
           </form>
         </div>
 
-        {/* Tab navigation */}
-        <div className="flex gap-0 border-b border-slate-800">
+        {/* Tab navigation — pill style */}
+        <div className="flex gap-2">
           <button
             onClick={() => setActiveTab('analysis')}
-            className={`flex items-center gap-2 px-6 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'analysis' ? 'border-primary text-blue-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
+            className={`flex items-center gap-2 px-5 py-2 rounded-full text-sm font-bold transition-all ${activeTab === 'analysis' ? 'bg-primary-container text-on-primary-container' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'}`}>
             <span className="material-symbols-outlined text-[16px]">monitoring</span>
             {t('company.tabAnalysis')}
           </button>
           <button
             onClick={() => setActiveTab('dividend')}
-            className={`flex items-center gap-2 px-6 py-3 text-sm font-semibold border-b-2 transition-colors ${activeTab === 'dividend' ? 'border-emerald-500 text-emerald-400' : 'border-transparent text-slate-400 hover:text-white'}`}>
+            className={`flex items-center gap-2 px-5 py-2 rounded-full text-sm font-bold transition-all ${activeTab === 'dividend' ? 'bg-secondary/20 text-secondary' : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'}`}>
             <span className="material-symbols-outlined text-[16px]">paid</span>
             {t('company.tabDividend')}
           </button>
@@ -355,15 +352,15 @@ function CompanyAnalysis() {
           <>
             {/* Error */}
             {error && (
-              <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400 text-sm">{error}</div>
+              <div className="p-4 bg-error/10 border border-error/20 rounded-2xl text-error text-sm">{error}</div>
             )}
 
             {/* Loading */}
             {loading && (
               <div className="flex-1 flex items-center justify-center py-20">
                 <div className="text-center">
-                  <div className="inline-block w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
-                  <p className="mt-4 text-slate-400">{t('company.analyzing')} {symbol}...</p>
+                  <div className="inline-block w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                  <p className="mt-4 text-on-surface-variant">{t('company.analyzing')} {symbol}...</p>
                 </div>
               </div>
             )}
@@ -372,13 +369,13 @@ function CompanyAnalysis() {
             {!analysis && !loading && !error && (
               <div className="flex-1 flex items-center justify-center py-20">
                 <div className="text-center max-w-md">
-                  <span className="material-symbols-outlined text-6xl text-slate-600 mb-4 block">monitoring</span>
-                  <h2 className="text-2xl font-bold mb-2">{t('company.searchPrompt')}</h2>
-                  <p className="text-slate-400 mb-6">{t('company.searchDesc')}</p>
+                  <span className="material-symbols-outlined text-6xl text-on-surface-variant/30 mb-4 block">monitoring</span>
+                  <h2 className="text-2xl font-bold font-headline mb-2">{t('company.searchPrompt')}</h2>
+                  <p className="text-on-surface-variant mb-6">{t('company.searchDesc')}</p>
                   <div className="flex flex-wrap gap-2 justify-center">
-                    {['AAPL', 'MSFT', 'NVDA', 'TSLA', 'GOOGL'].map(s => (
+                    {['AAPL', 'MSFT', 'NVDA', 'TSLA', '005930', '000660'].map(s => (
                       <button key={s} onClick={() => handleStockSelect(s)}
-                        className="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-sm font-medium transition-colors">
+                        className="px-4 py-2 bg-surface-container hover:bg-surface-container-high border border-outline-variant/20 rounded-xl text-sm font-medium transition-colors text-on-surface">
                         {s}
                       </button>
                     ))}
@@ -390,21 +387,25 @@ function CompanyAnalysis() {
             {/* Analysis Results */}
             {analysis && (
               <>
-            <div className="flex flex-wrap items-end justify-between gap-4 pb-2 border-b border-slate-800">
+            {/* Company Header Card — Stitch style */}
+            <div className="rounded-2xl bg-surface-container border border-outline-variant/10 p-7">
+              <div className="flex flex-wrap items-start justify-between gap-6">
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-3">
-                  <h1 className="text-4xl font-bold leading-tight">{info?.name || symbol} ({analysis.symbol})</h1>
-                  <span className="px-3 py-1 rounded-full bg-slate-800 text-sm font-medium text-slate-300">{info?.sector || 'N/A'}</span>
+                  <h1 className="text-2xl font-bold font-headline leading-tight text-on-surface">{info?.name || symbol}</h1>
+                  <span className="text-sm text-on-surface-variant font-medium">{analysis.symbol}</span>
+                  <span className="px-2.5 py-0.5 rounded-full bg-surface-container-high text-xs font-bold text-on-surface-variant border border-outline-variant/20">{info?.sector || 'N/A'}</span>
                 </div>
-                <p className="text-slate-400 text-base">{info?.industry || ''}</p>
+                <p className="text-on-surface-variant text-sm">{info?.industry || ''}</p>
               </div>
-              <div className="flex flex-col items-end gap-1">
+              <div className="flex flex-col items-end gap-2">
                 {info?.currentPrice && (
-                  <div className="flex items-center gap-3">
-                    <span className="text-3xl font-bold">${info.currentPrice.toFixed(2)}</span>
+                  <div className="flex items-baseline gap-3">
+                    <span className="text-3xl font-black font-headline text-on-surface">${info.currentPrice.toFixed(2)}</span>
                   </div>
                 )}
-                <span className="text-slate-400 text-sm">Updated: {new Date(analysis.updated_at).toLocaleString()}</span>
+                <span className="text-on-surface-variant text-sm">Updated: {new Date(analysis.updated_at).toLocaleString()}</span>
+              </div>
               </div>
             </div>
 
@@ -414,7 +415,7 @@ function CompanyAnalysis() {
               <div className="lg:col-span-3 flex flex-col gap-6">
                 {/* AI Investment Opinion */}
                 {opinion && (
-                  <div className="bg-surface-dark rounded-xl border border-surface-dark-border overflow-hidden shadow-sm">
+                  <div className="bg-surface-container rounded-2xl border border-outline-variant/20 overflow-hidden shadow-sm">
                     {opinion.score >= 60 ? (
                       <>
                         <div className="bg-gradient-to-br from-primary/80 to-[#003366] p-6 text-white relative overflow-hidden">
@@ -431,20 +432,20 @@ function CompanyAnalysis() {
                         </div>
                         <div className="p-5 flex flex-col gap-5">
                           {/* Rating scale */}
-                          <div className="flex justify-between items-center text-xs font-medium text-slate-400 px-1">
+                          <div className="flex justify-between items-center text-xs font-medium text-on-surface-variant px-1">
                             <span>Strong Sell</span>
                             <span>Sell</span>
                             <span>Hold</span>
                             <span>Buy</span>
                             <span className={getRatingColor(opinion.rating) + ' font-bold'}>Strong Buy</span>
                           </div>
-                          <div className="relative w-full h-3 bg-slate-700 rounded-full">
+                          <div className="relative w-full h-3 bg-surface-variant rounded-full">
                             <div className="absolute top-0 left-0 h-full rounded-full bg-gradient-to-r from-red-500 via-yellow-500 to-emerald-500 w-full opacity-30"></div>
                             <div className="absolute top-1/2 -translate-y-1/2 w-5 h-5 bg-white border-2 border-emerald-500 rounded-full shadow-md z-10"
                               style={{ left: `${Math.min(Math.max(opinion.score || 50, 5), 95)}%`, transform: 'translate(-50%, -50%)' }}></div>
                           </div>
                           {/* Reasoning */}
-                          <div className="mt-2 text-sm text-slate-300 leading-relaxed border-t border-slate-800 pt-4">
+                          <div className="mt-2 text-sm text-on-surface leading-relaxed border-t border-outline-variant/20 pt-4">
                             <p className="mb-3"><strong className="text-white">{t('company.reasoning')}</strong> {opinion.thesis}</p>
                             {opinion.key_points?.length > 0 && (
                               <ul className="list-disc pl-4 space-y-1 text-xs">
@@ -458,7 +459,7 @@ function CompanyAnalysis() {
                       <div className="p-6 flex flex-col items-center gap-3 text-center">
                         <span className="material-symbols-outlined text-4xl text-amber-400">pending</span>
                         <p className="text-sm font-bold text-amber-400 uppercase tracking-widest">{t('company.aiOpinion')} — 판단 보류</p>
-                        <p className="text-xs text-slate-500 leading-relaxed">AI 신뢰도가 {opinion.score?.toFixed(0)}%로 낮아 투자 의견을 제공하지 않습니다.<br />데이터가 충분히 확보되면 분석이 업데이트됩니다.</p>
+                        <p className="text-xs text-on-surface-variant/70 leading-relaxed">AI 신뢰도가 {opinion.score?.toFixed(0)}%로 낮아 투자 의견을 제공하지 않습니다.<br />데이터가 충분히 확보되면 분석이 업데이트됩니다.</p>
                       </div>
                     )}
                   </div>
@@ -466,7 +467,7 @@ function CompanyAnalysis() {
 
                 {/* News Sentiment */}
                 {news && news.length > 0 && sentiment && (
-                  <div className="bg-surface-dark rounded-xl border border-surface-dark-border p-5 shadow-sm">
+                  <div className="bg-surface-container rounded-2xl border border-outline-variant/20 p-5 shadow-sm">
                     <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
                       <span className="material-symbols-outlined text-primary">newspaper</span>
                       {t('company.newsSentiment')}
@@ -487,13 +488,13 @@ function CompanyAnalysis() {
                     <div className="space-y-3 mt-4">
                       {news.slice(0, 3).map((item, i) => (
                         <a key={i} href={item.url} target="_blank" rel="noopener noreferrer"
-                          className="flex gap-3 items-start p-2 hover:bg-slate-800/50 rounded transition-colors">
-                          <span className={`material-symbols-outlined text-lg mt-0.5 ${item.sentiment === 'positive' ? 'text-emerald-500' : item.sentiment === 'negative' ? 'text-rose-500' : 'text-slate-400'}`}>
+                          className="flex gap-3 items-start p-2 hover:bg-surface-container-high/50 rounded transition-colors">
+                          <span className={`material-symbols-outlined text-lg mt-0.5 ${item.sentiment === 'positive' ? 'text-emerald-500' : item.sentiment === 'negative' ? 'text-rose-500' : 'text-on-surface-variant'}`}>
                             {item.sentiment === 'positive' ? 'trending_up' : item.sentiment === 'negative' ? 'trending_down' : 'trending_flat'}
                           </span>
                           <div>
                             <p className="text-sm font-medium line-clamp-2">{item.title}</p>
-                            <span className="text-xs text-slate-500">{item.publisher}</span>
+                            <span className="text-xs text-on-surface-variant/70">{item.publisher}</span>
                           </div>
                         </a>
                       ))}
@@ -504,13 +505,13 @@ function CompanyAnalysis() {
 
               {/* Center Column - Financial Health Scoring */}
               <div className="lg:col-span-5 flex flex-col gap-6">
-                <div className="bg-surface-dark rounded-xl border border-surface-dark-border p-6 shadow-sm h-full flex flex-col">
+                <div className="bg-surface-container rounded-2xl border border-outline-variant/20 p-6 shadow-sm h-full flex flex-col">
                   <div className="flex justify-between items-center mb-6">
                     <h3 className="text-xl font-bold flex items-center gap-2">
                       <span className="material-symbols-outlined text-primary">health_and_safety</span>
                       Financial Health Scoring
                     </h3>
-                    <span className="text-2xl font-black text-blue-400">{getOverallHealthScore(categories)}<span className="text-sm text-slate-500 font-normal">/10</span></span>
+                    <span className="text-2xl font-black text-blue-400">{getOverallHealthScore(categories)}<span className="text-sm text-on-surface-variant/70 font-normal">/10</span></span>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8 flex-1">
                     {/* Radar Chart */}
@@ -524,10 +525,10 @@ function CompanyAnalysis() {
                         <line x1="10" y1="50" x2="90" y2="50" stroke="currentColor" className="text-slate-700" strokeWidth="1" strokeDasharray="2,2" />
                         <polygon points={getRadarPoints(categories)} fill="rgba(0, 73, 140, 0.3)" stroke="#00498C" strokeWidth="2" />
                       </svg>
-                      <span className="absolute top-0 text-xs font-bold text-slate-300">Profitability</span>
-                      <span className="absolute right-0 text-xs font-bold text-slate-300 translate-x-4">Stability</span>
-                      <span className="absolute bottom-0 text-xs font-bold text-slate-300 translate-y-2">Valuation</span>
-                      <span className="absolute left-0 text-xs font-bold text-slate-300 -translate-x-4">Growth</span>
+                      <span className="absolute top-0 text-xs font-bold text-on-surface">Profitability</span>
+                      <span className="absolute right-0 text-xs font-bold text-on-surface translate-x-4">Stability</span>
+                      <span className="absolute bottom-0 text-xs font-bold text-on-surface translate-y-2">Valuation</span>
+                      <span className="absolute left-0 text-xs font-bold text-on-surface -translate-x-4">Growth</span>
                     </div>
                     {/* Score Bars */}
                     <div className="flex flex-col gap-5 justify-center">
@@ -546,10 +547,10 @@ function CompanyAnalysis() {
                               <span className="font-medium">{name}</span>
                               <span className={`font-bold ${score >= 70 ? 'text-emerald-400' : score >= 50 ? 'text-amber-400' : 'text-rose-400'}`}>{scoreDisplay}</span>
                             </div>
-                            <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+                            <div className="h-2 bg-surface-variant rounded-full overflow-hidden">
                               <div className="h-full bg-primary transition-all duration-500" style={{ width: `${score}%`, opacity: score >= 60 ? 1 : 0.7 }}></div>
                             </div>
-                            {cat?.summary && <p className="text-xs text-slate-500 mt-1 line-clamp-1">{cat.summary}</p>}
+                            {cat?.summary && <p className="text-xs text-on-surface-variant/70 mt-1 line-clamp-1">{cat.summary}</p>}
                           </div>
                         )
                       })}
@@ -561,7 +562,7 @@ function CompanyAnalysis() {
               {/* Right Column - Technical Analysis */}
               <div className="lg:col-span-4 flex flex-col gap-6">
                 {tech ? (
-                  <div className="bg-surface-dark rounded-xl border border-surface-dark-border p-6 shadow-sm h-full">
+                  <div className="bg-surface-container rounded-2xl border border-outline-variant/20 p-6 shadow-sm h-full">
                     <div className="flex justify-between items-center mb-6">
                       <h3 className="text-xl font-bold flex items-center gap-2">
                         <span className="material-symbols-outlined text-primary">candlestick_chart</span>
@@ -573,10 +574,10 @@ function CompanyAnalysis() {
                     </div>
                     <div className="space-y-6">
                       {/* Moving Averages */}
-                      <div className="flex items-center justify-between p-3 bg-[#152331] rounded-lg border border-slate-800">
+                      <div className="flex items-center justify-between p-3 bg-[#152331] rounded-lg border border-outline-variant/20">
                         <div>
                           <p className="text-sm font-semibold mb-1">Moving Averages (MA)</p>
-                          <p className="text-xs text-slate-500">{ma ? `Value: ${ma.value?.toFixed(2)}` : 'Price vs 50-day & 200-day MA'}</p>
+                          <p className="text-xs text-on-surface-variant/70">{ma ? `Value: ${ma.value?.toFixed(2)}` : 'Price vs 50-day & 200-day MA'}</p>
                         </div>
                         <div className={`flex items-center gap-2 ${getRatingColor(ma?.signal || tech.overall_signal)}`}>
                           <span className="font-bold text-sm">{ma?.signal?.replace('_', ' ') || tech.overall_signal?.replace('_', ' ')}</span>
@@ -590,14 +591,14 @@ function CompanyAnalysis() {
                           <span className="text-sm font-semibold">RSI (14)</span>
                           <span className="text-sm font-bold">{rsi?.value?.toFixed(1) || 'N/A'}</span>
                         </div>
-                        <div className="relative h-2 w-full bg-slate-700 rounded-full mt-2">
+                        <div className="relative h-2 w-full bg-surface-variant rounded-full mt-2">
                           <div className="absolute left-[30%] right-[30%] h-full bg-primary/20"></div>
                           {rsi?.value && (
-                            <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-primary border border-slate-800 rounded-full z-10"
+                            <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-primary border border-outline-variant/20 rounded-full z-10"
                               style={{ left: `${Math.min(Math.max(rsi.value, 0), 100)}%`, marginLeft: '-6px' }}></div>
                           )}
                         </div>
-                        <div className="flex justify-between text-[10px] text-slate-500 mt-1 uppercase">
+                        <div className="flex justify-between text-[10px] text-on-surface-variant/70 mt-1 uppercase">
                           <span>Oversold (&lt;30)</span>
                           <span>Neutral</span>
                           <span>Overbought (&gt;70)</span>
@@ -612,21 +613,21 @@ function CompanyAnalysis() {
                             <span className="text-sm font-bold">{macd?.signal?.replace('_', ' ') || 'N/A'}</span>
                           </div>
                         </div>
-                        <div className="flex items-end gap-1 h-12 mt-2 pt-2 border-b border-slate-700">
+                        <div className="flex items-end gap-1 h-12 mt-2 pt-2 border-b border-outline-variant/30">
                           {[2, 1, 2, 4, 6, 8, 10, 7, 5, 3, 2, 1].map((h, i) => (
                             <div key={i} className={`w-1/12 rounded-t-sm ${i < 2 ? 'bg-red-400/50' : 'bg-emerald-400/70'}`}
                               style={{ height: `${h * 10}%` }}></div>
                           ))}
                         </div>
-                        <p className="text-xs text-slate-500 mt-2">{tech.summary || 'MACD analysis based on current trend signals.'}</p>
+                        <p className="text-xs text-on-surface-variant/70 mt-2">{tech.summary || 'MACD analysis based on current trend signals.'}</p>
                       </div>
 
                       {/* Additional indicators */}
                       {tech.indicators?.slice(0, 3).filter(i => !['rsi', 'macd', 'moving'].some(p => i.name?.toLowerCase().includes(p))).map((ind, i) => (
-                        <div key={i} className="flex items-center justify-between p-3 bg-[#152331] rounded-lg border border-slate-800">
+                        <div key={i} className="flex items-center justify-between p-3 bg-[#152331] rounded-lg border border-outline-variant/20">
                           <div>
                             <p className="text-sm font-semibold">{ind.name}</p>
-                            <p className="text-xs text-slate-500">Value: {ind.value?.toFixed(2)}</p>
+                            <p className="text-xs text-on-surface-variant/70">Value: {ind.value?.toFixed(2)}</p>
                           </div>
                           <span className={`text-sm font-bold ${getRatingColor(ind.signal)}`}>{ind.signal?.replace('_', ' ')}</span>
                         </div>
@@ -635,12 +636,12 @@ function CompanyAnalysis() {
                       {/* Key levels */}
                       {tech.key_levels && (
                         <div className="grid grid-cols-2 gap-3 pt-2">
-                          <div className="p-3 bg-[#152331] rounded-lg border border-slate-800 text-center">
-                            <p className="text-xs text-slate-500 mb-1">Support</p>
+                          <div className="p-3 bg-[#152331] rounded-lg border border-outline-variant/20 text-center">
+                            <p className="text-xs text-on-surface-variant/70 mb-1">Support</p>
                             <p className="text-lg font-bold text-emerald-400">${tech.key_levels.support?.toFixed(2)}</p>
                           </div>
-                          <div className="p-3 bg-[#152331] rounded-lg border border-slate-800 text-center">
-                            <p className="text-xs text-slate-500 mb-1">Resistance</p>
+                          <div className="p-3 bg-[#152331] rounded-lg border border-outline-variant/20 text-center">
+                            <p className="text-xs text-on-surface-variant/70 mb-1">Resistance</p>
                             <p className="text-lg font-bold text-rose-400">${tech.key_levels.resistance?.toFixed(2)}</p>
                           </div>
                         </div>
@@ -648,8 +649,8 @@ function CompanyAnalysis() {
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-surface-dark rounded-xl border border-surface-dark-border p-6 shadow-sm flex items-center justify-center h-full">
-                    <p className="text-slate-500 text-sm">Technical analysis not included. Enable the checkbox above.</p>
+                  <div className="bg-surface-container rounded-2xl border border-outline-variant/20 p-6 shadow-sm flex items-center justify-center h-full">
+                    <p className="text-on-surface-variant/70 text-sm">Technical analysis not included. Enable the checkbox above.</p>
                   </div>
                 )}
               </div>
@@ -683,7 +684,7 @@ function CompanyAnalysis() {
               <div className="flex items-center justify-center py-20">
                 <div className="text-center">
                   <div className="inline-block w-12 h-12 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin"></div>
-                  <p className="mt-4 text-slate-400">{t('company.analyzing')}</p>
+                  <p className="mt-4 text-on-surface-variant">{t('company.analyzing')}</p>
                 </div>
               </div>
             )}
@@ -693,7 +694,7 @@ function CompanyAnalysis() {
               <div className="p-6 bg-amber-900/20 border border-amber-500/30 rounded-xl text-center">
                 <span className="text-4xl block mb-3">🚧</span>
                 <h3 className="text-lg font-bold text-amber-400 mb-1">배당 데이터 없음</h3>
-                <p className="text-slate-400 text-sm">{symbol}에 대한 배당 데이터를 찾을 수 없습니다. 일부 기업은 배당을 지급하지 않거나 데이터가 일시적으로 사용 불가능할 수 있습니다.</p>
+                <p className="text-on-surface-variant text-sm">{symbol}에 대한 배당 데이터를 찾을 수 없습니다. 일부 기업은 배당을 지급하지 않거나 데이터가 일시적으로 사용 불가능할 수 있습니다.</p>
               </div>
             )}
 
@@ -706,7 +707,7 @@ function CompanyAnalysis() {
                 <>
                   {/* Company info */}
                   {companyInfo && (
-                    <div className="flex items-center gap-4 p-4 bg-surface-dark rounded-xl border border-surface-dark-border">
+                    <div className="flex items-center gap-4 p-4 bg-surface-container rounded-2xl border border-outline-variant/20">
                       {companyInfo.logo_url && (
                         <img src={companyInfo.logo_url} alt={companyInfo.name}
                           className="w-12 h-12 rounded-lg object-contain bg-white/5 p-1 border border-surface-dark-border"
@@ -714,11 +715,11 @@ function CompanyAnalysis() {
                       )}
                       <div className="flex-1">
                         <h2 className="text-lg font-bold">{companyInfo.name}</h2>
-                        <p className="text-slate-400 text-sm">{companyInfo.sector} · {companyInfo.industry}</p>
+                        <p className="text-on-surface-variant text-sm">{companyInfo.sector} · {companyInfo.industry}</p>
                       </div>
                       {dividendData.five_year_growth_rate != null && (
                         <div className="text-right">
-                          <p className="text-xs text-slate-400">5년 성장률</p>
+                          <p className="text-xs text-on-surface-variant">5년 성장률</p>
                           <p className={`text-xl font-bold ${dividendData.five_year_growth_rate >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
                             {dividendData.five_year_growth_rate >= 0 ? '+' : ''}{dividendData.five_year_growth_rate.toFixed(1)}%
                           </p>
@@ -736,7 +737,7 @@ function CompanyAnalysis() {
                         { label: '최대 배당', value: isKoreanStock ? `${Math.round(dStats.max).toLocaleString()}원` : `$${dStats.max.toFixed(2)}`, color: 'purple' },
                         { label: '기록 수', value: `${dividendData.dividends.length}건`, color: 'amber' },
                       ].map(({ label, value, color }) => (
-                        <div key={label} className="bg-surface-dark rounded-xl border border-surface-dark-border p-5">
+                        <div key={label} className="bg-surface-container rounded-2xl border border-outline-variant/20 p-5">
                           <p className="text-text-muted text-xs font-medium uppercase tracking-wider mb-2">{label}</p>
                           <p className={`text-2xl font-bold text-${color}-400`}>{value}</p>
                         </div>
@@ -746,16 +747,16 @@ function CompanyAnalysis() {
 
                   {/* History table + chart */}
                   {recentDivs.length > 0 && (
-                    <div className="bg-surface-dark rounded-xl border border-surface-dark-border p-6">
+                    <div className="bg-surface-container rounded-2xl border border-outline-variant/20 p-6">
                       <div className="flex items-center justify-between mb-5">
                         <div>
                           <h3 className="text-lg font-bold text-emerald-400">{t('company.dividendHistory')}</h3>
-                          <p className="text-xs text-slate-400">{t('company.dividendRecent')}</p>
+                          <p className="text-xs text-on-surface-variant">{t('company.dividendRecent')}</p>
                         </div>
                         <div className="flex items-center gap-3">
                           {olderDivs.length > 0 && (
                             <button onClick={() => setShowOlderData(!showOlderData)}
-                              className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-xs text-slate-300 transition-colors">
+                              className="px-3 py-1.5 bg-surface-container-high hover:bg-surface-variant border border-outline-variant/30 rounded-lg text-xs text-on-surface transition-colors">
                               {showOlderData ? t('company.hideOlder') : `${olderDivs.length}${t('company.showOlder')}`}
                             </button>
                           )}
@@ -768,7 +769,7 @@ function CompanyAnalysis() {
                         <div className="overflow-x-auto">
                           <table className="w-full text-sm">
                             <thead>
-                              <tr className="border-b border-slate-700 text-slate-400 text-xs uppercase tracking-wider">
+                              <tr className="border-b border-outline-variant/30 text-on-surface-variant text-xs uppercase tracking-wider">
                                 <th className="text-left py-3 px-2">{t('company.date')}</th>
                                 <th className="text-right py-3 px-2">{t('company.dividend')}</th>
                                 <th className="text-right py-3 px-2">{t('company.yield')}</th>
@@ -780,8 +781,8 @@ function CompanyAnalysis() {
                                 const prev = recentDivs[idx + 1]
                                 const changeRate = prev?.amount && d.amount ? ((d.amount - prev.amount) / prev.amount) * 100 : null
                                 return (
-                                  <tr key={idx} className="border-b border-slate-800/50 hover:bg-slate-800/30 transition-colors">
-                                    <td className="py-3 px-2 text-slate-300">{new Date(d.date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
+                                  <tr key={idx} className="border-b border-outline-variant/20/50 hover:bg-surface-container-high/30 transition-colors">
+                                    <td className="py-3 px-2 text-on-surface">{new Date(d.date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'short', day: 'numeric' })}</td>
                                     <td className="py-3 px-2 text-right font-bold text-emerald-400">
                                       {isKoreanStock ? `${d.amount ? Math.round(d.amount).toLocaleString() : 'N/A'}원` : `$${d.amount?.toFixed(2) || 'N/A'}`}
                                     </td>
@@ -804,7 +805,7 @@ function CompanyAnalysis() {
 
                         {/* Chart */}
                         <div className="bg-background-dark rounded-xl p-4 border border-surface-dark-border">
-                          <h4 className="text-sm font-bold text-slate-300 mb-3">{t('company.dividendGrowthChart')}</h4>
+                          <h4 className="text-sm font-bold text-on-surface mb-3">{t('company.dividendGrowthChart')}</h4>
                           <ResponsiveContainer width="100%" height={200}>
                             <LineChart data={[...recentDivs].reverse().map(d => ({
                               date: new Date(d.date).toLocaleDateString('ko-KR', { year: 'numeric', month: 'short' }),
@@ -818,7 +819,7 @@ function CompanyAnalysis() {
                                 name={isKoreanStock ? '배당금 (원)' : '배당금 ($)'} />
                             </LineChart>
                           </ResponsiveContainer>
-                          <h4 className="text-sm font-bold text-slate-300 mt-4 mb-3">{t('company.dividendYearChart')}</h4>
+                          <h4 className="text-sm font-bold text-on-surface mt-4 mb-3">{t('company.dividendYearChart')}</h4>
                           <ResponsiveContainer width="100%" height={140}>
                             <BarChart data={(() => {
                               const yr = {}
@@ -841,17 +842,17 @@ function CompanyAnalysis() {
 
                       {/* Older data */}
                       {showOlderData && olderDivs.length > 0 && (
-                        <div className="mt-5 pt-5 border-t border-slate-700">
+                        <div className="mt-5 pt-5 border-t border-outline-variant/30">
                           <div className="flex justify-between items-center mb-3">
-                            <h4 className="text-sm font-semibold text-slate-300">{t('company.dividendOlder')}</h4>
-                            <button onClick={() => setShowOlderData(false)} className="text-slate-500 hover:text-white">
+                            <h4 className="text-sm font-semibold text-on-surface">{t('company.dividendOlder')}</h4>
+                            <button onClick={() => setShowOlderData(false)} className="text-on-surface-variant/70 hover:text-white">
                               <span className="material-symbols-outlined text-[18px]">close</span>
                             </button>
                           </div>
                           <div className="max-h-64 overflow-y-auto">
                             <table className="w-full text-xs">
                               <thead>
-                                <tr className="border-b border-slate-700 text-slate-500 uppercase tracking-wider">
+                                <tr className="border-b border-outline-variant/30 text-on-surface-variant/70 uppercase tracking-wider">
                                   <th className="text-left py-2 px-2">{t('company.date')}</th>
                                   <th className="text-right py-2 px-2">{t('company.dividend')}</th>
                                   <th className="text-right py-2 px-2">{t('company.yield')}</th>
@@ -859,10 +860,10 @@ function CompanyAnalysis() {
                               </thead>
                               <tbody>
                                 {olderDivs.map((d, i) => (
-                                  <tr key={i} className="border-b border-slate-800/50 hover:bg-slate-800/20">
-                                    <td className="py-2 px-2 text-slate-400">{new Date(d.date).toLocaleDateString('ko-KR')}</td>
-                                    <td className="py-2 px-2 text-right text-slate-300">{isKoreanStock ? `${d.amount ? Math.round(d.amount).toLocaleString() : 'N/A'}원` : `$${d.amount?.toFixed(2) || 'N/A'}`}</td>
-                                    <td className="py-2 px-2 text-right text-slate-400">{d.yield_ ? `${(d.yield_ * 100).toFixed(2)}%` : 'N/A'}</td>
+                                  <tr key={i} className="border-b border-outline-variant/20/50 hover:bg-surface-container-high/20">
+                                    <td className="py-2 px-2 text-on-surface-variant">{new Date(d.date).toLocaleDateString('ko-KR')}</td>
+                                    <td className="py-2 px-2 text-right text-on-surface">{isKoreanStock ? `${d.amount ? Math.round(d.amount).toLocaleString() : 'N/A'}원` : `$${d.amount?.toFixed(2) || 'N/A'}`}</td>
+                                    <td className="py-2 px-2 text-right text-on-surface-variant">{d.yield_ ? `${(d.yield_ * 100).toFixed(2)}%` : 'N/A'}</td>
                                   </tr>
                                 ))}
                               </tbody>
@@ -896,17 +897,17 @@ function CompanyAnalysis() {
 
         {/* DART 공시 (한국 종목 전용) */}
         {isKoreanStock && symbol && (
-          <div className="mt-6 p-4 bg-[#0d1829] border border-slate-700/50 rounded-xl">
+          <div className="mt-6 p-4 bg-[#0d1829] border border-outline-variant/30/50 rounded-xl">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-sm font-bold text-white">📋 DART 공시</span>
               {dartData?.company_name && <span className="text-xs text-blue-400">{dartData.company_name}</span>}
-              <span className="text-xs text-slate-500">최근 5건 · AI 호재/악재 분석</span>
+              <span className="text-xs text-on-surface-variant/70">최근 5건 · AI 호재/악재 분석</span>
               {dartData?.has_api_key === false && (
                 <span className="text-[10px] bg-amber-900/30 border border-amber-700/40 text-amber-400 px-2 py-0.5 rounded">API키 없음 (웹스크래핑)</span>
               )}
             </div>
             {dartLoading && (
-              <div className="flex items-center gap-2 text-xs text-slate-500 py-3">
+              <div className="flex items-center gap-2 text-xs text-on-surface-variant/70 py-3">
                 <div className="w-3 h-3 border border-blue-400 border-t-transparent rounded-full animate-spin"></div>
                 공시 불러오는 중...
               </div>
@@ -914,18 +915,18 @@ function CompanyAnalysis() {
             {!dartLoading && dartData?.disclosures?.length > 0 && (
               <div className="space-y-2">
                 {dartData.disclosures.map((d, i) => (
-                  <div key={i} className="flex items-start gap-2 py-2 border-b border-slate-800 last:border-0">
+                  <div key={i} className="flex items-start gap-2 py-2 border-b border-outline-variant/20 last:border-0">
                     <span className={`shrink-0 mt-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded ${
                       d.impact === '호재' ? 'bg-emerald-900/40 text-emerald-400 border border-emerald-700/40' :
                       d.impact === '악재' ? 'bg-red-900/40 text-red-400 border border-red-700/40' :
-                      'bg-slate-800 text-slate-400 border border-slate-700'
+                      'bg-surface-container-high text-on-surface-variant border border-outline-variant/30'
                     }`}>{d.impact || '중립'}</span>
                     <div className="flex-1 min-w-0">
                       <a href={d.url} target="_blank" rel="noopener noreferrer"
                         className="text-xs text-slate-200 hover:text-blue-400 transition-colors line-clamp-1">
                         {d.title}
                       </a>
-                      {d.summary && <p className="text-[11px] text-slate-500 mt-0.5">{d.summary}</p>}
+                      {d.summary && <p className="text-[11px] text-on-surface-variant/70 mt-0.5">{d.summary}</p>}
                     </div>
                     <span className="shrink-0 text-[10px] text-slate-600">{d.date}</span>
                   </div>
@@ -940,15 +941,15 @@ function CompanyAnalysis() {
 
         {/* 외국인·기관 수급 패턴 (한국 종목 전용) */}
         {isKoreanStock && symbol && (
-          <div className="mt-6 p-4 bg-[#0d1829] border border-slate-700/50 rounded-xl">
+          <div className="mt-6 p-4 bg-[#0d1829] border border-outline-variant/30/50 rounded-xl">
             <div className="flex items-center gap-2 mb-3">
               <span className="text-sm font-bold text-white">📊 외국인·기관 수급</span>
               {flowData?.company_name && <span className="text-xs text-blue-400">{flowData.company_name}</span>}
-              <span className="text-xs text-slate-500">최근 10 거래일</span>
+              <span className="text-xs text-on-surface-variant/70">최근 10 거래일</span>
             </div>
 
             {flowLoading && (
-              <div className="flex items-center gap-2 text-xs text-slate-500 py-3">
+              <div className="flex items-center gap-2 text-xs text-on-surface-variant/70 py-3">
                 <div className="w-3 h-3 border border-blue-400 border-t-transparent rounded-full animate-spin"></div>
                 수급 데이터 불러오는 중...
               </div>
@@ -972,19 +973,19 @@ function CompanyAnalysis() {
                         <span className={`text-[11px] font-bold px-2 py-1 rounded border ${
                           fc > 0 ? 'bg-emerald-900/30 text-emerald-400 border-emerald-700/40'
                                  : fc < 0 ? 'bg-red-900/30 text-red-400 border-red-700/40'
-                                 : 'bg-slate-800 text-slate-400 border-slate-700'
+                                 : 'bg-surface-container-high text-on-surface-variant border-outline-variant/30'
                         }`}>
                           외국인 {fc > 0 ? `${fc}일 연속 순매수` : fc < 0 ? `${Math.abs(fc)}일 연속 순매도` : '중립'}
                         </span>
                         <span className={`text-[11px] font-bold px-2 py-1 rounded border ${
                           ic > 0 ? 'bg-blue-900/30 text-blue-400 border-blue-700/40'
                                  : ic < 0 ? 'bg-red-900/30 text-red-400 border-red-700/40'
-                                 : 'bg-slate-800 text-slate-400 border-slate-700'
+                                 : 'bg-surface-container-high text-on-surface-variant border-outline-variant/30'
                         }`}>
                           기관 {ic > 0 ? `${ic}일 연속 순매수` : ic < 0 ? `${Math.abs(ic)}일 연속 순매도` : '중립'}
                         </span>
                         {flowData.foreign_ownership_pct != null && (
-                          <span className="text-[11px] px-2 py-1 rounded border bg-slate-800 text-slate-400 border-slate-700">
+                          <span className="text-[11px] px-2 py-1 rounded border bg-surface-container-high text-on-surface-variant border-outline-variant/30">
                             외국인 지분율 {flowData.foreign_ownership_pct.toFixed(1)}%
                           </span>
                         )}
@@ -1004,7 +1005,7 @@ function CompanyAnalysis() {
                   <div className="overflow-x-auto">
                     <table className="w-full text-[11px] text-left">
                       <thead>
-                        <tr className="text-slate-500 border-b border-slate-800">
+                        <tr className="text-on-surface-variant/70 border-b border-outline-variant/20">
                           <th className="py-1 pr-3">날짜</th>
                           <th className="py-1 pr-3 text-right">외국인 순매수</th>
                           <th className="py-1 pr-3 text-right">기관 순매수</th>
@@ -1013,15 +1014,15 @@ function CompanyAnalysis() {
                       </thead>
                       <tbody>
                         {flowData.days.map((d, i) => (
-                          <tr key={i} className="border-b border-slate-800/50 last:border-0">
-                            <td className="py-1 pr-3 text-slate-500">{d.date?.slice(0, 10)}</td>
+                          <tr key={i} className="border-b border-outline-variant/20/50 last:border-0">
+                            <td className="py-1 pr-3 text-on-surface-variant/70">{d.date?.slice(0, 10)}</td>
                             <td className={`py-1 pr-3 text-right font-medium ${d.foreign_net >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
                               {d.foreign_net >= 0 ? '+' : ''}{(d.foreign_net / 1e8).toFixed(1)}억
                             </td>
                             <td className={`py-1 pr-3 text-right font-medium ${d.institution_net >= 0 ? 'text-blue-400' : 'text-red-400'}`}>
                               {d.institution_net >= 0 ? '+' : ''}{(d.institution_net / 1e8).toFixed(1)}억
                             </td>
-                            <td className={`py-1 text-right ${d.individual_net >= 0 ? 'text-slate-400' : 'text-orange-400'}`}>
+                            <td className={`py-1 text-right ${d.individual_net >= 0 ? 'text-on-surface-variant' : 'text-orange-400'}`}>
                               {d.individual_net >= 0 ? '+' : ''}{(d.individual_net / 1e8).toFixed(1)}억
                             </td>
                           </tr>
@@ -1036,7 +1037,7 @@ function CompanyAnalysis() {
         )}
 
         {/* 면책 고지 */}
-        <div className="mt-4 pt-4 border-t border-slate-800">
+        <div className="mt-4 pt-4 border-t border-outline-variant/20">
           <p className="text-[11px] text-slate-600 text-center leading-relaxed">
             본 정보는 투자 권고가 아닙니다. AI 분석은 참고용이며, 투자 결정의 책임은 투자자 본인에게 있습니다.<br />
             This information does not constitute investment advice. All investment decisions are the sole responsibility of the investor.

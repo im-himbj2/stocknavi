@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import apiService from '../services/api'
 import { getSubscriptionStatus } from '../utils/subscription'
@@ -236,44 +236,40 @@ function Portfolio() {
   const hasBothMarkets = krStats && usStats
 
   return (
-    <div className="min-h-screen bg-background-dark text-slate-100 font-display">
-      <main className="flex-1 px-6 py-8 max-w-[1440px] mx-auto w-full flex gap-6">
+    <div className="min-h-screen bg-surface-container-lowest text-on-surface">
+      <main className="px-6 py-8 max-w-[1440px] mx-auto w-full flex gap-8">
 
         {/* Left Column: Portfolio Data */}
         <div className="flex-1 flex flex-col gap-6 min-w-0">
           {/* Header */}
-          <div className="flex flex-wrap justify-between items-end gap-4">
-            <div className="flex flex-col gap-1">
-              <h1 className="text-[28px] font-bold leading-tight">{t('portfolio.title')}</h1>
-              <p className="text-text-muted text-sm">{t('portfolio.subtitle')}</p>
-            </div>
-            <div className="flex gap-3">
+          <div className="flex flex-wrap justify-between items-center gap-4">
+            <div className="flex items-center gap-3">
+              <h1 className="text-[28px] font-bold font-headline leading-tight text-on-surface">{t('portfolio.title')}</h1>
               <button
                 onClick={() => fetchStockPrices(portfolioItems)}
-                className="flex items-center gap-2 rounded-lg h-9 px-4 bg-surface-dark border border-surface-dark-border hover:bg-surface-dark-border transition-colors text-slate-100 text-sm font-medium"
+                className="p-2 rounded-full text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors"
               >
-                <span className="material-symbols-outlined text-[18px]">refresh</span>
-                {t('portfolio.refresh')}
-              </button>
-              <button
-                onClick={() => setShowAddForm(!showAddForm)}
-                className="flex items-center gap-2 rounded-lg h-9 px-4 bg-primary hover:bg-primary/90 transition-colors text-white text-sm font-bold"
-              >
-                <span className="material-symbols-outlined text-[18px]">add</span>
-                {t('portfolio.addAsset')}
+                <span className="material-symbols-outlined text-[20px]">refresh</span>
               </button>
             </div>
+            <button
+              onClick={() => setShowAddForm(!showAddForm)}
+              className="flex items-center gap-2 rounded-full h-10 px-5 bg-primary-container hover:opacity-90 transition-all text-on-primary-container text-sm font-bold"
+            >
+              <span className="material-symbols-outlined text-[18px]">add</span>
+              {t('portfolio.addAsset')}
+            </button>
           </div>
 
           {/* Error */}
           {error && (
-            <div className="p-4 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-400 text-sm">{error}</div>
+            <div className="p-4 bg-error/10 border border-error/20 rounded-2xl text-error text-sm">{error}</div>
           )}
 
           {/* Add Form */}
           {showAddForm && (
-            <div className="rounded-xl border border-surface-dark-border bg-surface-dark p-5">
-              <h3 className="text-base font-bold mb-4">{t('portfolio.addPosition')}</h3>
+            <div className="rounded-2xl border border-outline-variant/20 bg-surface-container p-5">
+              <h3 className="text-base font-bold font-headline mb-4">{t('portfolio.addPosition')}</h3>
               <form onSubmit={handleAddItem} className="grid grid-cols-1 md:grid-cols-4 gap-3">
                 <div className="relative" ref={searchRef}>
                   <input
@@ -281,16 +277,16 @@ function Portfolio() {
                     value={formData.symbol}
                     onChange={(e) => setFormData({ ...formData, symbol: e.target.value.toUpperCase() })}
                     placeholder={t('portfolio.symbolPlaceholder')}
-                    className="w-full h-10 bg-background-dark border border-surface-dark-border rounded-lg px-4 text-sm text-slate-100 placeholder:text-text-muted focus:outline-none focus:border-primary"
+                    className="w-full h-10 bg-surface-container-low border border-outline-variant/30 rounded-xl px-4 text-sm text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-primary"
                     required
                   />
                   {showSuggestions && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-slate-900 border border-surface-dark-border rounded-lg overflow-hidden shadow-2xl">
+                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-surface-container border border-outline-variant/30 rounded-xl overflow-hidden shadow-2xl">
                       {suggestions.map((s, i) => (
                         <div key={i} onClick={() => { setFormData({ ...formData, symbol: s.symbol }); setShowSuggestions(false) }}
-                          className="px-4 py-2 hover:bg-surface-dark cursor-pointer text-xs flex justify-between">
-                          <span className="text-white font-bold">{s.symbol}</span>
-                          <span className="text-text-muted">{s.name}</span>
+                          className="px-4 py-2.5 hover:bg-surface-container-high cursor-pointer text-xs flex justify-between">
+                          <span className="text-on-surface font-bold">{s.symbol}</span>
+                          <span className="text-on-surface-variant">{s.name}</span>
                         </div>
                       ))}
                     </div>
@@ -299,13 +295,13 @@ function Portfolio() {
                 <input type="number" step="0.01" value={formData.quantity}
                   onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
                   placeholder={t('portfolio.qtyPlaceholder')} required
-                  className="h-10 bg-background-dark border border-surface-dark-border rounded-lg px-4 text-sm text-slate-100 placeholder:text-text-muted focus:outline-none focus:border-primary" />
+                  className="h-10 bg-surface-container-low border border-outline-variant/30 rounded-xl px-4 text-sm text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-primary" />
                 <input type="number" step="0.01" value={formData.averagePrice}
                   onChange={(e) => setFormData({ ...formData, averagePrice: e.target.value })}
                   placeholder={t('portfolio.costPlaceholder')} required
-                  className="h-10 bg-background-dark border border-surface-dark-border rounded-lg px-4 text-sm text-slate-100 placeholder:text-text-muted focus:outline-none focus:border-primary" />
+                  className="h-10 bg-surface-container-low border border-outline-variant/30 rounded-xl px-4 text-sm text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-primary" />
                 <button type="submit" disabled={loading}
-                  className="h-10 bg-primary hover:bg-primary/90 text-white font-bold rounded-lg text-sm transition-colors disabled:opacity-50">
+                  className="h-10 bg-primary-container hover:opacity-90 text-on-primary-container font-bold rounded-xl text-sm transition-colors disabled:opacity-50">
                   {loading ? t('portfolio.saving') : t('portfolio.save')}
                 </button>
               </form>
@@ -315,86 +311,58 @@ function Portfolio() {
           {/* Loading */}
           {loading && portfolioItems.length === 0 && (
             <div className="flex items-center justify-center py-20">
-              <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+              <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
             </div>
           )}
 
-          {/* Exchange rate badge */}
-          {hasKrStocks && (
-            <div className="flex items-center gap-2 text-xs text-text-muted">
-              <span className="material-symbols-outlined text-[14px]">currency_exchange</span>
-              <span>USD/KRW: <span className="text-slate-300 font-medium">{usdKrwRate.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span> (실시간) · 총 자산은 USD로 환산 표시</span>
-            </div>
-          )}
-
-          {/* Top Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex flex-col gap-2 rounded-xl p-5 bg-surface-dark border border-surface-dark-border shadow-sm">
-              <p className="text-text-muted text-sm font-medium uppercase tracking-wider">{t('portfolio.totalAsset')}</p>
-              <p className="text-[28px] font-bold leading-tight">{fmtUsd(totalValue)}</p>
-              <div className={`flex items-center gap-1 text-sm font-medium ${totalProfitPct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                <span className="material-symbols-outlined text-[16px]">{totalProfitPct >= 0 ? 'trending_up' : 'trending_down'}</span>
-                <span>{totalProfitPct >= 0 ? '+' : ''}{totalProfitPct.toFixed(2)}%</span>
+          {/* Hero Stats — Robinhood style */}
+          <section className="py-2">
+            {hasKrStocks && (
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container-low border border-outline-variant/15 mb-4">
+                <span className="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span>
+                <span className="text-[11px] font-bold text-on-surface-variant">
+                  USD/KRW {usdKrwRate.toLocaleString(undefined, { maximumFractionDigits: 0 })} · 실시간
+                </span>
               </div>
+            )}
+            <p className="text-sm text-on-surface-variant mb-1">Total Balance</p>
+            <h2 className="text-[52px] font-black font-headline text-on-surface tracking-tighter leading-none">{fmtUsd(totalValue)}</h2>
+            <div className="flex items-baseline gap-3 mt-3">
+              <span className={`font-bold font-headline text-lg ${totalProfit >= 0 ? 'text-secondary' : 'text-error'}`}>
+                {totalProfit >= 0 ? '+' : ''}{fmtUsd(totalProfit)} ({totalProfitPct >= 0 ? '+' : ''}{totalProfitPct.toFixed(2)}%) 전체
+              </span>
+              <span className={`text-sm font-medium ${dailyPL >= 0 ? 'text-secondary/70' : 'text-error/70'}`}>
+                {dailyPL >= 0 ? '+' : ''}{fmtUsd(dailyPL)} 오늘
+              </span>
             </div>
-            <div className="flex flex-col gap-2 rounded-xl p-5 bg-surface-dark border border-surface-dark-border shadow-sm">
-              <p className="text-text-muted text-sm font-medium uppercase tracking-wider">{t('portfolio.dailyPL')}</p>
-              <p className={`text-[28px] font-bold leading-tight ${dailyPL >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                {dailyPL >= 0 ? '+' : ''}{fmtUsd(dailyPL)}
-              </p>
-              <p className="text-text-muted text-sm font-medium">{t('portfolio.dailyPLSub')}</p>
-            </div>
-            <div className="flex flex-col gap-2 rounded-xl p-5 bg-surface-dark border border-surface-dark-border shadow-sm">
-              <p className="text-text-muted text-sm font-medium uppercase tracking-wider">{t('portfolio.totalReturn')}</p>
-              <p className={`text-[28px] font-bold leading-tight ${totalProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                {totalProfit >= 0 ? '+' : ''}{fmtUsd(totalProfit)}
-              </p>
-              <div className={`flex items-center gap-1 text-sm font-medium ${totalProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                <span className="material-symbols-outlined text-[16px]">{totalProfit >= 0 ? 'arrow_upward' : 'arrow_downward'}</span>
-                <span>{Math.abs(totalProfitPct).toFixed(2)}%</span>
-              </div>
-            </div>
-          </div>
+          </section>
 
           {/* Asset Allocation */}
           {portfolioItems.length > 0 && (
             <div className="flex flex-col gap-4">
-              <h2 className="text-xl font-bold">{t('portfolio.allocation')}</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Sector Allocation Bars */}
-                <div className="flex flex-col gap-4 rounded-xl border border-surface-dark-border bg-surface-dark p-6">
-                  <div>
-                    <p className="text-text-muted text-sm font-medium">{t('portfolio.allocationSub')}</p>
-                    <p className="text-2xl font-bold mt-1">{stockWeights[0]?.symbol}: {stockWeights[0]?.pct.toFixed(0)}%</p>
-                  </div>
-                  <div className="grid gap-x-4 gap-y-3 items-center" style={{ gridTemplateColumns: '60px 1fr 40px' }}>
-                    {stockWeights.map(({ symbol, pct, color }, i) => (
-                      <>
-                        <p key={`sym-${i}`} className="text-slate-100 text-sm font-medium truncate">{symbol}</p>
-                        <div key={`bar-${i}`} className="h-2.5 w-full bg-background-dark rounded-full overflow-hidden">
-                          <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, backgroundColor: color, opacity: 0.7 + i * 0.05 }}></div>
-                        </div>
-                        <p key={`pct-${i}`} className="text-text-muted text-xs text-right">{pct.toFixed(0)}%</p>
-                      </>
-                    ))}
-                  </div>
+              <h2 className="text-lg font-bold font-headline text-on-surface">{t('portfolio.allocation')}</h2>
+              <div className="rounded-2xl border border-outline-variant/20 bg-surface-container-low p-6">
+                <p className="text-xs font-bold text-on-surface-variant/60 mb-3 uppercase tracking-wider">{t('portfolio.allocationSub')}</p>
+                {/* Stacked horizontal bar */}
+                <div className="h-3 rounded-full overflow-hidden flex mb-4">
+                  {stockWeights.map(({ symbol, pct, color }, i) => (
+                    <div key={i} title={`${symbol}: ${pct.toFixed(1)}%`}
+                      style={{ width: `${pct}%`, backgroundColor: color, opacity: 0.7 + i * 0.06 }}></div>
+                  ))}
                 </div>
-
-                {/* Stock Bar Chart */}
-                <div className="flex flex-col gap-4 rounded-xl border border-surface-dark-border bg-surface-dark p-6">
-                  <div>
-                    <p className="text-text-muted text-sm font-medium">Value by Position</p>
-                    <p className="text-2xl font-bold mt-1">{portfolioItems.length} {t('portfolio.holdings')}</p>
-                  </div>
-                  <div className="h-[140px] flex items-end justify-between gap-2 mt-auto pt-4 border-b border-surface-dark-border/50">
-                    {stockWeights.map(({ symbol, pct, color }, i) => (
-                      <div key={i} className="w-full flex flex-col items-center gap-2 group relative">
-                        <div className="w-full rounded-t-sm transition-all group-hover:opacity-80"
-                          style={{ height: `${Math.max(pct, 5)}%`, backgroundColor: color, opacity: 0.8 - i * 0.1 }}></div>
-                        <span className="text-xs font-medium text-text-muted">{symbol}</span>
+                <div className="grid gap-x-4 gap-y-2.5 items-center" style={{ gridTemplateColumns: '70px 1fr 40px' }}>
+                  {stockWeights.map(({ symbol, pct, color }, i) => (
+                    <React.Fragment key={i}>
+                      <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: color, opacity: 0.7 + i * 0.06 }}></span>
+                        <p className="text-on-surface text-sm font-medium truncate">{symbol}</p>
                       </div>
-                    ))}
-                  </div>
+                      <div className="h-1.5 w-full bg-surface-container-highest rounded-full overflow-hidden">
+                        <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: color, opacity: 0.7 }}></div>
+                      </div>
+                      <p className="text-on-surface-variant text-xs text-right">{pct.toFixed(0)}%</p>
+                    </React.Fragment>
+                  ))}
                 </div>
               </div>
             </div>
@@ -403,164 +371,130 @@ function Portfolio() {
           {/* 국장·미장 통합 수익률 비교 */}
           {hasBothMarkets && (
             <div className="flex flex-col gap-4">
-              <h2 className="text-xl font-bold">국장 · 미장 수익률 비교</h2>
+              <h2 className="text-lg font-bold font-headline text-on-surface">국장 · 미장 수익률 비교</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* 국내주식 */}
-                <div className="rounded-xl border border-surface-dark-border bg-surface-dark p-5">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">🇰🇷</span>
-                      <span className="text-sm font-bold">국내 주식 (KRX)</span>
-                    </div>
-                    <span className="text-xs text-text-muted">{krStats.count}종목</span>
+                <div className="rounded-2xl border-l-4 border-error/50 bg-surface-container-low p-5 relative overflow-hidden">
+                  <div className="absolute top-3 right-3 opacity-5">
+                    <span className="material-symbols-outlined text-5xl">south</span>
                   </div>
-                  <p className="text-2xl font-bold mb-1">{fmtUsd(krStats.totalVal)}</p>
-                  <p className="text-xs text-text-muted mb-2">원화 환산 ₩{Math.round(krStats.totalVal * usdKrwRate).toLocaleString()}</p>
-                  <div className={`flex items-center gap-1 text-sm font-bold ${krStats.pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-xs font-bold text-on-surface-variant/60 uppercase tracking-wider">🇰🇷 국내 주식 KR</p>
+                    <span className="text-xs text-on-surface-variant">{krStats.count}종목</span>
+                  </div>
+                  <h3 className="text-2xl font-bold font-headline text-on-surface">{fmtUsd(krStats.totalVal)}</h3>
+                  <p className="text-sm text-on-surface-variant mt-0.5">₩{Math.round(krStats.totalVal * usdKrwRate).toLocaleString()}</p>
+                  <div className={`flex items-center gap-1 text-sm font-bold mt-3 ${krStats.pct >= 0 ? 'text-secondary' : 'text-error'}`}>
                     <span className="material-symbols-outlined text-[16px]">{krStats.pct >= 0 ? 'trending_up' : 'trending_down'}</span>
                     <span>{krStats.pct >= 0 ? '+' : ''}{krStats.pct.toFixed(2)}%</span>
-                    <span className="font-normal text-xs ml-1">({krStats.profit >= 0 ? '+' : ''}{fmtUsd(krStats.profit)})</span>
-                  </div>
-                  {/* 비율 바 */}
-                  <div className="mt-3">
-                    <div className="flex justify-between text-[10px] text-text-muted mb-1">
-                      <span>포트폴리오 내 비중</span>
-                      <span>{totalValue > 0 ? ((krStats.totalVal / totalValue) * 100).toFixed(0) : 0}%</span>
-                    </div>
-                    <div className="h-1.5 bg-background-dark rounded-full overflow-hidden">
-                      <div className="h-full bg-rose-500 rounded-full"
-                        style={{ width: `${totalValue > 0 ? (krStats.totalVal / totalValue) * 100 : 0}%` }}></div>
-                    </div>
+                    <span className="font-normal text-xs ml-1 text-on-surface-variant">({krStats.profit >= 0 ? '+' : ''}{fmtUsd(krStats.profit)})</span>
                   </div>
                 </div>
 
                 {/* 미국주식 */}
-                <div className="rounded-xl border border-surface-dark-border bg-surface-dark p-5">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-lg">🇺🇸</span>
-                      <span className="text-sm font-bold">미국 주식 (NYSE/NASDAQ)</span>
-                    </div>
-                    <span className="text-xs text-text-muted">{usStats.count}종목</span>
+                <div className="rounded-2xl border-l-4 border-primary-container bg-surface-container-low p-5 relative overflow-hidden">
+                  <div className="absolute top-3 right-3 opacity-5">
+                    <span className="material-symbols-outlined text-5xl">public</span>
                   </div>
-                  <p className="text-2xl font-bold mb-1">{fmtUsd(usStats.totalVal)}</p>
-                  <p className="text-xs text-text-muted mb-2">환율 적용: ₩{Math.round(usStats.totalVal * usdKrwRate).toLocaleString()}</p>
-                  <div className={`flex items-center gap-1 text-sm font-bold ${usStats.pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-xs font-bold text-on-surface-variant/60 uppercase tracking-wider">🇺🇸 미국 주식 US</p>
+                    <span className="text-xs text-on-surface-variant">{usStats.count}종목</span>
+                  </div>
+                  <h3 className="text-2xl font-bold font-headline text-on-surface">{fmtUsd(usStats.totalVal)}</h3>
+                  <p className="text-sm text-on-surface-variant mt-0.5">₩{Math.round(usStats.totalVal * usdKrwRate).toLocaleString()}</p>
+                  <div className={`flex items-center gap-1 text-sm font-bold mt-3 ${usStats.pct >= 0 ? 'text-secondary' : 'text-error'}`}>
                     <span className="material-symbols-outlined text-[16px]">{usStats.pct >= 0 ? 'trending_up' : 'trending_down'}</span>
                     <span>{usStats.pct >= 0 ? '+' : ''}{usStats.pct.toFixed(2)}%</span>
-                    <span className="font-normal text-xs ml-1">({usStats.profit >= 0 ? '+' : ''}{fmtUsd(usStats.profit)})</span>
-                  </div>
-                  {/* 비율 바 */}
-                  <div className="mt-3">
-                    <div className="flex justify-between text-[10px] text-text-muted mb-1">
-                      <span>포트폴리오 내 비중</span>
-                      <span>{totalValue > 0 ? ((usStats.totalVal / totalValue) * 100).toFixed(0) : 0}%</span>
-                    </div>
-                    <div className="h-1.5 bg-background-dark rounded-full overflow-hidden">
-                      <div className="h-full bg-blue-500 rounded-full"
-                        style={{ width: `${totalValue > 0 ? (usStats.totalVal / totalValue) * 100 : 0}%` }}></div>
-                    </div>
+                    <span className="font-normal text-xs ml-1 text-on-surface-variant">({usStats.profit >= 0 ? '+' : ''}{fmtUsd(usStats.profit)})</span>
                   </div>
                 </div>
               </div>
 
-              {/* 비교 요약 배너 */}
-              <div className="rounded-xl border border-surface-dark-border bg-surface-dark p-4 flex flex-wrap items-center gap-4 text-sm">
-                <span className="text-text-muted">성과 비교</span>
-                <span className={`font-bold ${krStats.pct >= usStats.pct ? 'text-emerald-400' : 'text-text-muted'}`}>
-                  🇰🇷 국내 {krStats.pct >= 0 ? '+' : ''}{krStats.pct.toFixed(2)}%
-                  {krStats.pct >= usStats.pct && <span className="ml-1 text-[10px] bg-emerald-500/20 px-1 py-0.5 rounded">앞섬</span>}
+              {/* 비교 배너 */}
+              <div className="rounded-2xl bg-surface-container p-4 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                  <span className="material-symbols-outlined text-[#a5c8ff]">compare_arrows</span>
+                  <span className="text-sm font-medium text-on-surface">
+                    <span className={`font-bold ${usStats.pct > krStats.pct ? 'text-on-surface' : 'text-on-surface-variant'}`}>
+                      🇺🇸 미국 {usStats.pct >= 0 ? '+' : ''}{usStats.pct.toFixed(2)}%
+                    </span>
+                    <span className="text-on-surface-variant mx-2">vs</span>
+                    <span className={`font-bold ${krStats.pct >= usStats.pct ? 'text-on-surface' : 'text-on-surface-variant'}`}>
+                      🇰🇷 국내 {krStats.pct >= 0 ? '+' : ''}{krStats.pct.toFixed(2)}%
+                    </span>
+                  </span>
+                </div>
+                <span className="text-[10px] font-black text-[#a5c8ff]/60 uppercase tracking-widest">
+                  USD · ₩{usdKrwRate.toLocaleString()}
                 </span>
-                <span className="text-text-muted">vs</span>
-                <span className={`font-bold ${usStats.pct > krStats.pct ? 'text-emerald-400' : 'text-text-muted'}`}>
-                  🇺🇸 미국 {usStats.pct >= 0 ? '+' : ''}{usStats.pct.toFixed(2)}%
-                  {usStats.pct > krStats.pct && <span className="ml-1 text-[10px] bg-emerald-500/20 px-1 py-0.5 rounded">앞섬</span>}
-                </span>
-                <span className="text-[10px] text-text-muted ml-auto">※ USD 환산 기준 · 환율 ₩{usdKrwRate.toLocaleString()}</span>
               </div>
             </div>
           )}
 
-          {/* Holdings Table */}
-          <div className="flex flex-col gap-4 mt-2">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-bold">{t('portfolio.holdings')}</h2>
-              <span className="text-sm text-text-muted">{portfolioItems.length} positions</span>
+          {/* Holdings List — Stitch Robinhood style */}
+          <div className="flex flex-col gap-4">
+            <div className="flex justify-between items-center px-1">
+              <h2 className="text-lg font-bold font-headline text-on-surface">
+                {t('portfolio.holdings')} <span className="text-[#a5c8ff] ml-1">{portfolioItems.length} positions</span>
+              </h2>
             </div>
             {portfolioItems.length > 0 ? (
-              <div className="rounded-xl border border-surface-dark-border bg-surface-dark overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="border-b border-surface-dark-border text-text-muted text-xs uppercase tracking-wider bg-surface-dark-border/20">
-                        <th className="p-4 font-medium">{t('portfolio.asset')}</th>
-                        <th className="p-4 font-medium text-right">{t('portfolio.price')}</th>
-                        <th className="p-4 font-medium text-right">{t('portfolio.qty')}</th>
-                        <th className="p-4 font-medium text-right">{t('portfolio.avgCost')}</th>
-                        <th className="p-4 font-medium text-right">{t('portfolio.totalValue')}</th>
-                        <th className="p-4 font-medium text-right">{t('portfolio.gainLoss')}</th>
-                        <th className="p-4 font-medium text-right"></th>
-                      </tr>
-                    </thead>
-                    <tbody className="text-sm">
-                      {portfolioItems.map((item) => {
-                        const { profit, profitPercent, totalValue: tv, price, currency } = calcProfit(item)
-                        const kr = currency === 'KRW'
-                        return (
-                          <tr key={item.id} className="border-b border-surface-dark-border/50 hover:bg-surface-dark-border/20 transition-colors">
-                            <td className="p-4">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center font-bold text-xs shrink-0">
-                                  {item.symbol.slice(0, 3)}
-                                </div>
-                                <div>
-                                  <div className="flex items-center gap-2">
-                                    <p className="font-bold">{item.symbol}</p>
-                                    {checkMajorHolder(item) && (
-                                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30">대주주</span>
-                                    )}
-                                  </div>
-                                  {item.notes && <p className="text-text-muted text-xs">{item.notes}</p>}
-                                </div>
-                              </div>
-                            </td>
-                            <td className="p-4 text-right font-medium">{fmt(price, item.symbol)}</td>
-                            <td className="p-4 text-right">{item.quantity}</td>
-                            <td className="p-4 text-right text-text-muted">{fmt(item.average_price, item.symbol)}</td>
-                            <td className="p-4 text-right font-bold">
-                              {fmt(tv, item.symbol)}
-                              {kr && <p className="text-[10px] text-text-muted font-normal">≈ {fmtUsd(tv / usdKrwRate)}</p>}
-                            </td>
-                            <td className={`p-4 text-right font-medium ${profit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                              {profit >= 0 ? '+' : ''}{fmt(profit, item.symbol)} ({profitPercent >= 0 ? '+' : ''}{profitPercent.toFixed(1)}%)
-                            </td>
-                            <td className="p-4 text-right">
-                              <div className="flex items-center justify-end gap-2">
-                                {isKR(item.symbol) && (
-                                  <button onClick={() => goToTaxSim(item)}
-                                    className="text-xs px-2 py-1 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 transition-colors font-medium whitespace-nowrap">
-                                    양도세
-                                  </button>
-                                )}
-                                <button onClick={() => handleDeleteItem(item.id)}
-                                  className="text-text-muted hover:text-rose-400 transition-colors">
-                                  <span className="material-symbols-outlined text-[18px]">delete</span>
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        )
-                      })}
-                    </tbody>
-                  </table>
-                </div>
+              <div className="space-y-3">
+                {portfolioItems.map((item) => {
+                  const { profit, profitPercent, totalValue: tv, price, currency } = calcProfit(item)
+                  const kr = currency === 'KRW'
+                  return (
+                    <div key={item.id} className="group flex items-center p-5 rounded-2xl bg-surface-container-low hover:bg-surface-container transition-all gap-4">
+                      {/* Icon */}
+                      <div className="w-12 h-12 rounded-xl bg-surface-container-highest flex items-center justify-center font-black text-xs text-on-surface shrink-0 border border-outline-variant/10">
+                        {item.symbol.slice(0, 4)}
+                      </div>
+                      {/* Name + badge */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-bold text-on-surface">{item.symbol}</h4>
+                          {checkMajorHolder(item) && (
+                            <span className="bg-amber-500/10 text-amber-500 text-[10px] font-black px-1.5 py-0.5 rounded border border-amber-500/20">대주주</span>
+                          )}
+                        </div>
+                        <p className="text-xs text-on-surface-variant mt-0.5">{fmt(price, item.symbol)} {item.notes ? `· ${item.notes}` : ''}</p>
+                      </div>
+                      {/* Profit % */}
+                      <div className="text-right mr-4">
+                        <p className={`text-sm font-black ${profit >= 0 ? 'text-secondary' : 'text-error'}`}>
+                          {profitPercent >= 0 ? '+' : ''}{profitPercent.toFixed(1)}%
+                        </p>
+                        <p className="text-xs text-on-surface-variant">수익률</p>
+                      </div>
+                      {/* Total value */}
+                      <div className="text-right mr-2">
+                        <p className="font-bold text-on-surface">{fmt(tv, item.symbol)}</p>
+                        {kr && <p className="text-[10px] text-on-surface-variant">≈ {fmtUsd(tv / usdKrwRate)}</p>}
+                      </div>
+                      {/* Actions */}
+                      <div className="flex items-center gap-2 shrink-0">
+                        {isKR(item.symbol) && (
+                          <button onClick={() => goToTaxSim(item)}
+                            className="bg-amber-500 hover:bg-amber-600 text-black text-[11px] font-black px-3 py-1.5 rounded-full transition-colors flex items-center gap-1">
+                            <span className="material-symbols-outlined text-xs">receipt</span>
+                            양도세
+                          </button>
+                        )}
+                        <button onClick={() => handleDeleteItem(item.id)}
+                          className="text-on-surface-variant hover:text-error transition-colors p-1">
+                          <span className="material-symbols-outlined text-[18px]">delete</span>
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
               </div>
             ) : (
               !loading && (
-                <div className="rounded-xl border border-dashed border-surface-dark-border bg-surface-dark p-16 text-center">
-                  <span className="material-symbols-outlined text-5xl text-slate-600 mb-4 block">account_balance_wallet</span>
-                  <h3 className="text-lg font-bold mb-2">{t('portfolio.emptyTitle')}</h3>
-                  <p className="text-text-muted text-sm">{t('portfolio.emptyDesc')}</p>
+                <div className="rounded-2xl border border-dashed border-outline-variant/30 bg-surface-container p-16 text-center">
+                  <span className="material-symbols-outlined text-5xl text-on-surface-variant/30 mb-4 block">account_balance_wallet</span>
+                  <h3 className="text-lg font-bold font-headline mb-2">{t('portfolio.emptyTitle')}</h3>
+                  <p className="text-on-surface-variant text-sm">{t('portfolio.emptyDesc')}</p>
                 </div>
               )
             )}
@@ -568,112 +502,89 @@ function Portfolio() {
         </div>
 
         {/* Right Sidebar: Risk Panel */}
-        <div className="w-[340px] shrink-0 flex flex-col gap-6">
-          {/* Risk Assessment */}
-          <div className="rounded-xl border border-surface-dark-border bg-surface-dark p-5 flex flex-col gap-5">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold flex items-center gap-2">
-                <span className="material-symbols-outlined text-amber-500">warning</span>
-                {t('portfolio.riskTitle')}
-              </h2>
+        <div className="w-[320px] shrink-0 flex flex-col gap-5">
+          <h3 className="text-xs font-black font-headline text-on-surface-variant uppercase tracking-[0.2em] px-1">{t('portfolio.riskTitle')}</h3>
+
+          {/* Volatility info */}
+          {portfolioItems.length === 0 && (
+            <div className="p-4 rounded-2xl bg-surface-container border border-outline-variant/10 text-sm text-on-surface-variant">
+              {t('portfolio.emptyRisk')}
             </div>
-            <div className="flex flex-col gap-4">
-              {/* Portfolio Beta/Volatility */}
-              <div className="p-3 bg-background-dark rounded-lg border border-surface-dark-border">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-slate-100">{t('portfolio.volatility')}</span>
-                  <span className="text-sm font-bold text-amber-500">
-                    {portfolioItems.length > 0 ? `${portfolioItems.length} assets` : 'N/A'}
-                  </span>
-                </div>
-                <p className="text-xs text-text-muted">
-                  {portfolioItems.length === 0
-                    ? t('portfolio.emptyRisk')
-                    : `Your portfolio contains ${portfolioItems.length} positions with a total value of ${fmtUsd(totalValue)}.`}
+          )}
+
+          {/* Concentration Risk */}
+          {portfolioItems.length > 0 && hasConcenRisk && (
+            <div className="p-5 rounded-2xl bg-error/5 border border-error/20 flex gap-4">
+              <span className="material-symbols-outlined text-error mt-0.5">pie_chart</span>
+              <div>
+                <p className="text-sm font-bold text-error mb-1">{t('portfolio.concentration')}</p>
+                <p className="text-xs text-error/70 leading-relaxed">
+                  {stockWeights[0]?.symbol}이 포트폴리오의 {stockWeights[0]?.pct.toFixed(0)}%를 차지합니다. 분산 투자를 권장합니다.
                 </p>
               </div>
-
-              {/* Concentration Risk */}
-              {portfolioItems.length > 0 && hasConcenRisk && (
-                <div className="p-3 bg-rose-500/10 rounded-lg border border-rose-500/20">
-                  <div className="flex items-start gap-3">
-                    <span className="material-symbols-outlined text-rose-500 text-[20px] mt-0.5">error</span>
-                    <div>
-                      <h3 className="text-sm font-bold text-rose-500 mb-1">{t('portfolio.concentration')}</h3>
-                      <p className="text-xs text-rose-400/80">
-                        High exposure to {stockWeights[0]?.symbol} ({stockWeights[0]?.pct.toFixed(0)}%). Consider diversifying to reduce concentration risk.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Major Holder Warning */}
-              {majorHolderItems.length > 0 && (
-                <div className="p-3 bg-amber-500/10 rounded-lg border border-amber-500/20">
-                  <div className="flex items-start gap-3">
-                    <span className="material-symbols-outlined text-amber-400 text-[20px] mt-0.5">gavel</span>
-                    <div className="flex-1">
-                      <h3 className="text-sm font-bold text-amber-400 mb-1">대주주 요건 해당</h3>
-                      <p className="text-xs text-amber-400/80 mb-2">
-                        {majorHolderItems.map(i => i.symbol).join(', ')} 보유금액 10억원 초과. 연말 매도 시 양도세 20~25% 부과됩니다.
-                      </p>
-                      <button onClick={() => goToTaxSim(majorHolderItems[0])}
-                        className="text-xs px-2 py-1 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 transition-colors font-medium">
-                        양도세 시뮬레이터 →
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Liquidity */}
-              {portfolioItems.length > 0 && (
-                <div className="p-3 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
-                  <div className="flex items-start gap-3">
-                    <span className="material-symbols-outlined text-emerald-500 text-[20px] mt-0.5">check_circle</span>
-                    <div>
-                      <h3 className="text-sm font-bold text-emerald-500 mb-1">{t('portfolio.liquidity')}</h3>
-                      <p className="text-xs text-emerald-400/80">{t('portfolio.liquidityGood')}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Profit/Loss summary */}
-              {portfolioItems.length > 0 && (
-                <div className="p-3 bg-background-dark rounded-lg border border-surface-dark-border">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-sm font-medium">{t('portfolio.totalReturn')}</span>
-                    <span className={`text-sm font-bold ${totalProfit >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                      {totalProfitPct >= 0 ? '+' : ''}{totalProfitPct.toFixed(2)}%
-                    </span>
-                  </div>
-                  <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
-                    <div className={`h-full rounded-full transition-all ${totalProfit >= 0 ? 'bg-emerald-500' : 'bg-rose-500'}`}
-                      style={{ width: `${Math.min(Math.abs(totalProfitPct), 100)}%` }}></div>
-                  </div>
-                </div>
-              )}
             </div>
-          </div>
+          )}
+
+          {/* Major Holder Warning */}
+          {majorHolderItems.length > 0 && (
+            <div className="p-5 rounded-2xl bg-amber-500/5 border border-amber-500/20 flex gap-4">
+              <span className="material-symbols-outlined text-amber-500 mt-0.5">warning</span>
+              <div className="flex-1">
+                <p className="text-sm font-bold text-amber-200 mb-1">세금 주의보</p>
+                <p className="text-xs text-amber-100/70 leading-relaxed mb-3">
+                  {majorHolderItems.map(i => i.symbol).join(', ')} 보유금액 10억원 초과. 연말 매도 시 양도세 20~25% 적용 대상입니다.
+                </p>
+                <button onClick={() => goToTaxSim(majorHolderItems[0])}
+                  className="text-xs px-3 py-1.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30 transition-colors font-bold">
+                  양도세 시뮬레이터 →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Liquidity */}
+          {portfolioItems.length > 0 && (
+            <div className="p-5 rounded-2xl bg-secondary/5 border border-secondary/20 flex gap-4">
+              <span className="material-symbols-outlined text-secondary mt-0.5">check_circle</span>
+              <div>
+                <p className="text-sm font-bold text-secondary mb-1">{t('portfolio.liquidity')}</p>
+                <p className="text-xs text-secondary/70 leading-relaxed">{t('portfolio.liquidityGood')}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Profit summary */}
+          {portfolioItems.length > 0 && (
+            <div className="p-5 rounded-2xl bg-surface-container-low border border-outline-variant/10">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-medium text-on-surface">{t('portfolio.totalReturn')}</span>
+                <span className={`text-sm font-bold ${totalProfit >= 0 ? 'text-secondary' : 'text-error'}`}>
+                  {totalProfitPct >= 0 ? '+' : ''}{totalProfitPct.toFixed(2)}%
+                </span>
+              </div>
+              <div className="h-2 bg-surface-container-highest rounded-full overflow-hidden">
+                <div className={`h-full rounded-full transition-all ${totalProfit >= 0 ? 'bg-secondary' : 'bg-error'}`}
+                  style={{ width: `${Math.min(Math.abs(totalProfitPct), 100)}%` }}></div>
+              </div>
+            </div>
+          )}
 
           {/* Premium Banner */}
           {!isPremium && (
-            <div className="rounded-xl bg-gradient-to-br from-primary/20 to-purple-600/20 border border-primary/30 p-6 flex flex-col gap-4 relative overflow-hidden group">
-              <div className="absolute -right-6 -top-6 text-primary/10 group-hover:text-primary/20 transition-colors pointer-events-none">
-                <span className="material-symbols-outlined text-[120px]">auto_awesome</span>
+            <div className="relative group cursor-pointer overflow-hidden rounded-3xl p-7 bg-gradient-to-br from-primary-container to-[#00315e] border border-white/10">
+              <div className="absolute -right-4 -bottom-4 opacity-10 rotate-12 group-hover:scale-110 transition-transform duration-700">
+                <span className="material-symbols-outlined text-[120px]" style={{ fontVariationSettings: "'FILL' 1" }}>workspace_premium</span>
               </div>
-              <div className="relative z-10">
-                <span className="inline-block px-2 py-1 bg-primary/30 text-[10px] font-bold uppercase tracking-wider rounded text-white mb-2 border border-primary/50">
-                  {t('portfolio.proFeature')}
-                </span>
-                <h3 className="text-lg font-bold text-white mb-2">{t('portfolio.premiumTitle')}</h3>
-                <p className="text-sm text-text-muted mb-4">{t('portfolio.premiumDesc')}</p>
+              <div className="relative z-10 space-y-4">
+                <span className="inline-block px-3 py-1 rounded-full bg-white/20 text-white text-[10px] font-black uppercase tracking-widest">Premium Tier</span>
+                <div>
+                  <h4 className="text-xl font-black text-white font-headline leading-tight">{t('portfolio.premiumTitle')}</h4>
+                  <p className="mt-2 text-sm text-primary-fixed/80 font-medium">{t('portfolio.premiumDesc')}</p>
+                </div>
                 <Link to="/subscription"
-                  className="w-full flex items-center justify-center gap-2 rounded-lg h-10 bg-primary hover:bg-primary/90 transition-colors text-white text-sm font-bold">
-                  <span>{t('portfolio.upgradeNow')}</span>
-                  <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                  className="w-full flex items-center justify-center gap-2 py-2.5 bg-white text-primary-container rounded-xl font-bold text-sm hover:shadow-xl transition-all">
+                  {t('portfolio.upgradeNow')}
+                  <span className="material-symbols-outlined text-sm">arrow_forward</span>
                 </Link>
               </div>
             </div>

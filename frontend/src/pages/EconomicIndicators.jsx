@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import apiService from '../services/api'
-import Navbar from '../components/Layout/Navbar'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useBullMode } from '../contexts/BullModeContext'
 import WorldConflictMap from '../components/Economic/WorldConflictMap'
@@ -11,7 +10,7 @@ import YieldCurveChart from '../components/Economic/YieldCurveChart'
 import ForexPanel from '../components/Economic/ForexPanel'
 import SectorPanel from '../components/Economic/SectorPanel'
 import EconomicCalendarPanel from '../components/Economic/EconomicCalendarPanel'
-import BloombergPanelWrapper from '../components/Economic/BloombergPanelWrapper'
+
 
 const EconomicIndicators = () => {
   const { t, lang } = useLanguage()
@@ -112,72 +111,57 @@ const EconomicIndicators = () => {
   const tickerItems = [...globalIndices, ...globalIndices]
 
   return (
-    <div className="bg-[#0a0f15] text-white min-h-screen">
-      <Navbar />
-
-      {/* Page header */}
-      <div
-        className={`px-4 py-2 flex items-center justify-between border-b transition-colors duration-500 ${
-          bullMode
-            ? 'border-green-800 bg-[#031a0a]'
-            : 'border-[#1a3a5c] bg-[#050d18]'
-        }`}
-      >
-        <div className="flex items-center gap-3">
-          <h1 className={`text-[13px] font-mono font-bold uppercase tracking-widest transition-colors duration-300 ${bullMode ? 'text-green-400' : 'text-[#5ba4d4]'}`}>
-            StockNavi Market Terminal
-          </h1>
-          <span className="flex items-center gap-1.5 text-[10px] font-mono text-green-400">
+    <div className="bg-surface-container-lowest text-on-surface min-h-screen">
+      {/* Page header — Stitch style */}
+      <div className="sticky top-0 z-40 bg-[#0f141a]/90 backdrop-blur-xl border-b border-outline-variant/20 px-8 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <h1 className="text-xl font-bold font-headline text-on-background tracking-tight">{t('economic.pageTitle') || '경제 지표'}</h1>
+          <span className="flex items-center gap-1.5 text-[10px] font-bold text-secondary">
             <span className="relative flex h-1.5 w-1.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-400" />
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-secondary opacity-75" />
+              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-secondary" />
             </span>
             LIVE
           </span>
           {bullMode && (
-            <span className="text-[9px] font-mono font-bold text-green-400 border border-green-700 px-1.5 py-0.5 rounded-sm tracking-widest animate-pulse">
+            <span className="text-[9px] font-bold text-secondary border border-secondary/30 px-2 py-0.5 rounded-full tracking-widest animate-pulse bg-secondary/10">
               🐂 BULL MODE
             </span>
           )}
         </div>
         <div className="flex items-center gap-3">
           {lastUpdated && (
-            <span className="text-[9px] font-mono text-gray-600">
-              {t('economic.updated')} {lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+            <span className="text-[10px] text-on-surface-variant">
+              {lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
             </span>
           )}
-          {/* Bull Mode 토글 */}
           <button
             onClick={toggleBullMode}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-[10px] font-mono font-bold transition-all ${
+            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
               bullMode
-                ? 'bg-green-900/60 text-green-300 border border-green-700'
-                : 'bg-[#1a3a5c]/60 text-gray-400 hover:text-white border border-[#1a3a5c] hover:border-[#3a5a8c]'
+                ? 'bg-secondary/20 text-secondary border border-secondary/30'
+                : 'bg-surface-container text-on-surface-variant border border-outline-variant/30 hover:text-on-surface'
             }`}
-            title={bullMode ? (lang === 'ko' ? '전체 보기로 전환' : 'Switch to All View') : (lang === 'ko' ? '긍정 신호만 보기' : 'Show Bull Signals Only')}
+            title={bullMode ? '전체 보기' : '강세장 필터'}
           >
-            {bullMode ? '🐂' : '🐻'}
-            <span>{bullMode ? (lang === 'ko' ? 'BULL' : 'BULL') : (lang === 'ko' ? 'ALL' : 'ALL')}</span>
+            {bullMode ? '🐂 강세장 필터 ON' : '강세장 필터'}
           </button>
         </div>
       </div>
 
-      {/* 1. World Conflict Map */}
-      <WorldConflictMap />
-
-      {/* 2. Ticker Bar */}
+      {/* Ticker Bar */}
       {globalIndices.length > 0 && (
-        <div className="bg-[#050d18] border-b border-[#1a3a5c] overflow-hidden py-1.5">
+        <div className="bg-surface-container-low border-b border-outline-variant/20 overflow-hidden py-2">
           <div className="flex gap-8 animate-marquee whitespace-nowrap">
             {tickerItems.map((idx, i) => (
-              <span key={`${idx.symbol}-${i}`} className="inline-flex items-center gap-1.5 text-[11px] font-mono">
-                <span className="text-gray-500">{idx.name}</span>
-                <span className="text-white font-bold">
+              <span key={`${idx.symbol}-${i}`} className="inline-flex items-center gap-1.5 text-[11px] font-medium">
+                <span className="text-on-surface-variant">{idx.name}</span>
+                <span className="text-on-surface font-bold">
                   {idx.price >= 1000
                     ? idx.price.toLocaleString('en-US', { maximumFractionDigits: 0 })
                     : idx.price.toFixed(2)}
                 </span>
-                <span className={idx.change_percent >= 0 ? 'text-green-400' : 'text-red-400'}>
+                <span className={idx.change_percent >= 0 ? 'text-secondary' : 'text-error'}>
                   {idx.change_percent >= 0 ? '▲' : '▼'}{Math.abs(idx.change_percent).toFixed(2)}%
                 </span>
               </span>
@@ -186,12 +170,12 @@ const EconomicIndicators = () => {
         </div>
       )}
 
-      <div className="px-4 py-3 space-y-3">
-        {/* 3. 4-Panel Market Grid */}
-        <div className="border border-[#1a3a5c] rounded-sm overflow-hidden">
-          <div className="bg-[#0a1929] border-b border-[#1a3a5c] px-3 py-1 flex items-center gap-2">
-            <span className="text-[10px] font-mono font-bold text-[#5ba4d4] uppercase tracking-widest">{t('economic.marketsOverview')}</span>
-            <span className="text-[9px] font-mono text-gray-600">{t('economic.marketsOverviewSub')}</span>
+      <div className="px-6 py-6 space-y-6 max-w-[1440px] mx-auto">
+        {/* 3. Market Grid */}
+        <div className="bg-surface-container rounded-2xl overflow-hidden border border-outline-variant/10">
+          <div className="px-6 py-4 border-b border-outline-variant/10 flex items-center justify-between">
+            <h2 className="text-base font-bold font-headline text-[#a5c8ff]">{t('economic.marketsOverview')}</h2>
+            <span className="text-[10px] text-on-surface-variant">{t('economic.marketsOverviewSub')}</span>
           </div>
           <MarketGrid
             globalIndices={globalIndices}
@@ -202,8 +186,8 @@ const EconomicIndicators = () => {
         </div>
 
         {/* 4. Macro + Sentiment */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-          <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 bg-surface-container rounded-2xl overflow-hidden border border-outline-variant/10">
             <MacroPanel
               highlights={highlights}
               pmi={pmi}
@@ -212,80 +196,97 @@ const EconomicIndicators = () => {
               loading={loading}
             />
           </div>
-          <SentimentGauge value={sentiment} loading={loading} />
+          <div className="bg-surface-container rounded-2xl overflow-hidden border border-outline-variant/10">
+            <SentimentGauge value={sentiment} loading={loading} />
+          </div>
         </div>
 
         {/* 5. Yield Curve + Forex */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-          <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 bg-surface-container rounded-2xl overflow-hidden border border-outline-variant/10">
             <YieldCurveChart curveData={curveData} loading={loading} />
           </div>
-          <ForexPanel forex={forex} loading={loading} />
+          <div className="bg-surface-container rounded-2xl overflow-hidden border border-outline-variant/10">
+            <ForexPanel forex={forex} loading={loading} />
+          </div>
         </div>
 
         {/* 6. Sector + Calendar */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-          <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 bg-surface-container rounded-2xl overflow-hidden border border-outline-variant/10">
             <SectorPanel sectors={sectors} loading={loading} />
           </div>
-          <EconomicCalendarPanel events={calendar} loading={loading} />
+          <div className="bg-surface-container rounded-2xl overflow-hidden border border-outline-variant/10">
+            <EconomicCalendarPanel events={calendar} loading={loading} />
+          </div>
         </div>
 
         {/* 7. FOMC Analysis */}
-        <BloombergPanelWrapper title={t('economic.fomcAnalysis')} badge="AI">
-          {!fomc ? (
-            <p className="text-[10px] text-gray-600 font-mono py-2">{t('economic.loading')}</p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-[9px] font-mono text-gray-500 uppercase tracking-wider mb-1">{t('economic.meeting')}</p>
-                <p className="text-[11px] font-mono text-[#5ba4d4]">{fomc.date}</p>
-                <p className="text-[12px] font-mono text-white font-bold mt-1 leading-snug">{fomc.title}</p>
-              </div>
-              {fomcSummary ? (
+        <div className="bg-surface-container rounded-2xl border border-outline-variant/10 overflow-hidden">
+          <div className="px-6 py-4 border-b border-outline-variant/10 flex items-center gap-3">
+            <h2 className="text-base font-bold font-headline text-[#a5c8ff]">{t('economic.fomcAnalysis')}</h2>
+            <span className="text-[10px] font-bold bg-[#0070cc]/20 text-[#a5c8ff] px-2 py-0.5 rounded-full border border-[#0070cc]/30">AI</span>
+          </div>
+          <div className="p-6">
+            {!fomc ? (
+              <p className="text-sm text-on-surface-variant py-2">{t('economic.loading')}</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <p className="text-[10px] font-mono text-gray-400 mb-3 leading-relaxed">
-                    {fomcSummary.summary?.substring(0, 200)}...
-                  </p>
-                  {fomcSummary.hawk_dove_score != null && (
-                    <div className="mb-2">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-[9px] font-mono text-gray-500 uppercase tracking-wider">Dove</span>
-                        <span className="text-[9px] font-mono text-gray-400 font-bold">
-                          Hawk/Dove: {fomcSummary.hawk_dove_score.toFixed(0)}
-                        </span>
-                        <span className="text-[9px] font-mono text-gray-500 uppercase tracking-wider">Hawk</span>
-                      </div>
-                      <div className="bg-[#1a3a5c] rounded h-1.5">
-                        <div
-                          className={`h-full rounded transition-all ${fomcSummary.hawk_dove_score > 50 ? 'bg-red-500' : 'bg-blue-500'}`}
-                          style={{ width: `${fomcSummary.hawk_dove_score}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
-                  {fomcSummary.keywords && (
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {fomcSummary.keywords.slice(0, 6).map((kw, i) => (
-                        <span key={i} className="text-[9px] font-mono bg-[#0070cc]/20 text-[#5ba4d4] px-2 py-0.5 rounded-sm">
-                          {kw}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                  <p className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-2">{t('economic.meeting')}</p>
+                  <p className="text-sm text-[#a5c8ff] font-medium">{fomc.date}</p>
+                  <p className="text-sm text-on-surface font-bold mt-1 leading-snug">{fomc.title}</p>
                 </div>
-              ) : (
-                <p className="text-[10px] text-gray-600 font-mono">{t('economic.loadingAI')}</p>
-              )}
-            </div>
-          )}
-        </BloombergPanelWrapper>
+                {fomcSummary ? (
+                  <div>
+                    <p className="text-sm text-on-surface-variant mb-3 leading-relaxed">
+                      {fomcSummary.summary?.substring(0, 200)}...
+                    </p>
+                    {fomcSummary.hawk_dove_score != null && (
+                      <div className="mb-3">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-[10px] text-on-surface-variant">Dove</span>
+                          <span className="text-[10px] text-on-surface font-bold">
+                            Hawk/Dove: {fomcSummary.hawk_dove_score.toFixed(0)}
+                          </span>
+                          <span className="text-[10px] text-on-surface-variant">Hawk</span>
+                        </div>
+                        <div className="bg-surface-container-highest rounded-full h-1.5">
+                          <div
+                            className={`h-full rounded-full transition-all ${fomcSummary.hawk_dove_score > 50 ? 'bg-error' : 'bg-[#a5c8ff]'}`}
+                            style={{ width: `${fomcSummary.hawk_dove_score}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                    {fomcSummary.keywords && (
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {fomcSummary.keywords.slice(0, 6).map((kw, i) => (
+                          <span key={i} className="text-[10px] bg-[#0070cc]/15 text-[#a5c8ff] px-2 py-0.5 rounded-full border border-[#0070cc]/20">
+                            {kw}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-sm text-on-surface-variant">{t('economic.loadingAI')}</p>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* WorldConflictMap */}
+        <div className="bg-surface-container rounded-2xl overflow-hidden border border-outline-variant/10">
+          <WorldConflictMap />
+        </div>
       </div>
 
       {/* 면책 고지 */}
-      <div className="px-4 py-3 mt-2 border-t border-[#1a3a5c]">
-        <p className="text-[10px] font-mono text-gray-600 text-center leading-relaxed">
-          본 정보는 투자 권고가 아닙니다. 투자 결정의 책임은 투자자 본인에게 있습니다. | This information does not constitute investment advice. All investment decisions are the sole responsibility of the investor.
+      <div className="px-6 py-4 border-t border-outline-variant/10">
+        <p className="text-[10px] text-on-surface-variant/50 text-center leading-relaxed">
+          본 정보는 투자 권고가 아닙니다. 투자 결정의 책임은 투자자 본인에게 있습니다. | This information does not constitute investment advice.
         </p>
       </div>
     </div>

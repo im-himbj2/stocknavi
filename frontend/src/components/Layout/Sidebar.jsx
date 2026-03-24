@@ -10,7 +10,6 @@ function Sidebar() {
   const navigate = useNavigate()
   const [isOpen, setIsOpen] = useState(() => window.innerWidth >= 768)
 
-  // 모바일 리사이즈 대응: 작은 화면에서 자동 접힘
   React.useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth < 768) setIsOpen(false)
@@ -18,6 +17,7 @@ function Sidebar() {
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
+
   const { lang, toggleLang, t } = useLanguage()
   const { isAuth, logout } = useAuth()
 
@@ -40,49 +40,55 @@ function Sidebar() {
   }
 
   return (
-    <aside className={`${isOpen ? 'w-64' : 'w-20'} bg-[#0e2234] border-r border-surface-dark-border transition-all duration-300 flex flex-col min-h-screen`}>
+    <aside className={`${isOpen ? 'w-64' : 'w-[72px]'} bg-[#0e1f33] flex flex-col min-h-screen transition-all duration-300 shrink-0`}>
       {/* Logo */}
-      <div className="h-16 border-b border-surface-dark-border flex items-center justify-between px-4 gap-3">
-        <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-sm shrink-0">S</div>
-        {isOpen && <span className="text-lg font-bold text-white">StockNavi</span>}
+      <div className="h-16 flex items-center justify-between px-4 gap-3 border-b border-white/5">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-8 h-8 rounded-lg bg-[#0070cc] flex items-center justify-center text-white font-black text-sm shrink-0">S</div>
+          {isOpen && <span className="text-[15px] font-black text-white font-headline tracking-tight truncate">StockNavi</span>}
+        </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-4 px-3 space-y-2 overflow-y-auto">
+      <nav className="flex-1 py-3 space-y-0.5 overflow-y-auto px-2">
         {menuItems.map((item) => (
           <Link
             key={item.path}
             to={item.path}
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
-              isActive(item.path)
-                ? 'bg-[#0070cc]/25 text-blue-200 border border-[#0070cc]/40'
-                : 'text-slate-300 hover:text-white hover:bg-white/5'
-            }`}
             title={!isOpen ? t(item.key) : ''}
+            className={`flex items-center gap-3 py-3 rounded-lg transition-all text-sm font-label ${
+              isOpen ? 'px-4' : 'px-4 justify-center'
+            } ${
+              isActive(item.path)
+                ? 'bg-gradient-to-r from-[#0070cc]/20 to-transparent text-[#a5c8ff] border-l-4 border-[#0070cc] rounded-l-none pl-3'
+                : 'text-slate-400 hover:text-white hover:bg-[#1b2026]/70'
+            }`}
           >
-            <span className="material-symbols-outlined text-[20px] shrink-0">{item.icon}</span>
-            {isOpen && <span className="text-sm font-medium">{t(item.key)}</span>}
+            <span className={`material-symbols-outlined text-[20px] shrink-0 ${isActive(item.path) ? 'text-[#a5c8ff]' : ''}`}
+              style={isActive(item.path) ? { fontVariationSettings: "'FILL' 1" } : {}}>
+              {item.icon}
+            </span>
+            {isOpen && <span className="font-semibold tracking-wide">{t(item.key)}</span>}
           </Link>
         ))}
       </nav>
 
       {/* Bottom actions */}
-      <div className="border-t border-surface-dark-border p-3 space-y-2">
+      <div className="border-t border-white/5 p-3 space-y-1">
         {/* Language toggle */}
         <button
           onClick={toggleLang}
-          className="w-full flex items-center justify-center gap-2 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-all text-xs font-black tracking-widest"
+          className="w-full flex items-center justify-center gap-2 py-2.5 text-slate-400 hover:text-white hover:bg-[#1b2026]/70 rounded-lg transition-all text-xs font-black tracking-widest"
           title="Toggle language"
         >
           <span className="material-symbols-outlined text-[16px]">language</span>
           {isOpen && <span>{lang === 'ko' ? 'EN' : 'KR'}</span>}
         </button>
 
-        {/* Sign out */}
         {isAuth && (
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 py-2 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all text-xs"
+            className="w-full flex items-center justify-center gap-2 py-2.5 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all text-xs"
             title={t('nav.signOut')}
           >
             <span className="material-symbols-outlined text-[16px]">logout</span>
@@ -93,7 +99,7 @@ function Sidebar() {
         {/* Collapse toggle */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full flex items-center justify-center py-2 text-slate-400 hover:text-slate-100 hover:bg-surface-dark-border/30 rounded-lg transition-all"
+          className="w-full flex items-center justify-center py-2.5 text-slate-400 hover:text-slate-100 hover:bg-[#1b2026]/70 rounded-lg transition-all"
         >
           <span className="material-symbols-outlined text-[20px]">
             {isOpen ? 'chevron_left' : 'chevron_right'}

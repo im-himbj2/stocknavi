@@ -67,10 +67,13 @@ function Home() {
               <span className="text-[11px] text-[#5BA4D4] font-black uppercase tracking-[0.2em]">{t('home.badge')}</span>
             </div>
 
-            <h1 className="text-7xl md:text-[10rem] font-black mb-10 leading-[0.85] tracking-[-0.05em] animate-title">
-              Precise<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-br from-white via-blue-50 to-[#0070cc]/60">
-                Intelligence
+            <h1 className="text-6xl md:text-8xl font-black mb-10 leading-[0.9] tracking-tight animate-title font-headline">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#a5c8ff] to-[#4edea3]">
+                {t('home.headline1') || '정밀한 투자'}
+              </span>
+              <br />
+              <span className="text-white">
+                {t('home.headline2') || '인텔리전스'}
               </span>
             </h1>
 
@@ -123,15 +126,39 @@ function Home() {
           </div>
         </section>
 
-        {/* 선반 디스플레이 섹션 - 메인 콘텐츠로 격상 */}
-        <section className="py-20 relative overflow-hidden">
-          <div className="absolute inset-0 bg-[#0070cc]/8 blur-[120px] rounded-full translate-y-1/2"></div>
-          <div className="container mx-auto px-6 relative">
-            <div className="text-center mb-24">
-              <h2 className="text-5xl md:text-7xl font-black text-white uppercase tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-b from-white to-white/40">{t('home.marketInsightTitle')}</h2>
-              <p className="text-[#5BA4D4] font-bold uppercase tracking-[0.4em] text-[10px]">{t('home.marketInsightSub')}</p>
+        {/* 피처 카드 섹션 — Stitch 2x2 그리드 */}
+        <section className="py-20 relative">
+          <div className="container mx-auto px-6 max-w-5xl">
+            <div className="text-center mb-12">
+              <p className="text-[10px] font-black text-[#5BA4D4]/80 uppercase tracking-[0.4em] mb-4">{t('home.marketInsightSub')}</p>
+              <h2 className="text-4xl md:text-5xl font-black text-white font-headline tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white to-white/50">{t('home.marketInsightTitle')}</h2>
             </div>
-            <ShelfDisplay />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {[
+                { path: '/company', icon: '📊', title: t('sidebar.company'), desc: t('home.feature.company') || 'AI 기반 한국·미국 종목 심층 분석 및 재무 데이터', glow: '#0070cc', borderColor: '#0070cc' },
+                { path: '/economic', icon: '🌐', title: t('sidebar.economic'), desc: t('home.feature.economic') || '실시간 경제지표, 글로벌 시장, Fear & Greed 지수', glow: '#8b5cf6', borderColor: '#8b5cf6' },
+                { path: '/speech', icon: '🏛️', title: t('sidebar.speech'), desc: t('home.feature.speech') || 'FOMC 연설 AI 요약 및 매파/비둘기파 스코어', glow: '#06b6d4', borderColor: '#06b6d4' },
+                { path: '/portfolio', icon: '💼', title: t('sidebar.portfolio'), desc: t('home.feature.portfolio') || '포트폴리오 관리, 대주주 경고, 양도세 시뮬레이터', glow: '#f59e0b', borderColor: '#f59e0b' },
+              ].map((card) => (
+                <Link
+                  key={card.path}
+                  to={card.path}
+                  className="group relative rounded-2xl p-7 bg-surface-container border border-outline-variant/20 hover:border-outline-variant/40 overflow-hidden transition-all duration-300 hover:-translate-y-1"
+                >
+                  {/* Glow effect */}
+                  <div
+                    className="absolute top-0 left-0 w-32 h-32 rounded-full blur-[60px] opacity-20 group-hover:opacity-30 transition-opacity"
+                    style={{ background: card.glow }}
+                  />
+                  <div className="relative z-10">
+                    <span className="text-5xl block mb-5">{card.icon}</span>
+                    <h3 className="text-lg font-bold text-on-surface font-headline mb-2">{card.title}</h3>
+                    <p className="text-sm text-on-surface-variant leading-relaxed mb-5">{card.desc}</p>
+                    <span className="text-sm font-bold" style={{ color: card.borderColor }}>시작하기 →</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
 
