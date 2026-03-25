@@ -10,9 +10,9 @@ export default function MarketIntelligence() {
   const [selectedTheme, setSelectedTheme] = useState(null)
 
   return (
-    <>
+    <div className="flex flex-col h-full">
       {/* Sticky Header */}
-      <div className="sticky top-0 z-40 bg-[#0f141a]/90 backdrop-blur-xl border-b border-outline-variant/20 px-8 py-4 flex items-center justify-between">
+      <div className="sticky top-0 z-40 bg-[#0f141a]/90 backdrop-blur-xl border-b border-outline-variant/20 px-8 py-4 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-4">
           <h1 className="text-xl font-bold font-headline text-on-background tracking-tight">
             {t('intelligence.pageTitle') || '투자 인텔리전스'}
@@ -28,25 +28,27 @@ export default function MarketIntelligence() {
       </div>
 
       {/* Main Content */}
-      <div className="px-6 py-6 space-y-6 max-w-[1440px] mx-auto min-h-96">
-        {/* Top Section: 2 Columns */}
-        <div className="grid grid-cols-5 gap-6">
-          {/* Column 1: Smart Money Tracker (40%, col-span-2) */}
-          <div className="col-span-2">
-            <SmartMoneyTracker onSelectStock={setSelectedStock} />
+      <div className="flex-1 overflow-auto px-6 py-6">
+        <div className="space-y-6 max-w-[1440px] mx-auto">
+          {/* Top Section: 2 Columns */}
+          <div className="grid grid-cols-5 gap-6">
+            {/* Column 1: Smart Money Tracker (40%, col-span-2) */}
+            <div className="col-span-2">
+              <SmartMoneyTracker onSelectStock={setSelectedStock} />
+            </div>
+
+            {/* Column 2: Theme Heatmap (60%, col-span-3) */}
+            <div className="col-span-3">
+              <ThemeHeatmap onSelectTheme={setSelectedTheme} onSelectStock={setSelectedStock} />
+            </div>
           </div>
 
-          {/* Column 2: Theme Heatmap (60%, col-span-3) */}
-          <div className="col-span-3">
-            <ThemeHeatmap onSelectTheme={setSelectedTheme} onSelectStock={setSelectedStock} />
+          {/* Bottom Section: AI Signals (Full Width) */}
+          <div>
+            <AISignalPanel selectedStock={selectedStock} selectedTheme={selectedTheme} />
           </div>
-        </div>
-
-        {/* Bottom Section: AI Signals (Full Width) */}
-        <div>
-          <AISignalPanel selectedStock={selectedStock} selectedTheme={selectedTheme} />
         </div>
       </div>
-    </>
+    </div>
   )
 }
