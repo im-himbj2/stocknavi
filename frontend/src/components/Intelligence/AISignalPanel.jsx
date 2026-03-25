@@ -155,8 +155,17 @@ export default function AISignalPanel({ selectedStock, selectedTheme }) {
 
       {/* 시그널 카드 그리드 */}
       {loading ? (
-        <div className="flex items-center justify-center h-64">
-          <div className="text-on-surface-variant">로딩 중...</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="rounded-lg border-2 border-outline-variant/20 p-4 animate-pulse">
+              <div className="h-4 bg-surface-container-high rounded w-3/4 mb-4" />
+              <div className="h-3 bg-surface-container-high rounded w-1/2 mb-4" />
+              <div className="space-y-2">
+                <div className="h-3 bg-surface-container-high rounded w-full" />
+                <div className="h-3 bg-surface-container-high rounded w-5/6" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : filteredSignals.length === 0 ? (
         <div className="flex items-center justify-center h-40">

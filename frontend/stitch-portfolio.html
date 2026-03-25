@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>StockNavi | Portfolio Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;family=Manrope:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-tint": "#a5c8ff",
+              "surface-variant": "#30353c",
+              "on-tertiary": "#213146",
+              "on-secondary-fixed-variant": "#005236",
+              "on-error-container": "#ffdad6",
+              "on-primary": "#00315e",
+              "background": "#0f141a",
+              "inverse-on-surface": "#2c3138",
+              "surface-container-highest": "#30353c",
+              "surface-container-low": "#171c22",
+              "inverse-surface": "#dee3eb",
+              "primary-container": "#0070cc",
+              "on-background": "#dee3eb",
+              "on-secondary-fixed": "#002113",
+              "surface-dim": "#0f141a",
+              "outline": "#8b919e",
+              "on-tertiary-fixed": "#0b1c30",
+              "on-tertiary-container": "#eff3ff",
+              "tertiary-fixed": "#d3e4ff",
+              "on-tertiary-fixed-variant": "#38485e",
+              "error-container": "#93000a",
+              "on-surface": "#dee3eb",
+              "surface-container": "#1b2026",
+              "secondary-fixed": "#6ffbbe",
+              "primary": "#a5c8ff",
+              "on-secondary-container": "#00311f",
+              "secondary-container": "#00a572",
+              "surface": "#0f141a",
+              "tertiary": "#b7c8e2",
+              "on-surface-variant": "#c1c7d4",
+              "secondary": "#4edea3",
+              "on-error": "#690005",
+              "tertiary-container": "#607088",
+              "outline-variant": "#414752",
+              "surface-bright": "#353a40",
+              "tertiary-fixed-dim": "#b7c8e2",
+              "secondary-fixed-dim": "#4edea3",
+              "surface-container-high": "#252a31",
+              "on-primary-fixed": "#001c3a",
+              "inverse-primary": "#005fae",
+              "error": "#ffb4ab",
+              "on-primary-fixed-variant": "#004785",
+              "on-secondary": "#003824",
+              "surface-container-lowest": "#0a0f15",
+              "primary-fixed": "#d4e3ff",
+              "on-primary-container": "#f0f4ff",
+              "primary-fixed-dim": "#a5c8ff"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Inter"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        vertical-align: middle;
+      }
+      .glass-card {
+        background: rgba(27, 32, 38, 0.7);
+        backdrop-filter: blur(12px);
+      }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body selection:bg-primary/30">
+<!-- Sidebar Navigation -->
+<aside class="fixed left-0 top-0 h-full w-64 bg-[#0e1f33] backdrop-blur-xl flex flex-col py-4 shadow-2xl shadow-black/40 z-50">
+<div class="text-2xl font-black text-white px-6 py-8 font-headline tracking-tight">StockNavi</div>
+<div class="px-6 mb-8">
+<p class="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold">The Sovereign Vault</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="text-slate-400 hover:text-white px-6 py-3 flex items-center gap-4 hover:bg-[#1b2026]/50 transition-all duration-300 font-label text-sm tracking-wide" href="#">
+<span class="material-symbols-outlined">home</span>
+<span>Home</span>
+</a>
+<a class="text-slate-400 hover:text-white px-6 py-3 flex items-center gap-4 hover:bg-[#1b2026]/50 transition-all duration-300 font-label text-sm tracking-wide" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span>Analysis</span>
+</a>
+<a class="text-slate-400 hover:text-white px-6 py-3 flex items-center gap-4 hover:bg-[#1b2026]/50 transition-all duration-300 font-label text-sm tracking-wide" href="#">
+<span class="material-symbols-outlined">legend_toggle</span>
+<span>Indicators</span>
+</a>
+<a class="text-slate-400 hover:text-white px-6 py-3 flex items-center gap-4 hover:bg-[#1b2026]/50 transition-all duration-300 font-label text-sm tracking-wide" href="#">
+<span class="material-symbols-outlined">psychology</span>
+<span>Intelligence</span>
+</a>
+<a class="text-slate-400 hover:text-white px-6 py-3 flex items-center gap-4 hover:bg-[#1b2026]/50 transition-all duration-300 font-label text-sm tracking-wide" href="#">
+<span class="material-symbols-outlined">account_balance</span>
+<span>FOMC</span>
+</a>
+<a class="bg-gradient-to-r from-[#0070cc]/20 to-transparent text-[#a5c8ff] border-l-4 border-[#0070cc] font-semibold px-6 py-3 flex items-center gap-4 transition-all duration-300 font-label text-sm tracking-wide" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">pie_chart</span>
+<span>Portfolio</span>
+</a>
+<a class="text-slate-400 hover:text-white px-6 py-3 flex items-center gap-4 hover:bg-[#1b2026]/50 transition-all duration-300 font-label text-sm tracking-wide" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span>Tax</span>
+</a>
+</nav>
+<div class="px-6 py-4 mt-auto">
+<div class="p-4 rounded-xl bg-surface-container-high/50 border border-outline-variant/10">
+<p class="text-xs text-on-surface-variant mb-2">Portfolio Health</p>
+<div class="h-1.5 w-full bg-surface-variant rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[84%]"></div>
+</div>
+<p class="text-[10px] mt-2 text-secondary font-bold">84% Optimal</p>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-64 min-h-screen p-8 lg:p-12 max-w-[1440px]">
+<!-- Header Section -->
+<header class="flex items-center justify-between mb-10">
+<div class="flex items-center gap-4">
+<h1 class="text-[28px] font-bold font-headline text-white tracking-tight">내 포트폴리오</h1>
+<button class="p-2 hover:bg-surface-container rounded-full transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined">refresh</span>
+</button>
+</div>
+<button class="bg-primary-container hover:opacity-90 text-on-primary-container px-5 py-2.5 rounded-full font-bold font-label text-sm flex items-center gap-2 transition-all">
+<span class="material-symbols-outlined">add</span>
+                자산 추가
+            </button>
+</header>
+<div class="grid grid-cols-12 gap-8">
+<!-- Left Column: Main Data -->
+<div class="col-span-12 lg:col-span-8 space-y-8">
+<!-- Currency Badge & Hero -->
+<section class="space-y-4">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container-low border border-outline-variant/15">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary animate-pulse"></span>
+<span class="text-[11px] font-bold font-label text-on-surface-variant uppercase tracking-wider">USD/KRW 1,380 · 실시간</span>
+</div>
+<div class="py-6">
+<p class="text-sm font-label text-on-surface-variant mb-1">Total Balance</p>
+<h2 class="text-[56px] font-black font-headline text-white tracking-tighter leading-none">$45,230.50</h2>
+<div class="flex items-baseline gap-3 mt-4">
+<span class="text-secondary font-bold font-headline text-lg">+$5,420.30 (13.6%) 전체 수익</span>
+<span class="text-on-surface-variant/60 font-medium text-sm">+$234.50 오늘</span>
+</div>
+</div>
+</section>
+<!-- Market Split Cards -->
+<section class="grid grid-cols-2 gap-4">
+<!-- KR Market -->
+<div class="p-6 rounded-2xl bg-surface-container-low border-l-4 border-error/50 relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-4xl">south</span>
+</div>
+<p class="text-xs font-bold text-on-surface-variant/60 mb-2 font-label">국내 주식 KR</p>
+<div class="space-y-1">
+<h3 class="text-2xl font-bold font-headline text-white">₩18,500,000</h3>
+<p class="text-sm text-on-surface-variant font-medium">≈$13,400</p>
+</div>
+<div class="mt-4 inline-flex items-center text-secondary font-bold text-sm">
+<span class="material-symbols-outlined text-sm mr-1">trending_up</span>
+                            +2.3% 수익
+                        </div>
+</div>
+<!-- US Market -->
+<div class="p-6 rounded-2xl bg-surface-container-low border-l-4 border-primary-container relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-4xl">public</span>
+</div>
+<p class="text-xs font-bold text-on-surface-variant/60 mb-2 font-label">미국 주식 US</p>
+<div class="space-y-1">
+<h3 class="text-2xl font-bold font-headline text-white">$31,830</h3>
+<p class="text-sm text-on-surface-variant font-medium">₩43,925,400</p>
+</div>
+<div class="mt-4 inline-flex items-center text-secondary font-bold text-sm">
+<span class="material-symbols-outlined text-sm mr-1">trending_up</span>
+                            +18.5% 수익
+                        </div>
+</div>
+<!-- Comparison Banner -->
+<div class="col-span-2 p-4 rounded-xl bg-surface-container flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">compare_arrows</span>
+<p class="text-sm font-label font-medium text-on-surface">
+<span class="text-white font-bold">🇺🇸 미국 +18.5%</span> 앞섬 vs 🇰🇷 국내 +2.3%
+                            </p>
+</div>
+<span class="text-[10px] font-black text-primary uppercase tracking-widest">Global Divergence</span>
+</div>
+</section>
+<!-- Holdings List -->
+<section class="space-y-4">
+<div class="flex items-center justify-between px-2">
+<h3 class="text-lg font-bold font-headline text-white">보유 종목 <span class="text-primary ml-1">4 positions</span></h3>
+<button class="text-sm text-primary font-bold hover:underline">Edit List</button>
+</div>
+<div class="space-y-3">
+<!-- Samsung Electronics -->
+<div class="group p-5 rounded-2xl bg-surface-container-low hover:bg-surface-container transition-all flex items-center">
+<div class="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center mr-4 border border-outline-variant/10">
+<span class="font-black text-xs text-white">005930</span>
+</div>
+<div class="flex-1">
+<div class="flex items-center gap-2">
+<h4 class="font-bold text-white">삼성전자</h4>
+<span class="bg-amber-500/10 text-amber-500 text-[10px] font-black px-1.5 py-0.5 rounded border border-amber-500/20">대주주</span>
+</div>
+<p class="text-xs text-on-surface-variant">₩74,300</p>
+</div>
+<div class="text-right mr-8">
+<p class="text-sm font-black text-secondary">+8.2%</p>
+<p class="text-xs text-on-surface-variant">Profit</p>
+</div>
+<div class="text-right mr-8">
+<p class="font-bold text-white">₩14,860,000</p>
+<p class="text-xs text-on-surface-variant">Value</p>
+</div>
+<button class="bg-amber-500 hover:bg-amber-600 text-black text-[11px] font-black px-4 py-2 rounded-full transition-colors flex items-center gap-1">
+<span class="material-symbols-outlined text-xs">receipt</span>
+                                양도세
+                            </button>
+</div>
+<!-- AAPL -->
+<div class="group p-5 rounded-2xl bg-surface-container-low hover:bg-surface-container transition-all flex items-center">
+<div class="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center mr-4 border border-outline-variant/10 overflow-hidden">
+<img class="w-full h-full object-cover opacity-80" data-alt="minimalist Apple logo on sleek dark tech background with soft highlights" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA02nR_JQdIv4vgJR6Q4E7C6e1ST6PdTGAc3X9sqIJG-y6hzByGYqGiFoTO2TfaMdGS4xue54TASsG8LNfTiAhnSSm0Nq7TCrQ-rrSHb_8KrWEFigKvRuUVQb_D0InGuRbBgspsoOkt03zF5MENw_hfZ-Ei3QKwGYtKKPPlcthq9A5ccpjXxrDMzIzTtoGESQ3jeMMeul_7knYJn_qVGOB6kICQXEI38xE2ubPVie-zlCGUnp7FneXfWnIjRT2Brz8ufGiLHYhh-M0"/>
+</div>
+<div class="flex-1">
+<h4 class="font-bold text-white">Apple Inc.</h4>
+<p class="text-xs text-on-surface-variant">$186.50</p>
+</div>
+<div class="text-right mr-8">
+<p class="text-sm font-black text-secondary">+12.4%</p>
+<p class="text-xs text-on-surface-variant">Profit</p>
+</div>
+<div class="text-right">
+<p class="font-bold text-white">$18,650</p>
+<p class="text-xs text-on-surface-variant text-right">Value</p>
+</div>
+</div>
+<!-- MSFT -->
+<div class="group p-5 rounded-2xl bg-surface-container-low hover:bg-surface-container transition-all flex items-center">
+<div class="w-12 h-12 rounded-xl bg-surface-container-high flex items-center justify-center mr-4 border border-outline-variant/10 overflow-hidden">
+<img class="w-full h-full object-cover opacity-80" data-alt="modern Microsoft logo with vibrant blue and clean architectural lines on dark surface" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC1qrvOegxGTJEk-JL4R8R9otyarviE54cgnoDy35ZsYHdbzXdeSf9efDyw8LYzVm155HiE8IJVwlR5bOAKHFbwGoIA9j5dtLTahX0NPYxV8gQYnwWAYgIIYWmwdsAWkGWNJ3NHzAaO-zxUXrn4PdiPheXCxM6w7eUTmdzgN83Vi2C2VaYaDfkw08wm-Np6ErLhLY2_yKidZdnC973MX5ZlSp-uHRYKFEoA3Oy7T2E33NU47YSNu5scEwLScggDO6vB7MNj-ldzI9M"/>
+</div>
+<div class="flex-1">
+<h4 class="font-bold text-white">Microsoft</h4>
+<p class="text-xs text-on-surface-variant">$415.20</p>
+</div>
+<div class="text-right mr-8">
+<p class="text-sm font-black text-secondary">+5.8%</p>
+<p class="text-xs text-on-surface-variant">Profit</p>
+</div>
+<div class="text-right">
+<p class="font-bold text-white">$12,456</p>
+<p class="text-xs text-on-surface-variant text-right">Value</p>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Column: Sidebar Panels -->
+<div class="col-span-12 lg:col-span-4 space-y-6">
+<!-- Risk Assessment -->
+<aside class="space-y-4">
+<h3 class="text-sm font-black font-headline text-on-surface-variant uppercase tracking-[0.2em] px-2">리스크 평가</h3>
+<!-- Amber Alert -->
+<div class="p-5 rounded-2xl bg-amber-500/5 border border-amber-500/20 flex gap-4">
+<span class="material-symbols-outlined text-amber-500 mt-1">warning</span>
+<div class="space-y-2">
+<p class="text-sm font-bold text-amber-200">세금 주의보</p>
+<p class="text-xs text-amber-100/70 leading-relaxed">
+                                005930 보유금액 10억원 초과. 연말 매도 시 양도세 20~25% 적용 대상입니다.
+                            </p>
+</div>
+</div>
+<!-- Red Alert -->
+<div class="p-5 rounded-2xl bg-error/5 border border-error/20 flex gap-4">
+<span class="material-symbols-outlined text-error mt-1">pie_chart</span>
+<div class="space-y-2">
+<p class="text-sm font-bold text-error">집중 리스크</p>
+<p class="text-xs text-error/70 leading-relaxed">
+                                005930이 포트폴리오의 50%를 차지합니다. 분산 투자를 권장합니다.
+                            </p>
+</div>
+</div>
+<!-- Green Status -->
+<div class="p-5 rounded-2xl bg-secondary/5 border border-secondary/20 flex gap-4">
+<span class="material-symbols-outlined text-secondary mt-1">check_circle</span>
+<div class="space-y-2">
+<p class="text-sm font-bold text-secondary">유동성 양호</p>
+<p class="text-xs text-secondary/70 leading-relaxed">
+                                현재 포트폴리오의 현금 비중 및 환금성이 매우 우수합니다.
+                            </p>
+</div>
+</div>
+</aside>
+<!-- Pro Banner -->
+<div class="relative group cursor-pointer overflow-hidden rounded-3xl p-8 bg-gradient-to-br from-primary-container to-[#00315e] border border-white/10">
+<div class="absolute -right-4 -bottom-4 opacity-10 rotate-12 group-hover:scale-110 transition-transform duration-700">
+<span class="material-symbols-outlined text-[140px]" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+</div>
+<div class="relative z-10 space-y-6">
+<span class="inline-block px-3 py-1 rounded-full bg-white/20 text-white text-[10px] font-black uppercase tracking-widest">Premium Tier</span>
+<div>
+<h4 class="text-2xl font-black text-white font-headline leading-tight">Tax Optimization<br/>Engine</h4>
+<p class="mt-2 text-sm text-primary-fixed/80 font-medium">실시간 세금 시뮬레이션으로<br/>최적의 매도 타이밍을 잡으세요.</p>
+</div>
+<button class="w-full py-3 bg-white text-primary-container rounded-xl font-bold font-label hover:shadow-xl hover:shadow-primary-container/20 transition-all flex items-center justify-center gap-2">
+                            Upgrade to Pro
+                            <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Technical Chart Preview (Aesthetic) -->
+<div class="p-6 rounded-2xl bg-surface-container-low border border-outline-variant/10 overflow-hidden relative">
+<p class="text-xs font-bold text-on-surface-variant/60 mb-4 font-label">Portfolio Volatility</p>
+<div class="h-24 flex items-end gap-1">
+<div class="flex-1 bg-surface-variant rounded-t-sm h-[40%]"></div>
+<div class="flex-1 bg-surface-variant rounded-t-sm h-[60%]"></div>
+<div class="flex-1 bg-secondary rounded-t-sm h-[80%] opacity-50"></div>
+<div class="flex-1 bg-secondary rounded-t-sm h-[95%]"></div>
+<div class="flex-1 bg-secondary rounded-t-sm h-[70%]"></div>
+<div class="flex-1 bg-secondary rounded-t-sm h-[85%] opacity-70"></div>
+<div class="flex-1 bg-surface-variant rounded-t-sm h-[50%]"></div>
+<div class="flex-1 bg-surface-variant rounded-t-sm h-[30%]"></div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

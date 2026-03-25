@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="ko"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "inverse-primary": "#005fae",
+                        "error": "#ffb4ab",
+                        "on-surface-variant": "#c1c7d4",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "background": "#0f141a",
+                        "on-tertiary-container": "#ccffe2",
+                        "on-primary": "#00315e",
+                        "surface-tint": "#a5c8ff",
+                        "surface-container": "#1b2026",
+                        "secondary": "#afc8f1",
+                        "surface-container-high": "#252a31",
+                        "on-primary-fixed-variant": "#004785",
+                        "on-secondary-fixed-variant": "#2e486b",
+                        "inverse-surface": "#dee3eb",
+                        "tertiary-fixed": "#6ffbbe",
+                        "on-primary-container": "#f0f4ff",
+                        "surface-variant": "#30353c",
+                        "secondary-fixed-dim": "#afc8f1",
+                        "surface-container-low": "#171c22",
+                        "on-secondary-container": "#9db6df",
+                        "on-primary-fixed": "#001c3a",
+                        "on-secondary": "#163153",
+                        "outline-variant": "#414752",
+                        "primary-fixed-dim": "#a5c8ff",
+                        "on-error-container": "#ffdad6",
+                        "outline": "#8b919e",
+                        "surface-dim": "#0f141a",
+                        "on-error": "#690005",
+                        "surface": "#0f141a",
+                        "on-tertiary-fixed": "#002113",
+                        "surface-bright": "#353a40",
+                        "inverse-on-surface": "#2c3138",
+                        "surface-container-highest": "#30353c",
+                        "tertiary-container": "#007f57",
+                        "secondary-container": "#2e486b",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "primary": "#a5c8ff",
+                        "primary-container": "#0070cc",
+                        "on-tertiary": "#003824",
+                        "secondary-fixed": "#d4e3ff",
+                        "surface-container-lowest": "#0a0f15",
+                        "primary-fixed": "#d4e3ff",
+                        "on-secondary-fixed": "#001c3a",
+                        "error-container": "#93000a",
+                        "on-surface": "#dee3eb",
+                        "tertiary": "#4edea3",
+                        "on-background": "#dee3eb"
+                    },
+                    fontFamily: {
+                        "headline": ["Inter", "sans-serif"],
+                        "body": ["Inter", "sans-serif"],
+                        "label": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .ticker-scroll {
+            display: flex;
+            width: fit-content;
+            animation: scroll 40s linear infinite;
+        }
+        @keyframes scroll {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .glass-card {
+            background: rgba(37, 42, 49, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(65, 71, 82, 0.15);
+        }
+    </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface antialiased">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-[#0a0f15]/80 backdrop-blur-xl border-b border-[#414752]/15 shadow-[0px_24px_48px_rgba(0,0,0,0.4)]">
+<div class="max-w-7xl mx-auto flex justify-between items-center h-20 px-8 font-['Inter'] tracking-tight antialiased">
+<div class="text-2xl font-bold text-[#dee3eb] flex items-center gap-1 after:content-[''] after:w-1.5 after:h-1.5 after:bg-[#0070cc] after:rounded-full">
+                StockNavi
+            </div>
+<div class="hidden md:flex items-center gap-8">
+<a class="text-[#c1c7d4] hover:text-[#dee3eb] transition-colors" href="#">종목분석</a>
+<a class="text-[#c1c7d4] hover:text-[#dee3eb] transition-colors" href="#">경제지표</a>
+<a class="text-[#c1c7d4] hover:text-[#dee3eb] transition-colors" href="#">포트폴리오</a>
+<a class="text-[#c1c7d4] hover:text-[#dee3eb] transition-colors" href="#">FOMC</a>
+<a class="text-[#c1c7d4] hover:text-[#dee3eb] transition-colors" href="#">뉴스</a>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-[#c1c7d4] hover:text-[#dee3eb] text-sm px-4 py-2 transition-all duration-300">KR/EN</button>
+<button class="bg-[#0070cc] text-on-primary-container px-6 py-2.5 rounded-full font-semibold active:scale-95 duration-200 shadow-lg shadow-[#0070cc]/20">
+                    로그인
+                </button>
+</div>
+</div>
+</nav>
+<main class="pt-20">
+<!-- Ticker Strip -->
+<div class="w-full bg-surface-container-low border-b border-outline-variant/10 py-3 overflow-hidden">
+<div class="ticker-scroll whitespace-nowrap">
+<div class="flex items-center gap-8 px-4">
+<span class="flex items-center gap-2"><span class="font-bold">KOSPI</span> <span class="text-tertiary">2,654.12 ▲ 1.2%</span></span>
+<span class="flex items-center gap-2"><span class="font-bold">S&amp;P 500</span> <span class="text-tertiary">5,137.08 ▲ 0.8%</span></span>
+<span class="flex items-center gap-2"><span class="font-bold">NASDAQ</span> <span class="text-tertiary">16,274.94 ▲ 1.1%</span></span>
+<span class="flex items-center gap-2"><span class="font-bold">AAPL</span> <span class="text-error">179.66 ▼ 0.4%</span></span>
+<span class="flex items-center gap-2"><span class="font-bold">TSLA</span> <span class="text-tertiary">202.64 ▲ 2.3%</span></span>
+<span class="flex items-center gap-2"><span class="font-bold">NVDA</span> <span class="text-tertiary">822.79 ▲ 4.2%</span></span>
+<span class="flex items-center gap-2"><span class="font-bold">삼성전자</span> <span class="text-tertiary">73,200 ▲ 0.5%</span></span>
+</div>
+<!-- Duplicate for seamless loop -->
+<div class="flex items-center gap-8 px-4">
+<span class="flex items-center gap-2"><span class="font-bold">KOSPI</span> <span class="text-tertiary">2,654.12 ▲ 1.2%</span></span>
+<span class="flex items-center gap-2"><span class="font-bold">S&amp;P 500</span> <span class="text-tertiary">5,137.08 ▲ 0.8%</span></span>
+<span class="flex items-center gap-2"><span class="font-bold">NASDAQ</span> <span class="text-tertiary">16,274.94 ▲ 1.1%</span></span>
+<span class="flex items-center gap-2"><span class="font-bold">AAPL</span> <span class="text-error">179.66 ▼ 0.4%</span></span>
+<span class="flex items-center gap-2"><span class="font-bold">TSLA</span> <span class="text-tertiary">202.64 ▲ 2.3%</span></span>
+<span class="flex items-center gap-2"><span class="font-bold">NVDA</span> <span class="text-tertiary">822.79 ▲ 4.2%</span></span>
+<span class="flex items-center gap-2"><span class="font-bold">삼성전자</span> <span class="text-tertiary">73,200 ▲ 0.5%</span></span>
+</div>
+</div>
+</div>
+<!-- Hero Section -->
+<section class="max-w-7xl mx-auto px-8 py-32 flex flex-col items-center text-center">
+<h1 class="text-5xl md:text-7xl font-extrabold tracking-tight mb-6 bg-gradient-to-r from-primary to-primary-container bg-clip-text text-transparent">
+                정밀한 투자 인텔리전스
+            </h1>
+<p class="text-xl md:text-2xl text-on-surface-variant font-medium mb-12">
+                한국·미국 주식 AI 분석 플랫폼
+            </p>
+<div class="w-full max-w-2xl relative group">
+<div class="absolute inset-0 bg-primary/10 blur-2xl rounded-full transition-all duration-500 group-hover:bg-primary/20"></div>
+<div class="relative flex items-center bg-surface-container-highest rounded-full px-8 py-5 border border-outline-variant/20 shadow-2xl transition-all duration-300 focus-within:ring-2 focus-within:ring-primary/50">
+<span class="material-symbols-outlined text-outline mr-4">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-lg w-full placeholder-outline" placeholder="종목명 또는 티커 입력 (예: 삼성전자, AAPL)" type="text"/>
+<kbd class="hidden md:inline-flex items-center gap-1 px-2 py-1 rounded bg-surface-variant text-xs text-outline ml-4">
+<span class="text-sm">⌘</span>K
+                    </kbd>
+</div>
+</div>
+</section>
+<!-- Feature Cards Grid -->
+<section class="max-w-7xl mx-auto px-8 pb-32">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<!-- Card 1: 종목분석 -->
+<div class="group relative overflow-hidden rounded-lg p-10 bg-surface-container-high border border-outline-variant/15 hover:bg-surface-bright transition-all duration-500 cursor-pointer">
+<div class="absolute -top-24 -left-24 w-64 h-64 bg-primary/20 rounded-full blur-[80px] group-hover:bg-primary/30 transition-all duration-500"></div>
+<div class="relative z-10 flex flex-col h-full">
+<div class="mb-8 w-16 h-16 flex items-center justify-center rounded-2xl bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-4xl" data-weight="fill">monitoring</span>
+</div>
+<h3 class="text-2xl font-bold mb-3 text-on-surface">종목분석</h3>
+<p class="text-on-surface-variant text-lg leading-relaxed mb-8">
+                            AI가 실시간으로 분석하는 수급과 차트 데이터.<br/>기업의 핵심 지표를 한눈에 파악하세요.
+                        </p>
+<div class="mt-auto flex items-center text-primary font-semibold group-hover:translate-x-2 transition-transform duration-300">
+                            시작하기 <span class="material-symbols-outlined ml-1">arrow_forward</span>
+</div>
+</div>
+</div>
+<!-- Card 2: 경제지표 -->
+<div class="group relative overflow-hidden rounded-lg p-10 bg-surface-container-high border border-outline-variant/15 hover:bg-surface-bright transition-all duration-500 cursor-pointer">
+<div class="absolute -top-24 -left-24 w-64 h-64 bg-secondary/20 rounded-full blur-[80px] group-hover:bg-secondary/30 transition-all duration-500"></div>
+<div class="relative z-10 flex flex-col h-full">
+<div class="mb-8 w-16 h-16 flex items-center justify-center rounded-2xl bg-secondary/10 text-secondary">
+<span class="material-symbols-outlined text-4xl" data-weight="fill">public</span>
+</div>
+<h3 class="text-2xl font-bold mb-3 text-on-surface">경제지표</h3>
+<p class="text-on-surface-variant text-lg leading-relaxed mb-8">
+                            매크로 경제의 흐름을 읽는 가장 빠른 방법.<br/>금리, 환율, 고용 지표를 시각화하여 제공합니다.
+                        </p>
+<div class="mt-auto flex items-center text-secondary font-semibold group-hover:translate-x-2 transition-transform duration-300">
+                            시작하기 <span class="material-symbols-outlined ml-1">arrow_forward</span>
+</div>
+</div>
+</div>
+<!-- Card 3: FOMC 분석 -->
+<div class="group relative overflow-hidden rounded-lg p-10 bg-surface-container-high border border-outline-variant/15 hover:bg-surface-bright transition-all duration-500 cursor-pointer">
+<div class="absolute -top-24 -left-24 w-64 h-64 bg-tertiary-container/20 rounded-full blur-[80px] group-hover:bg-tertiary-container/30 transition-all duration-500"></div>
+<div class="relative z-10 flex flex-col h-full">
+<div class="mb-8 w-16 h-16 flex items-center justify-center rounded-2xl bg-tertiary-container/10 text-tertiary">
+<span class="material-symbols-outlined text-4xl" data-weight="fill">account_balance</span>
+</div>
+<h3 class="text-2xl font-bold mb-3 text-on-surface">FOMC 분석</h3>
+<p class="text-on-surface-variant text-lg leading-relaxed mb-8">
+                            연준의 발언 속 숨겨진 힌트를 분석합니다.<br/>점도표와 성명서의 변화를 실시간으로 추적하세요.
+                        </p>
+<div class="mt-auto flex items-center text-tertiary font-semibold group-hover:translate-x-2 transition-transform duration-300">
+                            시작하기 <span class="material-symbols-outlined ml-1">arrow_forward</span>
+</div>
+</div>
+</div>
+<!-- Card 4: 포트폴리오 -->
+<div class="group relative overflow-hidden rounded-lg p-10 bg-surface-container-high border border-outline-variant/15 hover:bg-surface-bright transition-all duration-500 cursor-pointer">
+<div class="absolute -top-24 -left-24 w-64 h-64 bg-orange-400/20 rounded-full blur-[80px] group-hover:bg-orange-400/30 transition-all duration-500"></div>
+<div class="relative z-10 flex flex-col h-full">
+<div class="mb-8 w-16 h-16 flex items-center justify-center rounded-2xl bg-orange-400/10 text-orange-400">
+<span class="material-symbols-outlined text-4xl" data-weight="fill">pie_chart</span>
+</div>
+<h3 class="text-2xl font-bold mb-3 text-on-surface">포트폴리오</h3>
+<p class="text-on-surface-variant text-lg leading-relaxed mb-8">
+                            분산 투자의 정석, AI 자산 배분 솔루션.<br/>리스크를 관리하고 수익률을 극대화하는 전략을 제안합니다.
+                        </p>
+<div class="mt-auto flex items-center text-orange-400 font-semibold group-hover:translate-x-2 transition-transform duration-300">
+                            시작하기 <span class="material-symbols-outlined ml-1">arrow_forward</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="w-full py-12 px-8 bg-[#0a0f15] border-t border-[#414752]/15">
+<div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6 font-['Inter'] text-sm text-[#c1c7d4]">
+<div class="text-xl font-bold text-[#dee3eb]">StockNavi</div>
+<div class="flex gap-8">
+<a class="hover:text-[#0070cc] transition-colors transition-opacity opacity-80 hover:opacity-100" href="#">이용약관</a>
+<a class="hover:text-[#0070cc] transition-colors transition-opacity opacity-80 hover:opacity-100" href="#">개인정보처리방침</a>
+<a class="hover:text-[#0070cc] transition-colors transition-opacity opacity-80 hover:opacity-100" href="#">고객센터</a>
+<a class="hover:text-[#0070cc] transition-colors transition-opacity opacity-80 hover:opacity-100" href="#">공지사항</a>
+</div>
+<div class="opacity-80">© 2024 StockNavi. 정밀한 투자 인텔리전스.</div>
+</div>
+</footer>
+</body></html>

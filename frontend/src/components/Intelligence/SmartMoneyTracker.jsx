@@ -31,10 +31,15 @@ export default function SmartMoneyTracker({ onSelectStock }) {
     return (
       <div className="bg-surface-container rounded-2xl border border-outline-variant/20 p-6">
         <h3 className="text-base font-bold font-headline text-on-surface mb-4">
-          {t('intelligence.smartMoney') || '🤖 스마트머니 트래커'}
+          🤖 {t('intelligence.smartMoney') || '스마트머니 트래커'}
         </h3>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-on-surface-variant">로딩 중...</div>
+        <div className="space-y-3">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-surface-container-low rounded-lg p-4 border border-outline-variant/10 animate-pulse">
+              <div className="h-4 bg-surface-container-high rounded w-3/4 mb-2" />
+              <div className="h-3 bg-surface-container-high rounded w-1/2" />
+            </div>
+          ))}
         </div>
       </div>
     )

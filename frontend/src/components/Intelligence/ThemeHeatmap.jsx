@@ -122,8 +122,10 @@ export default function ThemeHeatmap({ onSelectTheme, onSelectStock }) {
         <h3 className="text-base font-bold font-headline text-on-surface mb-4">
           🔥 {t('intelligence.themeHeatmap') || '테마 히트맵'}
         </h3>
-        <div className="flex items-center justify-center h-64">
-          <div className="text-on-surface-variant">로딩 중...</div>
+        <div className="grid grid-cols-2 gap-3 h-64">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-surface-container-low rounded-lg border border-outline-variant/10 animate-pulse" />
+          ))}
         </div>
       </div>
     )

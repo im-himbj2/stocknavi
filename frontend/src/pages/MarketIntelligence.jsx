@@ -10,7 +10,7 @@ export default function MarketIntelligence() {
   const [selectedTheme, setSelectedTheme] = useState(null)
 
   return (
-    <div className="bg-surface-container-lowest text-on-surface min-h-screen">
+    <>
       {/* Sticky Header */}
       <div className="sticky top-0 z-40 bg-[#0f141a]/90 backdrop-blur-xl border-b border-outline-variant/20 px-8 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -28,7 +28,7 @@ export default function MarketIntelligence() {
       </div>
 
       {/* Main Content */}
-      <div className="px-6 py-6 space-y-6 max-w-[1440px] mx-auto">
+      <div className="px-6 py-6 space-y-6 max-w-[1440px] mx-auto min-h-96">
         {/* Top Section: 2 Columns */}
         <div className="grid grid-cols-5 gap-6">
           {/* Column 1: Smart Money Tracker (40%, col-span-2) */}
@@ -47,6 +47,6 @@ export default function MarketIntelligence() {
           <AISignalPanel selectedStock={selectedStock} selectedTheme={selectedTheme} />
         </div>
       </div>
-    </div>
+    </>
   )
 }
