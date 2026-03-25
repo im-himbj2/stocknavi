@@ -10,7 +10,7 @@ from fastapi.responses import JSONResponse
 from app.core.config import settings
 from app.core.rate_limit import rate_limit_middleware
 from app.api import auth, portfolio, company, dividend, economic, news, speech, subscription
-from app.api import dart, investor_flow
+from app.api import dart, investor_flow, intelligence
 
 
 @asynccontextmanager
@@ -81,6 +81,7 @@ app.include_router(speech.router, prefix="/api", tags=["speech"])
 app.include_router(subscription.router, prefix="/api", tags=["subscription"])
 app.include_router(dart.router, prefix="/api", tags=["dart"])
 app.include_router(investor_flow.router, prefix="/api", tags=["investor-flow"])
+app.include_router(intelligence.router, prefix="/api", tags=["intelligence"])
 
 
 @app.get("/")
